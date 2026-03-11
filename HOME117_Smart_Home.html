@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOME117 — Smart Home Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b14;
+    --bg2: #0d1220;
+    --bg3: #111827;
+    --border: rgba(255,255,255,0.07);
+    --text: #e2e8f0;
+    --dim: #64748b;
+
+    --net:    #00c9ff;
+    --apple:  #a8b8d0;
+    --poe:    #f97316;
+    --ha:     #41bdf5;
+    --tuya:   #ff6b2b;
+    --bond:   #c084fc;
+    --ir:     #f87171;
+    --bticino:#fbbf24;
+    --wifi:   #4ade80;
+    --nuki:   #e879f9;
+    --matter: #34d399;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Syne', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,201,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,201,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* ── Header ── */
+  header {
+    padding: 32px 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-badge {
+    background: linear-gradient(135deg, #00c9ff22, #00c9ff44);
+    border: 1px solid var(--net);
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--net);
+    letter-spacing: 2px;
+  }
+  h1 {
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  h1 span { color: var(--net); }
+  .subtitle { font-size: 13px; color: var(--dim); margin-top: 4px; font-family: 'Space Mono', monospace; }
+  .stats-row { display: flex; gap: 20px; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--net); }
+  .stat-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── Room Filter ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+  .filter-label { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-left: 8px; white-space: nowrap; }
+  .room-pill {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--dim);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .room-pill:hover { border-color: var(--net); color: var(--net); }
+  .room-pill.active { background: var(--net); border-color: var(--net); color: #000; font-weight: 600; }
+
+  /* ── Grid layout ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── System Card ── */
+  .sys-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s, opacity .3s;
+  }
+  .sys-card.hidden { opacity: 0.15; pointer-events: none; }
+  .sys-card:hover { transform: translateY(-2px); }
+
+  .sys-header {
+    padding: 14px 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .sys-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+  }
+  .sys-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .sys-title-area { position: relative; z-index: 1; flex: 1; }
+  .sys-name { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+  .sys-desc { font-size: 10px; color: var(--dim); margin-top: 1px; font-family: 'Space Mono', monospace; }
+  .sys-count {
+    position: relative; z-index: 1;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: var(--dim);
+  }
+
+  .device-list { padding: 10px 14px 14px; }
+  .device-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    cursor: default;
+    transition: background .15s;
+  }
+  .device-item:hover { background: rgba(255,255,255,0.04); }
+  .device-item.highlighted { background: rgba(0,201,255,0.08); }
+  .device-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .device-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulse-ring 2s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(1); opacity: 0.4; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .device-name { font-size: 12px; flex: 1; }
+  .device-room {
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* ── Internet/Network — wide card ── */
+  .card-wide { grid-column: span 2; }
+  @media (max-width: 700px) { .card-wide { grid-column: span 1; } }
+
+  /* per-system accent colors */
+  .c-net    { --accent: var(--net); }
+  .c-apple  { --accent: var(--apple); }
+  .c-poe    { --accent: var(--poe); }
+  .c-ha     { --accent: var(--ha); }
+  .c-tuya   { --accent: var(--tuya); }
+  .c-bond   { --accent: var(--bond); }
+  .c-ir     { --accent: var(--ir); }
+  .c-bticino{ --accent: var(--bticino); }
+  .c-wifi   { --accent: var(--wifi); }
+  .c-nuki   { --accent: var(--nuki); }
+
+  .sys-icon { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .sys-header::before { background: var(--accent); }
+  .device-dot { background: var(--accent); }
+  .device-dot::after { border: 1px solid var(--accent); }
+  .sys-name { color: var(--accent); }
+  .sys-card { box-shadow: 0 0 0 0 transparent; }
+  .sys-card:hover { box-shadow: 0 4px 30px color-mix(in srgb, var(--accent) 12%, transparent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  /* ── Network topology section ── */
+  .topo-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  .topo-title { font-size: 11px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; font-family: 'Space Mono', monospace; }
+
+  .topo-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+  .topo-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-width: 110px;
+    text-align: center;
+  }
+  .topo-node-icon { font-size: 22px; }
+  .topo-node-name { font-size: 11px; font-weight: 700; color: var(--net); }
+  .topo-node-sub { font-size: 10px; color: var(--dim); font-family: 'Space Mono', monospace; }
+  .topo-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: var(--dim);
+    font-size: 18px;
+    position: relative;
+  }
+  .topo-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--net), transparent);
+    animation: flow-anim 1.5s linear infinite;
+  }
+  @keyframes flow-anim {
+    0%   { opacity: 0.2; }
+    50%  { opacity: 0.8; }
+    100% { opacity: 0.2; }
+  }
+
+  /* ── Room map ── */
+  .rooms-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .room-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .room-card:hover, .room-card.active {
+    border-color: var(--net);
+    background: rgba(0,201,255,0.05);
+  }
+  .room-card.active .room-card-name { color: var(--net); }
+  .room-card-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .room-card-count { font-size: 10px; color: var(--dim); font-family: 'Space Mono', monospace; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 14px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-title { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-left: 8px; font-family: 'Space Mono', monospace; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Pulse animation for live dots */
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--net);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1.2s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-badge">HOME117</div>
+      <div>
+        <h1><span>Smart Home</span> Architecture</h1>
+        <div class="subtitle">SYSTEM MAP · v2.0 · INTERACTIVE</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="total-devices">0</div><div class="stat-label">מכשירים</div></div>
+      <div class="stat"><div class="stat-num">10</div><div class="stat-label">מערכות</div></div>
+      <div class="stat"><div class="stat-num">14</div><div class="stat-label">חדרים</div></div>
+      <div class="stat"><div class="stat-num">1G</div><div class="stat-label">סיב</div></div>
+    </div>
+  </header>
+
+  <!-- Network Topology -->
+  <div class="topo-section">
+    <div class="topo-title"><span class="live-dot"></span>Network Topology — Internet Flow</div>
+    <div class="topo-flow" id="topo"></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="legend-title">מערכות:</span>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--net)"></div>רשת</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--apple)"></div>Apple</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ha)"></div>Home Assistant</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--bond)"></div>Bond (RF)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ir)"></div>BroadLink (IR)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--tuya)"></div>Tuya</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--bticino)"></div>BTicino</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--poe)"></div>PoE</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--wifi)"></div>WiFi Devices</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--nuki)"></div>NUKI / Matter</div>
+  </div>
+
+  <!-- Room Filter -->
+  <div class="filter-bar" id="filter-bar">
+    <span class="filter-label">סנן לפי חדר:</span>
+  </div>
+
+  <!-- Interactive Floor Plan -->
+  <div class="rooms-section" style="margin-bottom:16px;">
+    <div class="topo-title"><span class="live-dot"></span>מפת הבית — לחץ על חדר לסינון</div>
+    <div id="floor-plan-wrap" style="width:100%;overflow-x:auto;padding:4px 0 8px;">
+      <svg id="floor-plan" viewBox="0 0 760 530" style="width:100%;max-width:860px;display:block;font-family:'Syne',sans-serif;" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <!-- Systems Grid -->
+  <div class="grid" id="systems-grid"></div>
+
+  <footer>
+    <div><span class="live-dot"></span>HOME117 Smart Home · Architecture Map</div>
+    <div>Partner Fiber 1000/250 · tp-link Deco Mesh · Apple Home</div>
+  </footer>
+</div>
+
+<script>
+const ROOMS = [
+  'כניסה','מטבח','סלון','מרפסת דרום','מרפסת מערב','מסדרון','משרד',
+  'חדר שינה ראשי','חדר אמבטיה ראשי','דניאל','דפנה','שירותי אורחים','חדר ילדים - אמבטיה','כביסה'
+];
+
+const ROOM_MAP = {
+  'Entrance':'כניסה','Kitchen':'מטבח','Living Room':'סלון',
+  'South Balcony':'מרפסת דרום','West Balcony':'מרפסת מערב',
+  'Hallway':'מסדרון','Office':'משרד','Master Bedroom':'חדר שינה ראשי',
+  'Master Bathroom':'חדר אמבטיה ראשי',"Danielle's Room":'דניאל',
+  "Daphna's Room":'דפנה','Guest Toilet':'שירותי אורחים',
+  'Kids Bathroom':'חדר ילדים - אמבטיה','Laundry Room':'כביסה',
+  'All Rooms':'כל הבית','Building Gate':'שער הבניין'
+};
+
+const SYSTEMS = [
+  {
+    id:'net', cls:'c-net', icon:'🌐', name:'Internet & WiFi', desc:'NETWORK BACKBONE',
+    devices:[
+      {name:'Partner Fiber 1000/250', room:'All Rooms'},
+      {name:'BE5000 — ארון תקשורת', room:'Hallway'},
+      {name:'BE5000 — סלון', room:'Living Room'},
+      {name:'BE5000 — תקרה חבויה', room:'Hallway'},
+      {name:'AX1800 — Deco Node', room:'South Balcony'},
+    ]
+  },
+  {
+    id:'apple', cls:'c-apple', icon:'', name:'Apple Ecosystem', desc:'APPLE HOME · AIRPLAY',
+    devices:[
+      {name:'HomePod + Apple TV', room:'Living Room'},
+      {name:'HomePod Mini + Apple TV', room:"Master Bedroom"},
+      {name:'HomePod Mini + Apple TV', room:"Danielle's Room"},
+      {name:'HomePod Mini + Apple TV', room:"Daphna's Room"},
+      {name:'Apple TV', room:'South Balcony'},
+      {name:'HomePod Mini + iMac', room:'Office'},
+    ]
+  },
+  {
+    id:'poe', cls:'c-poe', icon:'📷', name:'PoE Cameras', desc:'POWER OVER ETHERNET',
+    devices:[
+      {name:'Aqara G5 Pro', room:'South Balcony'},
+      {name:'Aqara G5 Pro', room:'West Balcony'},
+    ]
+  },
+  {
+    id:'ha', cls:'c-ha', icon:'🏠', name:'Home Assistant', desc:'AUTOMATION HUB',
+    devices:[
+      {name:'BroadLink RM3 Mini', room:'Kids Bathroom'},
+      {name:'BroadLink RM Pro', room:'West Balcony'},
+      {name:'Sundance Hamilton 780 Jacuzzi', room:'South Balcony'},
+      {name:'Water Boiler Switch', room:'Hallway'},
+      {name:'Heater Switch', room:'Kids Bathroom'},
+      {name:'Heater Switch', room:'Master Bathroom'},
+      {name:'PAL — Building Gate', room:'Building Gate'},
+      {name:'POE Master', room:'Living Room'},
+      {name:'Living Room Cam Master', room:'Living Room'},
+      {name:'Door Cam & Bell Master', room:'Entrance'},
+      {name:'Hallway Shelf', room:'Hallway'},
+      {name:'Master Bathroom Sub-Heat', room:'Master Bathroom'},
+      {name:'Kitchen Water Heater', room:'Kitchen'},
+    ]
+  },
+  {
+    id:'tuya', cls:'c-tuya', icon:'🔌', name:'Tuya', desc:'SMART PLUG / HEAT / LED',
+    devices:[
+      {name:'Towel Warmer', room:'Kids Bathroom'},
+      {name:'Towel Warmer', room:'Master Bathroom'},
+      {name:'LED Strip (Kitchen)', room:'West Balcony'},
+    ]
+  },
+  {
+    id:'bond', cls:'c-bond', icon:'🌀', name:'Bond Bridge (RF)', desc:'CEILING FANS · SHADES',
+    devices:[
+      {name:'Ceiling Fan', room:'Office'},
+      {name:"Ceiling Fan", room:"Daphna's Room"},
+      {name:"Ceiling Fan", room:"Danielle's Room"},
+      {name:'Ceiling Fan', room:'Master Bedroom'},
+      {name:'Ceiling Fan', room:'West Balcony'},
+      {name:'Outside Shades (Ziptrak)', room:'West Balcony'},
+    ]
+  },
+  {
+    id:'ir', cls:'c-ir', icon:'📡', name:'BroadLink (IR)', desc:'INFRARED CONTROL',
+    devices:[
+      {name:'Heater', room:'Kids Bathroom'},
+      {name:'Outdoor Heater', room:'West Balcony'},
+    ]
+  },
+  {
+    id:'wifi', cls:'c-wifi', icon:'📶', name:'WiFi Devices', desc:'DIRECT WIFI',
+    devices:[
+      {name:'BTicino Switches & Hub', room:'All Rooms'},
+      {name:'Bond Bridge', room:'Living Room'},
+      {name:'Aqara Doorbell + Cam', room:'Entrance'},
+      {name:'Aqara Cam G100', room:'Entrance'},
+      {name:'Aqara Cam E1', room:'Living Room'},
+      {name:'WiiM Amp', room:'South Balcony'},
+      {name:'WiiM Amp', room:'West Balcony'},
+      {name:'WiiM Amp', room:'Living Room'},
+      {name:'Aqara Wireless Switches', room:'All Rooms'},
+      {name:'Qrevo Edge 5v1', room:'All Rooms'},
+      {name:'Balcony South Neon & LED', room:'South Balcony'},
+    ]
+  },
+  {
+    id:'nuki', cls:'c-nuki', icon:'🔐', name:'NUKI + Matter', desc:'SMART LOCK · PROTOCOL',
+    devices:[
+      {name:'NUKI Pro 4', room:'Entrance'},
+      {name:'Matter Hub', room:'Living Room'},
+    ]
+  },
+  {
+    id:'bticino', cls:'c-bticino', icon:'💡', name:'BTicino', desc:'LIGHTS · SHUTTERS · CURTAINS',
+    wide: true,
+    devices:[
+      // Entrance
+      {name:'Entrance Light', room:'Entrance'},
+      // Kitchen
+      {name:'Main Light', room:'Kitchen'},
+      {name:'Island Light', room:'Kitchen'},
+      {name:'Service Light', room:'Kitchen'},
+      // Living Room
+      {name:'Light Strip 1', room:'Living Room'},
+      {name:'Light Strip 2', room:'Living Room'},
+      {name:'Light Strip 3', room:'Living Room'},
+      {name:'Dining Table Light', room:'Living Room'},
+      {name:'South Shutters', room:'Living Room'},
+      {name:'West Shutters', room:'Living Room'},
+      {name:'South Curtain', room:'Living Room'},
+      {name:'West Curtain', room:'Living Room'},
+      // Balcony
+      {name:'South Wall Light', room:'South Balcony'},
+      // West Balcony
+      {name:'West Wall Light', room:'West Balcony'},
+      {name:'Surround LED Light', room:'West Balcony'},
+      {name:'Poles Light', room:'West Balcony'},
+      {name:'Ceiling Fan Main', room:'West Balcony'},
+      // Hallway
+      {name:'Spot Lights', room:'Hallway'},
+      {name:'Wall Fixtures', room:'Hallway'},
+      // Office
+      {name:'Table Light', room:'Office'},
+      {name:'Ceiling Fan Main', room:'Office'},
+      {name:'Shutters', room:'Office'},
+      // Master Bedroom
+      {name:'Closet Light', room:'Master Bedroom'},
+      {name:'Ceiling Fan Main', room:'Master Bedroom'},
+      {name:'Erez Reading Light', room:'Master Bedroom'},
+      {name:'Roy Reading Light', room:'Master Bedroom'},
+      {name:'Shutters', room:'Master Bedroom'},
+      // Master Bathroom
+      {name:'Main Light', room:'Master Bathroom'},
+      // Danielle
+      {name:"Ceiling Fan Main", room:"Danielle's Room"},
+      {name:"Shutters", room:"Danielle's Room"},
+      // Daphna
+      {name:"Ceiling Fan Main", room:"Daphna's Room"},
+      // Guest Toilet
+      {name:'Light + Ventilation Fan', room:'Guest Toilet'},
+      // Kids Bathroom
+      {name:'Main Light', room:'Kids Bathroom'},
+      {name:'Above Mirror Light', room:'Kids Bathroom'},
+      {name:'Ventilation Fan', room:'Kids Bathroom'},
+      {name:'Mirror Light', room:'Kids Bathroom'},
+      // Laundry
+      {name:'Main Light', room:'Laundry Room'},
+    ]
+  },
+];
+
+// ── Topology ──────────────────────────────────────────────
+const topoNodes = [
+  {icon:'🌐', name:'Partner Fiber', sub:'1000/250 Mbps'},
+  {icon:'📡', name:'Deco Mesh', sub:'4 Nodes · WiFi 6'},
+  {icon:'🏠', name:'בית חכם', sub:'כל המכשירים'},
+];
+const topoEl = document.getElementById('topo');
+// RTL: flow goes right→left visually, so render nodes left-to-right but arrows point right (→)
+topoNodes.forEach((n,i) => {
+  const node = document.createElement('div');
+  node.className = 'topo-node';
+  node.innerHTML = `<div class="topo-node-icon">${n.icon}</div><div class="topo-node-name">${n.name}</div><div class="topo-node-sub">${n.sub}</div>`;
+  topoEl.appendChild(node);
+  if (i < topoNodes.length - 1) {
+    const arr = document.createElement('div');
+    arr.style.cssText = 'padding:0 16px;color:#00c9ff99;font-size:26px;display:flex;align-items:center;line-height:1;';
+    arr.innerHTML = '←';
+    topoEl.appendChild(arr);
+  }
+});
+
+// ── Build device-count-per-room ───────────────────────────
+const roomDevCount = {};
+SYSTEMS.forEach(sys => sys.devices.forEach(d => {
+  const r = d.room;
+  roomDevCount[r] = (roomDevCount[r]||0)+1;
+}));
+
+// ── SVG Floor Plan — Blueprint style ─────────────────────
+// Layout based on actual apartment map from PDF
+// Coordinate system: 760 x 520, rooms share walls (no gaps)
+// Wall thickness = 6px drawn as stroke on room rects
+
+const WALL = 5; // half-wall thickness for inset
+
+const FLOOR_ROOMS = [
+  // ── Row 1 (top) ──
+  {room:"Daphna's Room",   label:"דפנה",            x:0,   y:0,   w:148, h:118},
+  {room:"Danielle's Room", label:"דניאל",           x:148, y:0,   w:142, h:118},
+  {room:'Kids Bathroom',   label:"אמבטיה\nילדים",   x:290, y:0,   w:92,  h:118},
+  {room:'Guest Toilet',    label:"שירותי\nאורחים",  x:382, y:0,   w:63,  h:118},
+  {room:'Laundry Room',    label:"כביסה",            x:445, y:0,   w:75,  h:118},
+  {room:'Entrance',        label:"כניסה",            x:520, y:0,   w:240, h:118},
+  // ── Row 2 (middle) ──
+  {room:'Master Bathroom', label:"אמבטיה\nראשי",    x:0,   y:118, w:148, h:152},
+  {room:'Hallway',         label:"מסדרון",           x:148, y:118, w:142, h:282},
+  {room:'Office',          label:"משרד",             x:290, y:118, w:230, h:152},
+  {room:'Kitchen',         label:"מטבח",             x:520, y:118, w:240, h:152},
+  // ── Row 3 (lower) ──
+  {room:'Master Bedroom',  label:"חדר שינה\nראשי",  x:0,   y:270, w:290, h:130},
+  {room:'Living Room',     label:"סלון",             x:290, y:270, w:470, h:130},
+  // ── Row 4 (balconies) ──
+  {room:'West Balcony',    label:"מרפסת מערב",       x:0,   y:400, w:470, h:120},
+  {room:'South Balcony',   label:"מרפסת דרום",       x:470, y:400, w:290, h:120},
+];
+
+// Accent colors per room (very subtle fill, used for active highlight too)
+const ROOM_COLORS = {
+  "Daphna's Room":  '#4338ca',
+  "Danielle's Room":'#6d28d9',
+  'Kids Bathroom':  '#0e7490',
+  'Guest Toilet':   '#155e75',
+  'Laundry Room':   '#374151',
+  'Entrance':       '#92400e',
+  'Master Bathroom':'#065f71',
+  'Hallway':        '#1e293b',
+  'Office':         '#064e3b',
+  'Kitchen':        '#78350f',
+  'Master Bedroom': '#1e3a5f',
+  'Living Room':    '#14532d',
+  'West Balcony':   '#1a2030',
+  'South Balcony':  '#102010',
+};
+
+const svg = document.getElementById('floor-plan');
+svg.setAttribute('viewBox','0 0 760 520');
+
+svg.innerHTML = `<defs>
+  <pattern id="grid" patternUnits="userSpaceOnUse" width="20" height="20">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(100,180,255,0.07)" stroke-width="0.5"/>
+  </pattern>
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="2" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<!-- Blueprint background -->
+<rect width="760" height="520" fill="#071628"/>
+<!-- Grid -->
+<rect width="760" height="520" fill="url(#grid)"/>
+<!-- Outer apartment boundary -->
+<rect x="1" y="1" width="758" height="518" fill="none" stroke="rgba(126,184,212,0.3)" stroke-width="1.5" rx="2"/>
+`;
+
+FLOOR_ROOMS.forEach(r => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.style.cursor = 'pointer';
+  g.dataset.room = r.room;
+  const baseColor = ROOM_COLORS[r.room] || '#1e293b';
+
+  // Room fill (dim base)
+  const fill = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  fill.setAttribute('class','room-fill');
+  fill.setAttribute('x', r.x); fill.setAttribute('y', r.y);
+  fill.setAttribute('width', r.w); fill.setAttribute('height', r.h);
+  fill.setAttribute('fill', baseColor);
+  fill.setAttribute('fill-opacity','0.55');
+  fill.setAttribute('data-base', baseColor);
+
+  // Wall lines (borders)
+  const wall = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  wall.setAttribute('class','room-wall');
+  wall.setAttribute('x', r.x); wall.setAttribute('y', r.y);
+  wall.setAttribute('width', r.w); wall.setAttribute('height', r.h);
+  wall.setAttribute('fill','none');
+  wall.setAttribute('stroke','rgba(160,210,235,0.55)');
+  wall.setAttribute('stroke-width','1.5');
+
+  // Count badge (top-right corner)
+  const cnt = roomDevCount[r.room] || 0;
+  const bx = r.x + r.w - 13, by = r.y + 13;
+  const badgeCirc = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  badgeCirc.setAttribute('cx', bx); badgeCirc.setAttribute('cy', by);
+  badgeCirc.setAttribute('r','10');
+  badgeCirc.setAttribute('fill','rgba(0,0,0,0.5)');
+  badgeCirc.setAttribute('stroke','rgba(0,201,255,0.3)');
+  badgeCirc.setAttribute('stroke-width','0.8');
+  const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  badgeTxt.setAttribute('x', bx); badgeTxt.setAttribute('y', by+3.5);
+  badgeTxt.setAttribute('text-anchor','middle');
+  badgeTxt.setAttribute('font-size','8.5'); badgeTxt.setAttribute('font-weight','700');
+  badgeTxt.setAttribute('fill','rgba(0,201,255,0.9)');
+  badgeTxt.setAttribute('pointer-events','none');
+  badgeTxt.textContent = cnt;
+
+  // Room label
+  const lines = r.label.split('\n');
+  const lineH = 15;
+  const totalH = lines.length * lineH;
+  const lx = r.x + r.w / 2;
+  const ly = r.y + r.h / 2 - totalH / 2 + 11;
+  const fontSize = r.w < 80 ? '8.5' : r.w < 120 ? '10' : '11.5';
+
+  g.appendChild(fill);
+  g.appendChild(wall);
+  g.appendChild(badgeCirc);
+  g.appendChild(badgeTxt);
+  lines.forEach((line, li) => {
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x', lx);
+    txt.setAttribute('y', ly + li * lineH);
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('font-size', fontSize);
+    txt.setAttribute('font-weight','700');
+    txt.setAttribute('fill','rgba(220,235,255,0.9)');
+    txt.setAttribute('pointer-events','none');
+    txt.setAttribute('letter-spacing','0.3');
+    txt.textContent = line;
+    g.appendChild(txt);
+  });
+
+  // Hover
+  g.addEventListener('mouseenter', () => {
+    if (activeRoom !== r.room) {
+      wall.setAttribute('stroke','rgba(0,201,255,0.7)');
+      fill.setAttribute('fill-opacity','0.75');
+    }
+  });
+  g.addEventListener('mouseleave', () => {
+    if (activeRoom !== r.room) {
+      wall.setAttribute('stroke','rgba(160,210,235,0.55)');
+      fill.setAttribute('fill-opacity','0.55');
+    }
+  });
+  g.addEventListener('click', () => toggleRoomFilter(r.room));
+  svg.appendChild(g);
+});
+
+
+
+
+// ── Room filter pills ─────────────────────────────────────
+const filterBar = document.getElementById('filter-bar');
+const allPill = document.createElement('div');
+allPill.className = 'room-pill active';
+allPill.textContent = 'הכל';
+allPill.dataset.room = '';
+allPill.addEventListener('click', () => toggleRoomFilter(''));
+filterBar.appendChild(allPill);
+
+// Use all unique rooms from data (preserving order from FLOOR_ROOMS first, then extras)
+const floorRoomKeys = FLOOR_ROOMS.map(r => r.room);
+const allDataRooms = [...new Set(SYSTEMS.flatMap(s=>s.devices.map(d=>d.room)))];
+const orderedRooms = [...floorRoomKeys.filter(r => allDataRooms.includes(r)),
+  ...allDataRooms.filter(r => !floorRoomKeys.includes(r))];
+
+orderedRooms.forEach(room => {
+  const pill = document.createElement('div');
+  pill.className = 'room-pill';
+  pill.textContent = ROOM_MAP[room] || room;
+  pill.dataset.room = room;
+  pill.addEventListener('click', () => toggleRoomFilter(room));
+  filterBar.appendChild(pill);
+});
+
+let activeRoom = '';
+function toggleRoomFilter(room) {
+  activeRoom = activeRoom === room ? '' : room;
+  updateFilter();
+}
+
+function updateFilter() {
+  filterBar.querySelectorAll('.room-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.room === activeRoom);
+  });
+  // SVG blueprint highlight
+  svg.querySelectorAll('g[data-room]').forEach(g => {
+    const fill = g.querySelector('.room-fill');
+    const wall = g.querySelector('.room-wall');
+    const isActive = g.dataset.room === activeRoom;
+    const isNone   = !activeRoom;
+    if (fill) {
+      fill.setAttribute('fill-opacity', isNone ? '0.55' : isActive ? '0.9' : '0.2');
+    }
+    if (wall) {
+      wall.setAttribute('stroke', isActive ? '#00c9ff' : 'rgba(160,210,235,0.55)');
+      wall.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
+    }
+  });
+  // system cards
+  document.querySelectorAll('.sys-card').forEach(card => {
+    const items = card.querySelectorAll('.device-item');
+    let anyMatch = false;
+    items.forEach(item => {
+      const match = !activeRoom || item.dataset.room === activeRoom;
+      item.classList.toggle('highlighted', !!activeRoom && match);
+      if (match) anyMatch = true;
+    });
+    card.classList.toggle('hidden', !!activeRoom && !anyMatch);
+  });
+}
+
+// ── Render system cards ───────────────────────────────────
+const grid = document.getElementById('systems-grid');
+let totalDevices = 0;
+
+SYSTEMS.forEach(sys => {
+  totalDevices += sys.devices.length;
+  const card = document.createElement('div');
+  card.className = `sys-card ${sys.cls}${sys.wide?' card-wide':''}`;
+
+  const devItems = sys.devices.map(d => {
+    const roomLabel = ROOM_MAP[d.room] || d.room;
+    return `<div class="device-item" data-room="${d.room}">
+      <div class="device-dot"></div>
+      <div class="device-name">${d.name}</div>
+      <div class="device-room">${roomLabel}</div>
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="sys-header">
+      <div class="sys-icon">${sys.icon}</div>
+      <div class="sys-title-area">
+        <div class="sys-name">${sys.name}</div>
+        <div class="sys-desc">${sys.desc}</div>
+      </div>
+      <div class="sys-count">${sys.devices.length}</div>
+    </div>
+    <div class="device-list">${devItems}</div>`;
+
+  grid.appendChild(card);
+});
+
+document.getElementById('total-devices').textContent = totalDevices;
+</script>
+</body>
+</html>
