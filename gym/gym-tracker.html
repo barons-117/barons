@@ -221,8 +221,9 @@ async function delExercise(cat,id){ if(!confirm('למחוק?'))return; await fbS
 
 async function changeWeight(cat,id,delta){
   const ex=S.plan?.exercises?.[cat]?.[id]; if(!ex)return;
-  const step=ex.weightStep||2.5;
-  const nw=Math.max(0,parseFloat((parseFloat(ex.weight)+delta*step).toFixed(2)));
+  const stepNum=parseFloat(ex.weightStep);
+  if(isNaN(stepNum)){ S.editingWeight=id; _pendingFocus="winput_"+id; render(); return; }
+  const nw=Math.max(0,parseFloat((parseFloat(ex.weight||0)+delta*stepNum).toFixed(4)));
   await fbMerge(`currentPlan/exercises/${cat}/${id}`,{weight:nw});
   logWeight(id,ex.name,nw);
 }
@@ -378,8 +379,8 @@ function exBody(ex,cat,hist){
       <div><div class="field-label">כיוונון</div>
         ${tm?`<input class="field-input" value="${esc(ex.adjustment)}" placeholder="גובה 3" onchange="GT.up('${cat}','${ex.id}','adjustment',this.value)">`:`<div class="field-val">${esc(ex.adjustment)||'—'}</div>`}
       </div>
-      <div><div class="field-label">קפיצת משקל</div>
-        ${tm?`<select class="field-input" onchange="GT.up('${cat}','${ex.id}','weightStep',parseFloat(this.value))">${[0.5,1,1.25,2,2.5,5,10].map(v=>`<option value="${v}"${(ex.weightStep||2.5)==v?' selected':''}>${v} ק"ג</option>`).join('')}</select>`:`<div class="field-val">${ex.weightStep||2.5} ק"ג</div>`}
+      <div><div class="field-label">קפיצת +/−</div>
+        ${tm?`<input class="field-input" value="${esc(String(ex.weightStep??2.5))}" placeholder='2.5' onchange="GT.up('${cat}','${ex.id}','weightStep',this.value)">`:`<div class="field-val">${ex.weightStep??2.5}</div>`}
       </div>
     </div>
     <div class="field-grid fg-3" style="margin-top:7px">
