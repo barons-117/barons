@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>תכנית האימונים | PROFIT</title>
+<title>תכנית האימונים | KY-GYM</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -164,6 +164,9 @@ input:focus, textarea:focus, select:focus { border-color:var(--red); }
 .saving-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; margin-left:4px; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
 .offline-bar { background:#fff0f0; border-bottom:1px solid #fcc; text-align:center; padding:6px; font-size:12px; color:#c00; display:none; }
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:2000; display:flex; align-items:center; justify-content:center; cursor:zoom-out; }
+.lightbox img { max-width:92vw; max-height:88vh; border-radius:10px; object-fit:contain; }
+.lightbox-close { position:fixed; top:14px; left:14px; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.15); border:none; color:#fff; font-size:22px; cursor:pointer; }
 .loading-screen { display:flex; align-items:center; justify-content:center; min-height:70vh; flex-direction:column; gap:12px; color:var(--muted); }
 .spinner { font-size:36px; animation:spin 1.2s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -257,7 +260,7 @@ function hdr(){ const el=document.getElementById('hdr-dyn'); if(el)el.innerHTML=
 
 function page(){ return `<div>
   <header class="header">
-    <div class="logo">PROFIT</div>
+    <div class="logo">KY-GYM</div>
     <div id="hdr-dyn" style="display:contents">${hdrDyn()}</div>
   </header>
   <div class="content">
@@ -321,7 +324,7 @@ function exCard(ex,cat){
   const numSz=(ex.machineNumber||'').length>2?'font-size:10px':'';
 
   const imgEl=ex.machineImage
-    ?`<img src="${esc(ex.machineImage)}" class="machine-img"${tm?` data-img-ex="${ex.id}" data-img-cat="${cat}" style="cursor:pointer"`:''} alt="">`
+    ?`<img src="${esc(ex.machineImage)}" class="machine-img" style="cursor:zoom-in" data-lightbox="${esc(ex.machineImage)}"${tm?` data-img-ex="${ex.id}" data-img-cat="${cat}"`:''} alt="">` 
     :tm?`<div class="machine-img-ph" data-img-ex="${ex.id}" data-img-cat="${cat}">📷</div>`:'';
 
   const nameEl=tm&&editingN
@@ -484,11 +487,11 @@ function modalNewPlan(){
     <div class="row"><button class="btn-red" onclick="GT.doCreatePlan()">צור תכנית</button><button class="btn-outline" onclick="GT.closeModal()">ביטול</button></div>`;
 }
 function modalNewMem(){
-  const cur=S.modal.total||10;
+  const cur=S.modal.total||11;
   return `<div class="modal-title">כרטיסייה חדשה</div>
-    <div class="field-label" style="margin-bottom:8px">כמה שיעורים?</div>
-    <div class="pill-select">${[8,10,12,15,20,25].map(n=>`<button class="pill${cur===n?' sel':''}" onclick="GT.memTotal(${n})">${n}</button>`).join('')}</div>
-    <input class="field-input" id="memTotal" type="number" min="1" value="${cur}" style="margin-bottom:14px;width:100%" oninput="GT.memTotal(parseInt(this.value)||10)">
+    <div class="field-label" style="margin-bottom:6px">כמה שיעורים בכרטיסייה?</div>
+    <input class="field-input" id="memTotal" type="number" min="1" value="${cur}" style="margin-bottom:6px;width:100%;font-size:22px;font-weight:700;text-align:center;padding:10px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;text-align:center">הכנס כל מספר שתרצה</div>
     <div class="row"><button class="btn-red" onclick="GT.doCreateMem()">שמור</button><button class="btn-outline" onclick="GT.closeModal()">ביטול</button></div>`;
 }
 function modalMarkSess(){
@@ -523,20 +526,54 @@ function modalNote(){
 
 /* Image upload */
 function bindImg(){
-  document.querySelectorAll('[data-img-ex]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const exId=el.dataset.imgEx, cat=el.dataset.imgCat;
-      const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-      inp.onchange=e=>{
-        const f=e.target.files[0]; if(!f)return;
-        if(f.size>500*1024){alert('תמונה גדולה מדי — עד 500KB');return;}
-        const r=new FileReader();
-        r.onload=ev=>upField(cat,exId,'machineImage',ev.target.result);
-        r.readAsDataURL(f);
-      };
-      inp.click();
+  // Lightbox for all images with data-lightbox
+  document.querySelectorAll('[data-lightbox]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      if(el.dataset.imgEx) return; // trainer mode — upload handles it
+      e.stopPropagation();
+      showLightbox(el.dataset.lightbox);
     });
   });
+  // Upload for trainer images
+  document.querySelectorAll('[data-img-ex]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const exId=el.dataset.imgEx, cat=el.dataset.imgCat;
+      // if it's an existing image, show lightbox AND offer upload via long-press? 
+      // Simple: single tap = lightbox, they can remove & re-add. But trainer wants to replace.
+      // Solution: show lightbox first, with a "החלף תמונה" button inside
+      if(el.tagName==='IMG'){
+        showLightbox(el.src, ()=>triggerUpload(cat,exId));
+        return;
+      }
+      triggerUpload(cat,exId);
+    });
+  });
+}
+function triggerUpload(cat,exId){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f)return;
+    if(f.size>500*1024){alert('תמונה גדולה מדי — עד 500KB');return;}
+    const r=new FileReader();
+    r.onload=ev=>upField(cat,exId,'machineImage',ev.target.result);
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+function showLightbox(src, onReplace){
+  const lb=document.createElement('div');
+  lb.className='lightbox';
+  lb.innerHTML=`
+    <button class="lightbox-close" title="סגור">×</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px" onclick="event.stopPropagation()">
+      <img src="${src}" alt="">
+      ${onReplace?`<button style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit" id="lb-replace">📷 החלף תמונה</button>`:''}
+    </div>`;
+  lb.addEventListener('click', ()=>lb.remove());
+  lb.querySelector('.lightbox-close').addEventListener('click', ()=>lb.remove());
+  if(onReplace) lb.querySelector('#lb-replace')?.addEventListener('click', ()=>{ lb.remove(); onReplace(); });
+  document.body.appendChild(lb);
 }
 
 /* GT */
@@ -546,7 +583,7 @@ window.GT = {
   cat:     c  => { S.cat=c; render(); },
   open:    id => { S.open[id]=!S.open[id]; render(); },
   arcOpen: i  => { S.open['arc_'+i]=!S.open['arc_'+i]; render(); },
-  modal:   (type,cat,exId) => { S.modal={type,cat,exId,total:10}; render(); setTimeout(()=>document.getElementById('noteText')?.focus(),60); },
+  modal:   (type,cat,exId) => { S.modal={type,cat,exId,total:11}; render(); setTimeout(()=>document.getElementById('noteText')?.focus(),60); },
   closeModal: () => { S.modal=null; render(); },
   hist:    (id,name) => { S.modal={type:'history',exId:id,exName:name}; render(); },
 
