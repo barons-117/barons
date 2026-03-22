@@ -2,110 +2,143 @@
 <html dir="rtl" lang="he">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>תכנית האימונים | PROFIT</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
-  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.16);
   --red: #E63946; --red-dim: rgba(230,57,70,0.13);
-  --green: #27ae60; --text: #f0f0f0; --muted: #6b6b6b;
+  --green: #27ae60; --text: #f0f0f0; --muted: #666;
 }
-html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; direction: rtl; }
-button { font-family: inherit; cursor: pointer; }
+html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; direction: rtl; -webkit-tap-highlight-color: transparent; }
+button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 input, textarea, select { font-family: inherit; direction: rtl; }
 
+/* ── HEADER ── */
 .header {
   background: #0d0d0d; border-bottom: 1px solid var(--border);
-  padding: 0 14px; position: sticky; top: 0; z-index: 100;
-  display: flex; align-items: center; gap: 10px; height: 54px;
+  padding: 0 12px; position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 8px; height: 52px;
 }
-.logo { font-size: 20px; font-weight: 900; color: var(--red); flex-shrink: 0; letter-spacing: 1px; }
-.tabs { display: flex; gap: 3px; flex: 1; }
-.tab { padding: 5px 13px; border: none; border-radius: 20px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; transition: all .2s; white-space: nowrap; }
+.logo { font-size: 18px; font-weight: 900; color: var(--red); flex-shrink: 0; letter-spacing: 1px; }
+.tabs { display: flex; gap: 2px; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 5px 11px; border: none; border-radius: 20px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; transition: all .2s; white-space: nowrap; flex-shrink: 0; }
 .tab.active { background: var(--red); color: #fff; }
-.trainer-btn { padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); background: transparent; color: var(--muted); transition: all .2s; white-space: nowrap; }
+.trainer-btn { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: transparent; color: var(--muted); transition: all .2s; white-space: nowrap; flex-shrink: 0; }
 .trainer-btn.on { background: rgba(255,200,0,.12); border-color: rgba(255,200,0,.4); color: #e0a800; }
 
-.content { padding: 14px; max-width: 900px; margin: 0 auto; }
-.plan-layout { display: grid; grid-template-columns: 156px 1fr; gap: 14px; }
-@media(max-width:580px){ .plan-layout { grid-template-columns: 1fr; } }
+/* ── CONTENT ── */
+.content { padding: 12px; max-width: 860px; margin: 0 auto; }
 
+/* ── PLAN LAYOUT ── */
+.plan-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
+.plan-title { font-size: 15px; font-weight: 900; }
+.plan-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+/* Desktop: sidebar + content */
+.plan-layout { display: grid; grid-template-columns: 148px 1fr; gap: 12px; }
+/* Mobile: tabs on top */
+@media(max-width:600px){
+  .plan-layout { grid-template-columns: 1fr; gap: 8px; }
+  .cat-sidebar { display: flex; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .cat-sidebar::-webkit-scrollbar { display: none; }
+  .cat-btn { flex-direction: column; gap: 2px; padding: 7px 12px; white-space: nowrap; flex-shrink: 0; width: auto; min-width: 64px; border-radius: 12px; }
+  .cat-btn .cat-emoji { font-size: 18px; }
+  .cat-count { margin-right: 0; margin-top: 2px; }
+}
+
+/* ── SIDEBAR ── */
 .cat-sidebar { display: flex; flex-direction: column; gap: 4px; }
-.cat-btn { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 500; width: 100%; transition: all .18s; }
+.cat-btn { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 500; width: 100%; transition: all .18s; }
 .cat-btn:hover:not(.active) { border-color: var(--border2); color: var(--text); }
 .cat-btn.active { background: var(--red-dim); border-color: var(--red); color: var(--red); font-weight: 700; }
-.cat-count { margin-right: auto; font-size: 10px; background: rgba(255,255,255,.07); border-radius: 8px; padding: 1px 6px; }
+.cat-count { margin-right: auto; font-size: 10px; background: rgba(255,255,255,.07); border-radius: 8px; padding: 1px 5px; }
 .cat-btn.active .cat-count { background: rgba(230,57,70,.2); color: var(--red); }
 
-.ex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; transition: border-color .18s; }
-.ex-card:hover { border-color: var(--border2); }
-.ex-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
-.machine-badge { background: var(--red); color: #fff; font-weight: 900; min-width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
-.machine-img { width: 46px; height: 46px; border-radius: 7px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-.machine-img-ph { width: 46px; height: 46px; border-radius: 7px; border: 1px dashed rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: border-color .2s; }
+/* ── EXERCISE CARD ── */
+.ex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+
+.ex-header { display: flex; align-items: center; gap: 8px; padding: 10px 10px; }
+.machine-badge { background: var(--red); color: #fff; font-weight: 900; min-width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
+.machine-img { width: 42px; height: 42px; border-radius: 7px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.machine-img-ph { width: 42px; height: 42px; border-radius: 7px; border: 1px dashed rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
 .machine-img-ph:hover { border-color: var(--red); }
+
 .ex-info { flex: 1; min-width: 0; cursor: pointer; }
-.ex-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ex-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ex-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-name-input { font-size: 13px; font-weight: 700; background: var(--surface2); border: 1px solid var(--red); border-radius: 6px; padding: 3px 7px; color: var(--text); width: 100%; outline: none; }
+.ex-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-.weight-ctrl { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.wbtn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
-.wbtn:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
-.wval { font-size: 17px; font-weight: 900; min-width: 40px; text-align: center; }
+/* ── WEIGHT CONTROL ── */
+.weight-ctrl { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.wbtn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all .15s; user-select: none; -webkit-user-select: none; }
+.wbtn:active { background: var(--red-dim); border-color: var(--red); color: var(--red); transform: scale(0.92); }
+/* Tappable weight value */
+.wval-wrap { display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 46px; }
+.wval { font-size: 18px; font-weight: 900; text-align: center; line-height: 1; }
+.wval-input { font-size: 16px; font-weight: 900; background: var(--surface2); border: 1px solid var(--red); border-radius: 6px; padding: 2px 4px; color: var(--text); width: 58px; text-align: center; outline: none; -moz-appearance: textfield; }
+.wval-input::-webkit-inner-spin-button, .wval-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .wunit { font-size: 10px; color: var(--muted); text-align: center; }
-.chevron { font-size: 9px; color: var(--muted); cursor: pointer; padding: 4px; flex-shrink: 0; transition: transform .2s; }
+.chevron { font-size: 9px; color: var(--muted); cursor: pointer; padding: 6px 4px; flex-shrink: 0; transition: transform .2s; }
 
-.ex-body { padding: 0 12px 12px; border-top: 1px solid var(--border); }
+/* ── EX BODY ── */
+.ex-body { padding: 0 10px 12px; border-top: 1px solid var(--border); }
 .field-grid { display: grid; gap: 8px; margin-top: 10px; }
 .fg-3 { grid-template-columns: 1fr 1fr 1fr; }
 .fg-2 { grid-template-columns: 1fr 1fr; }
-@media(max-width:400px){ .fg-3 { grid-template-columns: 1fr 1fr; } }
-.field-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 700; letter-spacing: .3px; }
+@media(max-width:480px){ .fg-3 { grid-template-columns: 1fr 1fr; } }
+.field-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 700; }
 .field-val { font-size: 13px; padding: 5px 0; color: var(--text); }
-.field-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px; color: var(--text); font-size: 12px; width: 100%; outline: none; transition: border-color .15s; }
+.field-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; color: var(--text); font-size: 13px; width: 100%; outline: none; transition: border-color .15s; }
 .field-input:focus { border-color: var(--red); }
 .note-item { background: var(--surface2); border-right: 3px solid var(--red); border-radius: 0 7px 7px 0; padding: 7px 9px; margin-bottom: 5px; font-size: 12px; line-height: 1.5; }
 .note-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-.btn-red { background: var(--red); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; transition: opacity .18s; }
-.btn-red:hover { opacity: .85; }
-.btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 12px; transition: all .18s; }
-.btn-outline:hover { border-color: var(--border2); color: var(--text); }
-.add-ex-btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px; border: 1px dashed rgba(255,255,255,.1); border-radius: 10px; background: transparent; color: var(--muted); font-size: 12px; width: 100%; transition: all .18s; margin-top: 5px; }
-.add-ex-btn:hover { border-color: var(--red); color: var(--red); }
+/* ── BUTTONS ── */
+.btn-red { background: var(--red); color: #fff; border: none; padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 700; transition: opacity .18s; }
+.btn-red:active { opacity: .75; }
+.btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 7px 12px; border-radius: 8px; font-size: 12px; transition: all .18s; }
+.btn-outline:active { border-color: var(--border2); color: var(--text); }
+.add-ex-btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px; border: 1px dashed rgba(255,255,255,.1); border-radius: 10px; background: transparent; color: var(--muted); font-size: 13px; width: 100%; transition: all .18s; margin-top: 6px; }
+.add-ex-btn:active { border-color: var(--red); color: var(--red); }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 14px; }
-.modal { background: #1a1a1a; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; max-height: 82vh; overflow-y: auto; }
-.modal-title { font-size: 17px; font-weight: 900; margin-bottom: 12px; }
+.divider { border-top: 1px solid var(--border); margin: 10px 0; }
+.row { display: flex; gap: 7px; flex-wrap: wrap; }
+.section-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+.cat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
 
-.mem-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-.mem-big { font-size: 50px; font-weight: 900; line-height: 1; color: var(--red); }
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: flex-end; justify-content: center; z-index: 1000; padding: 0; }
+@media(min-width:500px){ .modal-overlay { align-items: center; padding: 14px; } }
+.modal { background: #1a1a1a; border: 1px solid rgba(255,255,255,.1); border-radius: 18px 18px 0 0; padding: 20px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+@media(min-width:500px){ .modal { border-radius: 16px; } }
+.modal-title { font-size: 16px; font-weight: 900; margin-bottom: 14px; }
+
+/* ── MEMBERSHIP ── */
+.mem-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.mem-big { font-size: 52px; font-weight: 900; line-height: 1; color: var(--red); }
 .progress-bar { background: rgba(255,255,255,.06); border-radius: 6px; height: 4px; margin-top: 8px; }
 .progress-fill { background: var(--red); border-radius: 6px; height: 4px; transition: width .5s; }
 .dot-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.dot { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
 .dot.used { background: var(--red); color: #fff; }
 .dot.avail { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
 .session-row { display: flex; align-items: center; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .session-num { background: var(--red-dim); color: var(--red); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
 
+/* ── ARCHIVE ── */
 .archive-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 8px; }
 .hist-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
 
+/* ── MISC ── */
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
 .empty-icon { font-size: 44px; margin-bottom: 10px; }
-.plan-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-.plan-title { font-size: 16px; font-weight: 900; }
-.plan-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.section-label { font-size: 14px; font-weight: 900; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
-.cat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
-.divider { border-top: 1px solid var(--border); margin: 10px 0; }
-.row { display: flex; gap: 7px; flex-wrap: wrap; }
-.pill-select { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
-.pill { padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .18s; }
+.pill-select { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
 .pill.sel { background: var(--red); color: #fff; border-color: var(--red); }
 .saving-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; margin-left: 4px; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
@@ -120,11 +153,11 @@ input, textarea, select { font-family: inherit; direction: rtl; }
 <div id="app"><div class="loading-screen"><div class="spinner">🏋</div><div>טוען...</div></div></div>
 
 <script type="module">
-import { initializeApp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, update, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, update, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-/* ── Firebase ─────────────────────────────────────────── */
-const FB = {
+/* ── Firebase ── */
+const db = getDatabase(initializeApp({
   apiKey: "AIzaSyCNkfifRX7zgHcIXmAuB0HSSzCfCzsFKjk",
   authDomain: "shopping-list-855d8.firebaseapp.com",
   databaseURL: "https://shopping-list-855d8-default-rtdb.firebaseio.com",
@@ -132,53 +165,51 @@ const FB = {
   storageBucket: "shopping-list-855d8.firebasestorage.app",
   messagingSenderId: "467214739172",
   appId: "1:467214739172:web:1c1e46e9072352197f2ef1"
-};
-const db = getDatabase(initializeApp(FB));
-const BASE = 'gymTracker';
-const dbRef = path => ref(db, `${BASE}/${path}`);
+}));
+const BASE   = 'gymTracker';
+const dbRef  = p => ref(db, `${BASE}/${p}`);
 
-/* ── Helpers ──────────────────────────────────────────── */
+/* ── Constants ── */
 const CATS = [
   {label:'חזה',emoji:'🏋'},{label:'גב',emoji:'💪'},{label:'כתפיים',emoji:'🎯'},
   {label:'רגליים',emoji:'🦵'},{label:'יד קדמית',emoji:'💪'},{label:'יד אחורית',emoji:'🔱'},
   {label:'בטן וגב תחתון',emoji:'⚡'},{label:'אירובי',emoji:'🏃'},
 ];
 const CAT_LABELS = CATS.map(c=>c.label);
-const uid  = () => 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-const now  = () => new Date().toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'});
-const today= () => new Date().toLocaleDateString('he-IL');
-const time = () => new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid   = ()=> 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const nowStr= ()=> new Date().toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'});
+const today = ()=> new Date().toLocaleDateString('he-IL');
+const timeNow=()=> new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+const esc   = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-/* ── State ────────────────────────────────────────────── */
+/* ── State ── */
 let S = {
   plan:null, archive:{}, history:{}, membership:null,
   tab:'plan', cat:CAT_LABELS[0],
   trainer:false, open:{}, modal:null, saving:false,
+  editingWeight:null,  /* exId whose weight input is open */
+  editingName:null,    /* exId whose name is being edited */
 };
 
-/* ── Firebase write helpers ───────────────────────────── */
-async function fbSet(path,val){ S.saving=true; hdr(); try{ await set(dbRef(path),val); }catch(e){ alert('שגיאה: '+e.message); } S.saving=false; hdr(); }
-async function fbMerge(path,val){ S.saving=true; hdr(); try{ await update(dbRef(path),val); }catch(e){ alert('שגיאה: '+e.message); } S.saving=false; hdr(); }
+/* ── Firebase writes ── */
+async function fbSet(p,v)  { S.saving=true; hdr(); try{await set(dbRef(p),v);}catch(e){alert('שגיאה: '+e.message);} S.saving=false; hdr(); }
+async function fbMerge(p,v){ S.saving=true; hdr(); try{await update(dbRef(p),v);}catch(e){alert('שגיאה: '+e.message);} S.saving=false; hdr(); }
 
-/* ── Realtime sync ────────────────────────────────────── */
+/* ── Realtime ── */
 onValue(ref(db, BASE), snap=>{
-  const d = snap.val()||{};
-  S.plan       = d.currentPlan || null;
-  S.archive    = d.archive     || {};
-  S.history    = d.history     || {};
-  S.membership = d.membership  || null;
+  const d=snap.val()||{};
+  S.plan=d.currentPlan||null; S.archive=d.archive||{};
+  S.history=d.history||{}; S.membership=d.membership||null;
   render();
 });
+window.addEventListener('online', ()=>{ document.getElementById('offline-bar').style.display='none'; });
+window.addEventListener('offline',()=>{ document.getElementById('offline-bar').style.display='block'; });
 
-window.addEventListener('online',  ()=>{ document.getElementById('offline-bar').style.display='none'; });
-window.addEventListener('offline', ()=>{ document.getElementById('offline-bar').style.display='block'; });
-
-/* ── Actions ──────────────────────────────────────────── */
+/* ── Actions ── */
 async function createPlan(name){
-  if(S.plan) await fbSet(`archive/plan_${Date.now()}`,{...S.plan, archivedAt:now()});
-  const exercises = Object.fromEntries(CAT_LABELS.map(l=>[l,{}]));
-  await fbSet('currentPlan',{id:uid(),name,createdAt:now(),exercises});
+  if(S.plan) await fbSet(`archive/plan_${Date.now()}`,{...S.plan,archivedAt:nowStr()});
+  const exercises=Object.fromEntries(CAT_LABELS.map(l=>[l,{}]));
+  await fbSet('currentPlan',{id:uid(),name,createdAt:nowStr(),exercises});
   S.modal=null; S.cat=CAT_LABELS[0]; S.open={};
 }
 async function addExercise(cat){
@@ -187,67 +218,87 @@ async function addExercise(cat){
 }
 async function upField(cat,id,field,val){ await fbMerge(`currentPlan/exercises/${cat}/${id}`,{[field]:val}); }
 async function delExercise(cat,id){ if(!confirm('למחוק?'))return; await fbSet(`currentPlan/exercises/${cat}/${id}`,null); }
-async function changeWeight(cat,id,d){
+
+async function changeWeight(cat,id,delta){
   const ex=S.plan?.exercises?.[cat]?.[id]; if(!ex)return;
   const step=ex.weightStep||2.5;
-  const nw=Math.max(0,parseFloat((ex.weight+d*step).toFixed(2)));
+  const nw=Math.max(0,parseFloat((parseFloat(ex.weight)+delta*step).toFixed(2)));
   await fbMerge(`currentPlan/exercises/${cat}/${id}`,{weight:nw});
-  await fbSet(`history/h_${Date.now()}`,{exerciseId:id,exerciseName:ex.name,planId:S.plan.id,weight:nw,date:today(),time:time()});
+  logWeight(id,ex.name,nw);
+}
+async function setWeight(cat,id,val){
+  const nw=Math.max(0,parseFloat(parseFloat(val).toFixed(2))||0);
+  await fbMerge(`currentPlan/exercises/${cat}/${id}`,{weight:nw});
+  const ex=S.plan?.exercises?.[cat]?.[id];
+  if(ex) logWeight(id,ex.name,nw);
+  S.editingWeight=null;
+}
+async function logWeight(exId,exName,w){
+  await fbSet(`history/h_${Date.now()}`,{exerciseId:exId,exerciseName:exName,planId:S.plan?.id,weight:w,date:today(),time:timeNow()});
 }
 async function addNote(cat,id,text){
-  await fbSet(`currentPlan/exercises/${cat}/${id}/trainerNotes/n_${Date.now()}`,{text,date:now()});
+  await fbSet(`currentPlan/exercises/${cat}/${id}/trainerNotes/n_${Date.now()}`,{text,date:nowStr()});
   S.modal=null;
 }
 async function createMembership(total){ await fbSet('membership',{id:uid(),total:parseInt(total),purchasedAt:today(),sessions:{}}); S.modal=null; }
 async function markSession(date,t){ await fbSet(`membership/sessions/s_${Date.now()}`,{date,time:t}); S.modal=null; }
 
-/* ── Render ───────────────────────────────────────────── */
-function render(){ document.getElementById('app').innerHTML=page(); bindImg(); }
+/* ── Render ── */
+function render(){ document.getElementById('app').innerHTML=page(); bindImg(); focusAfterRender(); }
 function hdr(){ const el=document.getElementById('hdr-dyn'); if(el)el.innerHTML=hdrDyn(); }
+let _pendingFocus=null;
 
-function page(){ return `
-  <div>
-    <header class="header">
-      <div class="logo">PROFIT</div>
-      <div id="hdr-dyn" style="display:contents">${hdrDyn()}</div>
-    </header>
-    <div class="content">
-      ${S.tab==='plan'?planTab():''}
-      ${S.tab==='membership'?memTab():''}
-      ${S.tab==='archive'?archiveTab():''}
-    </div>
-    ${S.modal?modalOverlay():''}
-  </div>`; }
+function focusAfterRender(){
+  if(_pendingFocus){
+    const el=document.getElementById(_pendingFocus);
+    if(el){ el.focus(); if(el.select)el.select(); }
+    _pendingFocus=null;
+  }
+}
+
+function page(){ return `<div>
+  <header class="header">
+    <div class="logo">PROFIT</div>
+    <div id="hdr-dyn" style="display:contents">${hdrDyn()}</div>
+  </header>
+  <div class="content">
+    ${S.tab==='plan'?planTab():''}
+    ${S.tab==='membership'?memTab():''}
+    ${S.tab==='archive'?archiveTab():''}
+  </div>
+  ${S.modal?modalOverlay():''}
+</div>`; }
 
 function hdrDyn(){ return `
   <div class="tabs">
     ${[['plan','💪 תכנית'],['membership','🎫 כרטיסייה'],['archive','📁 ארכיון']].map(([t,l])=>
       `<button class="tab${S.tab===t?' active':''}" onclick="GT.tab('${t}')">${l}</button>`).join('')}
   </div>
-  <span style="font-size:11px;color:var(--muted)">${S.saving?'<span class="saving-dot"></span>שומר...':''}</span>
-  <button class="trainer-btn${S.trainer?' on':''}" onclick="GT.trainer()">${S.trainer?'✏️ מאמנת':'🔒 צפייה'}</button>`; }
+  <span style="font-size:10px;color:var(--muted)">${S.saving?'<span class="saving-dot"></span>':''}</span>
+  <button class="trainer-btn${S.trainer?' on':''}" onclick="GT.trainer()">${S.trainer?'✏️':'🔒'}</button>`; }
 
-/* ── Plan tab ─────────────────────────────────────────── */
+/* ── Plan tab ── */
 function planTab(){
   if(!S.plan) return `<div class="empty"><div class="empty-icon">💪</div>
-    <p style="font-size:17px;font-weight:900;margin-bottom:8px">אין תכנית פעילה</p>
+    <p style="font-size:16px;font-weight:900;margin-bottom:8px">אין תכנית פעילה</p>
     <p style="margin-bottom:18px;font-size:13px">צור תכנית אימונים כדי להתחיל</p>
     <button class="btn-red" onclick="GT.modal('newPlan')">+ תכנית חדשה</button></div>`;
 
   const cat=S.cat;
   const exArr=Object.values(S.plan.exercises?.[cat]||{}).filter(Boolean);
+
   return `
     <div class="plan-hdr">
       <div><div class="plan-title">${esc(S.plan.name)}</div><div class="plan-sub">נוצרה: ${S.plan.createdAt}</div></div>
-      ${S.trainer?`<button class="btn-red" style="font-size:11px" onclick="GT.modal('newPlan')">תכנית חדשה →</button>`:''}
+      ${S.trainer?`<button class="btn-red" style="font-size:11px;padding:6px 12px" onclick="GT.modal('newPlan')">תכנית חדשה →</button>`:''}
     </div>
     <div class="plan-layout">
       <div class="cat-sidebar">
         ${CATS.map(c=>{
           const n=Object.values(S.plan.exercises?.[c.label]||{}).filter(Boolean).length;
           return `<button class="cat-btn${cat===c.label?' active':''}" onclick="GT.cat('${c.label}')">
-            <span style="font-size:13px">${c.emoji}</span>
-            <span style="flex:1">${c.label}</span>
+            <span class="cat-emoji" style="font-size:14px">${c.emoji}</span>
+            <span style="flex:1;text-align:right">${c.label}</span>
             ${n?`<span class="cat-count">${n}</span>`:''}
           </button>`;
         }).join('')}
@@ -263,30 +314,57 @@ function planTab(){
 
 function exCard(ex,cat){
   const open=S.open[ex.id];
-  const hist=Object.values(S.history||{}).filter(h=>h.exerciseId===ex.id).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  const hist=Object.values(S.history||{}).filter(h=>h.exerciseId===ex.id)
+             .sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
   const last=hist[0]?.date||'';
   const numSz=(ex.machineNumber||'').length>2?'font-size:10px':'';
+  const tm=S.trainer;
+  const editingW=S.editingWeight===ex.id;
+  const editingN=S.editingName===ex.id;
+
   const imgEl=ex.machineImage
-    ?`<img src="${esc(ex.machineImage)}" class="machine-img"${S.trainer?` data-img-ex="${ex.id}" data-img-cat="${cat}" style="cursor:pointer"`:''} alt="">`
-    :S.trainer?`<div class="machine-img-ph" data-img-ex="${ex.id}" data-img-cat="${cat}">📷</div>`:'';
-  return `
-    <div class="ex-card">
-      <div class="ex-header">
-        <div class="machine-badge" style="${numSz}">${esc(ex.machineNumber||'#')}</div>
-        ${imgEl}
-        <div class="ex-info" onclick="GT.open('${ex.id}')">
-          <div class="ex-name">${esc(ex.name)}</div>
-          <div class="ex-meta">${ex.sets} סטים × ${ex.reps} חז׳ · ${ex.rest}″${last?' · '+last:''}</div>
+    ?`<img src="${esc(ex.machineImage)}" class="machine-img"${tm?` data-img-ex="${ex.id}" data-img-cat="${cat}" style="cursor:pointer"`:''} alt="">`
+    :tm?`<div class="machine-img-ph" data-img-ex="${ex.id}" data-img-cat="${cat}">📷</div>`:'';
+
+  /* Weight area */
+  const weightEl=editingW
+    ?`<div class="weight-ctrl">
+        <input class="wval-input" id="winput_${ex.id}" type="number" step="any" value="${ex.weight}"
+          onblur="GT.setWt('${cat}','${ex.id}',this.value)"
+          onkeydown="if(event.key==='Enter'){GT.setWt('${cat}','${ex.id}',this.value)}"
+          onclick="event.stopPropagation()">
+        <div class="wunit" style="margin-top:2px">ק"ג</div>
+      </div>`
+    :`<div class="weight-ctrl">
+        <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',-1);event.stopPropagation()">−</button>
+        <div class="wval-wrap" onclick="GT.editW('${ex.id}');event.stopPropagation()" title="לחץ לעריכה ידנית">
+          <div class="wval">${ex.weight}</div>
+          <div class="wunit">ק"ג</div>
         </div>
-        <div class="weight-ctrl">
-          <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',-1)">−</button>
-          <div><div class="wval">${ex.weight}</div><div class="wunit">ק"ג</div></div>
-          <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',1)">+</button>
-        </div>
-        <div class="chevron" onclick="GT.open('${ex.id}')" style="transform:${open?'rotate(180deg)':'none'}">▼</div>
+        <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',1);event.stopPropagation()">+</button>
+      </div>`;
+
+  /* Name area */
+  const nameEl=tm&&editingN
+    ?`<input class="ex-name-input" id="ninput_${ex.id}" value="${esc(ex.name)}"
+        onblur="GT.saveName('${cat}','${ex.id}',this.value)"
+        onkeydown="if(event.key==='Enter'){GT.saveName('${cat}','${ex.id}',this.value)}"
+        onclick="event.stopPropagation()">`
+    :`<div class="ex-name" ${tm?`onclick="GT.editN('${ex.id}');event.stopPropagation()" title="לחץ לעריכה"`:``}>${esc(ex.name)}${tm?' ✎':''}</div>`;
+
+  return `<div class="ex-card">
+    <div class="ex-header">
+      <div class="machine-badge" style="${numSz}">${esc(ex.machineNumber||'#')}</div>
+      ${imgEl}
+      <div class="ex-info" onclick="GT.open('${ex.id}')">
+        ${nameEl}
+        <div class="ex-meta">${ex.sets} סטים × ${ex.reps} חז׳ · ${ex.rest}″${last?' · '+last:''}</div>
       </div>
-      ${open?exBody(ex,cat,hist):''}
-    </div>`;
+      ${weightEl}
+      <div class="chevron" onclick="GT.open('${ex.id}')" style="transform:${open?'rotate(180deg)':'none'}">▼</div>
+    </div>
+    ${open?exBody(ex,cat,hist):''}
+  </div>`;
 }
 
 function exBody(ex,cat,hist){
@@ -311,15 +389,16 @@ function exBody(ex,cat,hist){
       <div><div class="field-label">חזרות</div>
         ${tm?`<input class="field-input" value="${esc(ex.reps)}" onchange="GT.up('${cat}','${ex.id}','reps',this.value)">`:`<div class="field-val">${ex.reps}</div>`}
       </div>
-      <div><div class="field-label">מנוחה (שניות)</div>
+      <div><div class="field-label">מנוחה (שנ׳)</div>
         ${tm?`<input class="field-input" type="number" value="${ex.rest}" onchange="GT.up('${cat}','${ex.id}','rest',parseInt(this.value)||60)">`:`<div class="field-val">${ex.rest}″</div>`}
       </div>
     </div>
     <div style="margin-top:7px"><div class="field-label">הוראות / מה לשים לב</div>
-      ${tm?`<textarea class="field-input" rows="2" style="resize:vertical" placeholder="גב זקוף, ידיים ישרות..." onchange="GT.up('${cat}','${ex.id}','description',this.value)">${esc(ex.description)}</textarea>`
-          :ex.description?`<div class="field-val" style="line-height:1.5;color:#aaa">${esc(ex.description)}</div>`:''}
+      ${tm?`<textarea class="field-input" rows="2" style="resize:vertical" onchange="GT.up('${cat}','${ex.id}','description',this.value)">${esc(ex.description)}</textarea>`
+          :ex.description?`<div class="field-val" style="line-height:1.5;color:#aaa;font-size:13px">${esc(ex.description)}</div>`:''}
     </div>
-    ${notes.length?`<div style="margin-top:10px"><div class="field-label" style="margin-bottom:5px">הערות מאמנת</div>${notes.map(n=>`<div class="note-item"><div>${esc(n.text)}</div><div class="note-date">${n.date}</div></div>`).join('')}</div>`:''}
+    ${notes.length?`<div style="margin-top:10px"><div class="field-label" style="margin-bottom:5px">הערות מאמנת</div>
+      ${notes.map(n=>`<div class="note-item"><div>${esc(n.text)}</div><div class="note-date">${n.date}</div></div>`).join('')}</div>`:''}
     <div class="divider"></div>
     <div class="row">
       <button class="btn-outline" onclick="GT.hist('${ex.id}','${esc(ex.name)}')">📊 היסטוריה (${hist.length})</button>
@@ -329,11 +408,11 @@ function exBody(ex,cat,hist){
   </div>`;
 }
 
-/* ── Membership tab ───────────────────────────────────── */
+/* ── Membership ── */
 function memTab(){
   const m=S.membership;
   if(!m) return `<div class="empty"><div class="empty-icon">🎫</div>
-    <p style="font-size:17px;font-weight:900;margin-bottom:8px">אין כרטיסייה פעילה</p>
+    <p style="font-size:16px;font-weight:900;margin-bottom:8px">אין כרטיסייה פעילה</p>
     <p style="margin-bottom:18px;font-size:13px">הוסף כרטיסייה לעקוב אחרי השיעורים שלך</p>
     <button class="btn-red" onclick="GT.modal('newMembership')">+ כרטיסייה חדשה</button></div>`;
 
@@ -350,16 +429,14 @@ function memTab(){
     <div class="mem-card">
       <div style="display:flex;align-items:baseline;gap:10px">
         <div class="mem-big">${rem}</div>
-        <div style="color:var(--muted);font-size:14px">נותרו מתוך ${total}</div>
+        <div style="color:var(--muted);font-size:13px">נותרו מתוך ${total}</div>
       </div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">${used} שיעורים בוצעו</div>
-      <div class="dot-grid">
-        ${Array.from({length:total}).map((_,i)=>`<div class="dot ${i<used?'used':'avail'}">${i<used?'✓':i+1}</div>`).join('')}
-      </div>
+      <div class="dot-grid">${Array.from({length:total}).map((_,i)=>`<div class="dot ${i<used?'used':'avail'}">${i<used?'✓':i+1}</div>`).join('')}</div>
     </div>
-    ${rem===0?`<div style="background:var(--red-dim);border:1px solid rgba(230,57,70,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center;color:var(--red);font-weight:700">הכרטיסייה נגמרה — הגיע הזמן לחדש! 🎉</div>`:''}
-    <div class="section-label" style="margin-top:4px"><div class="cat-dot"></div>היסטוריית אימונים</div>
+    ${rem===0?`<div style="background:var(--red-dim);border:1px solid rgba(230,57,70,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center;color:var(--red);font-weight:700">הכרטיסייה נגמרה! 🎉</div>`:''}
+    <div class="section-label"><div class="cat-dot"></div>היסטוריית אימונים</div>
     ${sess.length===0?'<div style="color:var(--muted);font-size:12px;padding:12px 0;text-align:center">עדיין לא נרשמו אימונים</div>':''}
     ${sess.map((s,i)=>`<div class="session-row">
       <div class="session-num">${used-i}</div>
@@ -368,19 +445,19 @@ function memTab(){
     </div>`).join('')}`;
 }
 
-/* ── Archive tab ──────────────────────────────────────── */
+/* ── Archive ── */
 function archiveTab(){
   const plans=Object.values(S.archive||{}).sort((a,b)=>(b.archivedAt||'').localeCompare(a.archivedAt||''));
   if(!plans.length) return `<div class="empty"><div class="empty-icon">📁</div>
-    <p style="font-size:17px;font-weight:900;margin-bottom:8px">הארכיון ריק</p>
+    <p style="font-size:16px;font-weight:900;margin-bottom:8px">הארכיון ריק</p>
     <p style="font-size:13px">תכניות ישנות יופיעו כאן</p></div>`;
-  return `<div class="plan-title" style="margin-bottom:12px">ארכיון תכניות (${plans.length})</div>
+  return `<div class="plan-title" style="margin-bottom:12px">ארכיון (${plans.length})</div>
     ${plans.map((p,pi)=>{
       const o=S.open['arc_'+pi];
       return `<div class="archive-card">
         <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="GT.arcOpen(${pi})">
           <div><div style="font-weight:700;font-size:14px">${esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">נוצרה: ${p.createdAt} · הועברה: ${p.archivedAt||'—'}</div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${p.createdAt} → ${p.archivedAt||'—'}</div></div>
           <div style="color:var(--muted);font-size:9px;transform:${o?'rotate(180deg)':'none'}">▼</div>
         </div>
         ${o?CATS.map(c=>{
@@ -398,14 +475,14 @@ function archiveTab(){
     }).join('')}`;
 }
 
-/* ── Modals ───────────────────────────────────────────── */
+/* ── Modals ── */
 function modalOverlay(){
   const m=S.modal; let inner='';
-  if(m.type==='newPlan')       inner=modalNewPlan();
+  if(m.type==='newPlan') inner=modalNewPlan();
   else if(m.type==='newMembership') inner=modalNewMem();
-  else if(m.type==='markSession')   inner=modalMarkSess();
-  else if(m.type==='history')       inner=modalHist();
-  else if(m.type==='note')          inner=modalNote();
+  else if(m.type==='markSession') inner=modalMarkSess();
+  else if(m.type==='history') inner=modalHist();
+  else if(m.type==='note') inner=modalNote();
   return `<div class="modal-overlay" id="moverlay" onclick="if(event.target.id==='moverlay')GT.closeModal()"><div class="modal">${inner}</div></div>`;
 }
 function modalNewPlan(){
@@ -419,7 +496,7 @@ function modalNewPlan(){
 function modalNewMem(){
   const cur=S.modal.total||10;
   return `<div class="modal-title">כרטיסייה חדשה</div>
-    <div class="field-label" style="margin-bottom:7px">כמה שיעורים?</div>
+    <div class="field-label" style="margin-bottom:8px">כמה שיעורים?</div>
     <div class="pill-select">${[8,10,12,15,20,25].map(n=>`<button class="pill${cur===n?' sel':''}" onclick="GT.memTotal(${n})">${n}</button>`).join('')}</div>
     <input class="field-input" id="memTotal" type="number" min="1" value="${cur}" style="margin-bottom:14px" oninput="GT.memTotal(parseInt(this.value)||10)">
     <div class="row"><button class="btn-red" onclick="GT.doCreateMem()">שמור</button><button class="btn-outline" onclick="GT.closeModal()">ביטול</button></div>`;
@@ -428,15 +505,16 @@ function modalMarkSess(){
   return `<div class="modal-title">סמן אימון</div>
     <div class="field-grid fg-2" style="margin-bottom:14px">
       <div><div class="field-label">תאריך</div><input class="field-input" id="sessDate" value="${today()}"></div>
-      <div><div class="field-label">שעה</div><input class="field-input" id="sessTime" value="${time()}"></div>
+      <div><div class="field-label">שעה</div><input class="field-input" id="sessTime" value="${timeNow()}"></div>
     </div>
     <div class="row"><button class="btn-red" onclick="GT.doMarkSess()">✓ אשר</button><button class="btn-outline" onclick="GT.closeModal()">ביטול</button></div>`;
 }
 function modalHist(){
   const {exId,exName}=S.modal;
-  const items=Object.values(S.history||{}).filter(h=>h.exerciseId===exId).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  const items=Object.values(S.history||{}).filter(h=>h.exerciseId===exId)
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
   return `<div class="modal-title">📊 ${esc(exName)}</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">היסטוריית משקל (${items.length} רשומות)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${items.length} רשומות</div>
     ${items.length===0?`<p style="color:var(--muted);font-size:13px;text-align:center;padding:18px 0">אין היסטוריה עדיין</p>`:
       items.map((h,i)=>{
         const diff=i<items.length-1?parseFloat((h.weight-items[i+1].weight).toFixed(2)):null;
@@ -449,11 +527,11 @@ function modalHist(){
 }
 function modalNote(){
   return `<div class="modal-title">📝 הוסף הערה</div>
-    <textarea class="field-input" id="noteText" rows="3" style="margin-bottom:14px;resize:vertical" placeholder="למשל: העלה משקל בשבוע הבא..."></textarea>
+    <textarea class="field-input" id="noteText" rows="3" style="margin-bottom:14px;resize:vertical" placeholder="העלה משקל בשבוע הבא..."></textarea>
     <div class="row"><button class="btn-red" onclick="GT.doNote()">שמור</button><button class="btn-outline" onclick="GT.closeModal()">ביטול</button></div>`;
 }
 
-/* ── Image upload (delegated, no inline onclick needed) ── */
+/* ── Image upload ── */
 function bindImg(){
   document.querySelectorAll('[data-img-ex]').forEach(el=>{
     el.addEventListener('click',()=>{
@@ -462,6 +540,9 @@ function bindImg(){
       inp.onchange=e=>{
         const f=e.target.files[0]; if(!f)return;
         if(f.size>500*1024){alert('תמונה גדולה מדי — עד 500KB');return;}
+        new FileReader().onload=ev=>upField(cat,exId,'machineImage',ev.target.result),
+        new FileReader().readAsDataURL(f);
+        // fix: use single reader
         const r=new FileReader();
         r.onload=ev=>upField(cat,exId,'machineImage',ev.target.result);
         r.readAsDataURL(f);
@@ -471,34 +552,35 @@ function bindImg(){
   });
 }
 
-/* ── Global GT object ─────────────────────────────────── */
+/* ── GT global ── */
 window.GT = {
-  tab:    t  => { S.tab=t;    render(); },
-  trainer:() => { S.trainer=!S.trainer; render(); },
-  cat:    c  => { S.cat=c;    render(); },
-  open:   id => { S.open[id]=!S.open[id]; render(); },
-  arcOpen:i  => { S.open['arc_'+i]=!S.open['arc_'+i]; render(); },
-  modal:  (type,cat,exId) => { S.modal={type,cat,exId,total:10}; render(); setTimeout(()=>document.getElementById('noteText')?.focus(),50); },
+  tab:     t  => { S.tab=t; render(); },
+  trainer: () => { S.trainer=!S.trainer; render(); },
+  cat:     c  => { S.cat=c; render(); },
+  open:    id => { S.open[id]=!S.open[id]; render(); },
+  arcOpen: i  => { S.open['arc_'+i]=!S.open['arc_'+i]; render(); },
+  modal:   (type,cat,exId) => { S.modal={type,cat,exId,total:10}; render(); setTimeout(()=>document.getElementById('noteText')?.focus(),50); },
   closeModal: () => { S.modal=null; render(); },
-  hist:   (id,name) => { S.modal={type:'history',exId:id,exName:name}; render(); },
+  hist:    (id,name) => { S.modal={type:'history',exId:id,exName:name}; render(); },
 
-  addEx:  cat     => addExercise(cat),
-  del:    (c,id)  => delExercise(c,id),
-  wt:     (c,id,d)=> changeWeight(c,id,d),
-  up:     (c,id,f,v)=> upField(c,id,f,v),
+  addEx: cat    => addExercise(cat),
+  del:   (c,id) => delExercise(c,id),
+  wt:    (c,id,d)=> changeWeight(c,id,d),
+  up:    (c,id,f,v)=> upField(c,id,f,v),
+
+  /* Free weight edit */
+  editW: id => { S.editingWeight=id; _pendingFocus='winput_'+id; render(); },
+  setWt: (cat,id,val) => { S.editingWeight=null; setWeight(cat,id,val); },
+
+  /* Name edit */
+  editN: id => { S.editingName=id; _pendingFocus='ninput_'+id; render(); },
+  saveName: (cat,id,val) => { S.editingName=null; upField(cat,id,'name',val.trim()||'תרגיל'); },
 
   doCreatePlan: () => { const n=document.getElementById('planName')?.value?.trim(); if(n)createPlan(n); },
   memTotal: n => { S.modal={...S.modal,total:n}; render(); },
   doCreateMem: () => { const t=parseInt(document.getElementById('memTotal')?.value)||S.modal.total||10; createMembership(t); },
-  doMarkSess: () => {
-    const d=document.getElementById('sessDate')?.value||today();
-    const t=document.getElementById('sessTime')?.value||time();
-    markSession(d,t);
-  },
-  doNote: () => {
-    const text=document.getElementById('noteText')?.value?.trim();
-    if(text&&S.modal)addNote(S.modal.cat,S.modal.exId,text);
-  },
+  doMarkSess: () => { markSession(document.getElementById('sessDate')?.value||today(), document.getElementById('sessTime')?.value||timeNow()); },
+  doNote: () => { const t=document.getElementById('noteText')?.value?.trim(); if(t&&S.modal)addNote(S.modal.cat,S.modal.exId,t); },
 };
 </script>
 </body>
