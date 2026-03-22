@@ -228,11 +228,10 @@ async function changeWeight(cat,id,delta){
   logWeight(id,ex.name,nw);
 }
 async function setWeight(cat,id,val){
-  const nw=Math.max(0,parseFloat(parseFloat(val).toFixed(2))||0);
-  await fbMerge(`currentPlan/exercises/${cat}/${id}`,{weight:nw});
+  const trimmed=String(val).trim(); if(!trimmed)return;
+  await fbMerge(`currentPlan/exercises/${cat}/${id}`,{weight:trimmed});
   const ex=S.plan?.exercises?.[cat]?.[id];
-  if(ex) logWeight(id,ex.name,nw);
-  S.editingWeight=null;
+  if(ex) logWeight(id,ex.name,trimmed);
 }
 async function logWeight(exId,exName,w){
   await fbSet(`history/h_${Date.now()}`,{exerciseId:exId,exerciseName:exName,planId:S.plan?.id,weight:w,date:today(),time:timeNow()});
@@ -327,23 +326,16 @@ function exCard(ex,cat){
     ?`<img src="${esc(ex.machineImage)}" class="machine-img"${tm?` data-img-ex="${ex.id}" data-img-cat="${cat}" style="cursor:pointer"`:''} alt="">`
     :tm?`<div class="machine-img-ph" data-img-ex="${ex.id}" data-img-cat="${cat}">📷</div>`:'';
 
-  /* Weight area */
-  const weightEl=editingW
-    ?`<div class="weight-ctrl">
-        <input class="wval-input" id="winput_${ex.id}" type="number" step="any" value="${ex.weight}"
-          onblur="GT.setWt('${cat}','${ex.id}',this.value)"
-          onkeydown="if(event.key==='Enter'){GT.setWt('${cat}','${ex.id}',this.value)}"
-          onclick="event.stopPropagation()">
-        <div class="wunit" style="margin-top:2px">ק"ג</div>
-      </div>`
-    :`<div class="weight-ctrl">
-        <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',-1);event.stopPropagation()">−</button>
-        <div class="wval-wrap" onclick="GT.editW('${ex.id}');event.stopPropagation()" title="לחץ לעריכה ידנית">
-          <div class="wval">${ex.weight}</div>
-          <div class="wunit">ק"ג</div>
-        </div>
-        <button class="wbtn" onclick="GT.wt('${cat}','${ex.id}',1);event.stopPropagation()">+</button>
-      </div>`;
+  /* Weight area - simple text input always */
+  const weightEl=`<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px">
+    <input class="wval-input" id="winput_${ex.id}" type="text" inputmode="decimal" value="${esc(String(ex.weight??0))}"
+      style="width:64px;font-size:16px;font-weight:900;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 6px;color:var(--text);text-align:center;outline:none;"
+      onfocus="this.select()"
+      onblur="GT.setWt('${cat}','${ex.id}',this.value)"
+      onkeydown="if(event.key==='Enter'){this.blur()}"
+      onclick="event.stopPropagation()">
+    <div style="font-size:10px;color:var(--muted)">ערך</div>
+  </div>`;
 
   /* Name area */
   const nameEl=tm&&editingN
@@ -571,7 +563,7 @@ window.GT = {
 
   /* Free weight edit */
   editW: id => { S.editingWeight=id; _pendingFocus='winput_'+id; render(); },
-  setWt: (cat,id,val) => { S.editingWeight=null; setWeight(cat,id,val); },
+  setWt: (cat,id,val) => setWeight(cat,id,val),
 
   /* Name edit */
   editN: id => { S.editingName=id; _pendingFocus='ninput_'+id; render(); },
