@@ -1,1 +1,1141 @@
-hi
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ROY | מרתון ברלין 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080a0d;
+      --card: #111318;
+      --card2: #181c24;
+      --accent: #FF5500;
+      --amber: #FFB800;
+      --green: #22c55e;
+      --red: #ef4444;
+      --indigo: #818cf8;
+      --text: #eeeae4;
+      --muted: #60697a;
+      --border: #222730;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rubik', sans-serif;
+      min-height: 100vh;
+      direction: rtl;
+      overscroll-behavior: none;
+    }
+    .app { max-width: 430px; margin: 0 auto; min-height: 100vh; padding-bottom: 80px; }
+
+    /* HEADER */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px 11px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .header-left .label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
+    .header-left .title { font-size: 21px; font-weight: 900; line-height: 1.1; }
+    .header-left .title span { color: var(--accent); }
+    .days-badge {
+      background: var(--accent); border-radius: 9px; padding: 5px 10px; text-align: center; cursor: default;
+    }
+    .days-badge .num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; display: block; line-height: 1; }
+    .days-badge .lbl { font-size: 9px; color: rgba(255,255,255,0.75); letter-spacing: 0.1em; }
+    .week-bar { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+    .week-bar-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .week-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .week-track-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.6s ease; }
+    .week-tag { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); white-space: nowrap; }
+
+    /* VIEWS */
+    .view { display: none; padding: 14px; }
+    .view.active { display: block; animation: fadeUp 0.22s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px; margin-bottom: 11px; }
+    .card-title { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* MARATHON GOAL CARD */
+    .goal-card {
+      background: linear-gradient(135deg, #1a0e06 0%, #110d18 100%);
+      border: 1px solid rgba(255,85,0,0.25);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 11px;
+      position: relative;
+      overflow: hidden;
+    }
+    .goal-card::after {
+      content: '42.2';
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-size: 80px;
+      font-weight: 700;
+      color: rgba(255,85,0,0.06);
+      left: -8px;
+      bottom: -14px;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .goal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .goal-label { font-size: 10px; font-weight: 700; color: rgba(255,85,0,0.6); letter-spacing: 0.14em; text-transform: uppercase; }
+    .goal-race { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .goal-date { font-size: 12px; color: var(--muted); }
+    .goal-target { text-align: left; }
+    .goal-target .t { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .goal-target .l { font-size: 10px; color: var(--muted); }
+    .goal-progress-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .goal-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff8c42); border-radius: 3px; transition: width 0.8s ease; }
+    .goal-progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+    /* STATS ROW */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 11px; }
+    .stat-box { background: var(--card2); border: 1px solid var(--border); border-radius: 11px; padding: 11px 8px; text-align: center; }
+    .stat-box .v { font-family: 'Space Mono', monospace; font-size: 19px; font-weight: 700; display: block; line-height: 1.1; }
+    .stat-box .l { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* WORKOUT ITEMS */
+    .workout-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 0; border-bottom: 1px solid var(--border);
+    }
+    .workout-item:last-child { border-bottom: none; }
+    .w-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .i-easy { background: rgba(34,197,94,0.12); }
+    .i-tempo { background: rgba(251,146,60,0.12); }
+    .i-intervals { background: rgba(239,68,68,0.12); }
+    .i-long { background: rgba(129,140,248,0.12); }
+    .i-race { background: rgba(255,85,0,0.18); }
+    .w-info { flex: 1; min-width: 0; }
+    .w-day { font-size: 11px; color: var(--muted); margin-bottom: 1px; }
+    .w-name { font-size: 14px; font-weight: 600; }
+    .w-dist { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+    .w-action { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .btn-log {
+      background: var(--accent); color: #fff; border: none; border-radius: 8px;
+      padding: 7px 13px; font-size: 12px; font-weight: 600; font-family: 'Rubik', sans-serif;
+      cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
+    }
+    .btn-log:hover { opacity: 0.83; }
+    .btn-edit {
+      background: var(--card2); color: var(--muted); border: 1px solid var(--border); border-radius: 7px;
+      padding: 5px 10px; font-size: 11px; font-weight: 500; font-family: 'Rubik', sans-serif;
+      cursor: pointer; transition: color 0.15s;
+    }
+    .btn-edit:hover { color: var(--text); }
+    .status-done {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--green); font-weight: 600;
+    }
+    .check-circle {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      color: #000; font-size: 10px; font-weight: 900; flex-shrink: 0;
+    }
+    .done-stats { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); text-align: left; }
+    .status-missed { font-size: 11px; color: var(--amber); }
+    .status-upcoming { font-size: 11px; color: var(--muted); }
+
+    /* LOAD INDICATOR */
+    .load-section { margin-top: 4px; }
+    .load-bar { display: flex; align-items: center; gap: 9px; }
+    .load-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .load-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
+    .load-low .load-fill { background: var(--green); }
+    .load-optimal .load-fill { background: var(--accent); }
+    .load-high .load-fill { background: var(--red); }
+    .load-badge { font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .load-low .load-badge { color: var(--green); }
+    .load-optimal .load-badge { color: var(--accent); }
+    .load-high .load-badge { color: var(--red); }
+
+    /* ALERTS */
+    .alert { display: flex; gap: 9px; padding: 11px; border-radius: 10px; margin-bottom: 8px; font-size: 13px; line-height: 1.55; }
+    .alert-icon { font-size: 14px; flex-shrink: 0; padding-top: 1px; }
+    .a-warn { background: rgba(255,184,0,0.08); border: 1px solid rgba(255,184,0,0.25); color: var(--amber); }
+    .a-danger { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; }
+    .a-info { background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.25); color: var(--indigo); }
+    .a-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
+
+    /* PLAN VIEW */
+    .plan-week { margin-bottom: 6px; }
+    .plan-week-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 13px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 10px;
+      cursor: pointer; transition: background 0.14s; user-select: none;
+    }
+    .plan-week-hdr:hover { background: var(--card2); }
+    .plan-week-hdr.is-current { border-color: var(--accent); }
+    .plan-week-hdr.is-done { border-color: rgba(34,197,94,0.3); }
+    .plan-num { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; min-width: 24px; }
+    .plan-name { font-size: 13px; font-weight: 600; flex: 1; }
+    .plan-km { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); }
+    .plan-arrow { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+    .plan-week-hdr.open .plan-arrow { transform: rotate(90deg); }
+    .plan-body {
+      display: none; background: var(--card2);
+      border: 1px solid var(--border); border-top: none;
+      border-radius: 0 0 10px 10px; padding: 4px 13px 10px;
+    }
+    .plan-body.open { display: block; }
+    .plan-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .plan-row:last-child { border-bottom: none; }
+    .plan-day { color: var(--muted); min-width: 36px; font-size: 12px; }
+    .type-badge { padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .t-easy { background: rgba(34,197,94,0.12); color: #22c55e; }
+    .t-tempo { background: rgba(251,146,60,0.12); color: #fb923c; }
+    .t-intervals { background: rgba(239,68,68,0.12); color: #ef4444; }
+    .t-long { background: rgba(129,140,248,0.12); color: #818cf8; }
+    .t-race { background: rgba(255,85,0,0.18); color: var(--accent); }
+    .plan-row-km { font-family: 'Space Mono', monospace; font-size: 12px; margin-right: auto; }
+    .plan-check { color: var(--green); font-size: 13px; }
+    .plan-btn-log {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 6px; padding: 3px 9px; font-size: 11px; font-family: 'Rubik', sans-serif;
+      cursor: pointer; transition: all 0.14s;
+    }
+    .plan-btn-log:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* PACE & HR GUIDE */
+    .guide-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .guide-row:last-child { border-bottom: none; }
+    .guide-type { color: var(--muted); }
+    .guide-vals { text-align: left; }
+    .guide-pace { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); }
+    .guide-hr { font-size: 11px; color: var(--muted); }
+    .zone-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 5px; flex-shrink: 0; }
+
+    /* HISTORY VIEW */
+    .history-item {
+      display: flex; gap: 11px; padding: 13px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 8px;
+    }
+    .h-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .h-info { flex: 1; min-width: 0; }
+    .h-date { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .h-main { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .h-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+    .h-stat { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+    .h-stat span { color: var(--text); }
+    .h-feedback { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 6px; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 300; align-items: flex-end; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card); border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 430px; padding: 18px 18px 28px;
+      max-height: 92vh; overflow-y: auto;
+    }
+    .modal-handle { width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+    .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+    .planned-info { display: flex; gap: 8px; margin-bottom: 18px; }
+    .pi-box { background: var(--card2); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; text-align: center; flex: 1; }
+    .pi-val { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; display: block; }
+    .pi-lbl { font-size: 10px; color: var(--muted); }
+
+    .form-group { margin-bottom: 15px; }
+    .form-label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+    .form-input {
+      width: 100%; background: var(--card2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px; color: var(--text);
+      font-family: 'Space Mono', monospace; font-size: 18px; outline: none;
+      transition: border-color 0.15s; direction: ltr; text-align: center;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .effort-row { display: flex; align-items: center; gap: 12px; }
+    input[type="range"] {
+      flex: 1; -webkit-appearance: none; height: 4px;
+      background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; box-shadow: 0 0 0 3px rgba(255,85,0,0.2);
+    }
+    .effort-val { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); width: 26px; text-align: center; }
+
+    .btn-primary {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      border-radius: 12px; padding: 15px; font-size: 16px; font-weight: 700;
+      font-family: 'Rubik', sans-serif; cursor: pointer; margin-top: 6px; transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.86; }
+    .btn-primary:disabled { opacity: 0.45; cursor: default; }
+    .btn-secondary {
+      width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 600;
+      font-family: 'Rubik', sans-serif; cursor: pointer; margin-top: 8px; transition: all 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+    /* FEEDBACK BOX */
+    .feedback-box {
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px; margin-top: 15px; display: none;
+    }
+    .feedback-box.visible { display: block; animation: fadeUp 0.25s ease; }
+    .feedback-hdr { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+    .feedback-lines { font-size: 13px; line-height: 1.7; color: var(--text); }
+    .feedback-lines .fb-line { padding: 3px 0; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; background: var(--card);
+      border-top: 1px solid var(--border); display: flex; z-index: 200;
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      padding: 9px 4px 11px; gap: 3px; cursor: pointer; border: none;
+      background: none; color: var(--muted); font-family: 'Rubik', sans-serif;
+      font-size: 10px; font-weight: 500; letter-spacing: 0.04em; transition: color 0.14s;
+    }
+    .nav-tab.active { color: var(--accent); }
+    .nav-tab .ni { font-size: 21px; }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 36px 20px; color: var(--muted); font-size: 14px; }
+    .empty .ei { font-size: 36px; margin-bottom: 10px; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <div class="label">BARONS / ROY</div>
+        <div class="title">מרתון <span>ברלין</span></div>
+      </div>
+      <div class="days-badge">
+        <span class="num" id="days-count">—</span>
+        <span class="lbl">ימים למרוץ</span>
+      </div>
+    </div>
+    <div class="week-bar">
+      <span class="week-bar-label">שבוע <span id="hdr-week">—</span> מתוך 28</span>
+      <div class="week-track"><div class="week-track-fill" id="hdr-progress" style="width:0%"></div></div>
+      <span class="week-tag" id="hdr-km">0 ק"מ</span>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <div id="view-dashboard" class="view active">
+    <!-- Goal Card -->
+    <div class="goal-card">
+      <div class="goal-top">
+        <div>
+          <div class="goal-label">מטרה</div>
+          <div class="goal-race">BMW Berlin Marathon</div>
+          <div class="goal-date">27.09.2026</div>
+        </div>
+        <div class="goal-target">
+          <div class="t">4:00</div>
+          <div class="l">יעד</div>
+        </div>
+      </div>
+      <div class="goal-progress-track">
+        <div class="goal-progress-fill" id="goal-prog" style="width:0%"></div>
+      </div>
+      <div class="goal-progress-label">
+        <span id="goal-prog-done">0 ק"מ אימון</span>
+        <span id="goal-prog-pct">0%</span>
+      </div>
+    </div>
+
+    <!-- Weekly Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="v" id="stat-done">0</span>
+        <div class="l">אימונים השבוע</div>
+      </div>
+      <div class="stat-box">
+        <span class="v" id="stat-km">0</span>
+        <div class="l">ק"מ השבוע</div>
+      </div>
+      <div class="stat-box">
+        <span class="v" id="stat-total">0</span>
+        <div class="l">ק"מ סה"כ</div>
+      </div>
+    </div>
+
+    <!-- This Week Workouts -->
+    <div class="card">
+      <div class="card-title">אימוני השבוע — שבוע <span id="week-label-card">—</span></div>
+      <div id="this-week-workouts">
+        <div class="loading">טוען...</div>
+      </div>
+    </div>
+
+    <!-- Training Load -->
+    <div class="card">
+      <div class="card-title">עומס אימונים</div>
+      <div id="load-section" class="load-section load-optimal">
+        <div class="load-bar">
+          <div class="load-track"><div class="load-fill" id="load-fill" style="width:50%"></div></div>
+          <span class="load-badge" id="load-badge">—</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:7px;" id="load-tip"></div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div id="alerts-section"></div>
+
+    <!-- Weekly Coaching -->
+    <div class="card" id="coaching-card" style="display:none;">
+      <div class="card-title">סיכום מאמן — שבוע <span id="coaching-week">—</span></div>
+      <div id="coaching-content" style="font-size:13px; line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <!-- PLAN VIEW -->
+  <div id="view-plan" class="view">
+    <!-- Pace & HR Guide -->
+    <div class="card">
+      <div class="card-title">מדריך קצב ודופק</div>
+      <div class="guide-row">
+        <span class="guide-type">🟢 קל / ארוך</span>
+        <div class="guide-vals">
+          <div class="guide-pace">7:00–7:45 /ק"מ</div>
+          <div class="guide-hr">דופק 109–127 | Zone 2</div>
+        </div>
+      </div>
+      <div class="guide-row">
+        <span class="guide-type">🟠 טמפו</span>
+        <div class="guide-vals">
+          <div class="guide-pace">5:30–5:50 /ק"מ</div>
+          <div class="guide-hr">דופק 145–163 | Zone 3–4</div>
+        </div>
+      </div>
+      <div class="guide-row">
+        <span class="guide-type">🔴 אינטרוולים</span>
+        <div class="guide-vals">
+          <div class="guide-pace">5:00–5:20 /ק"מ</div>
+          <div class="guide-hr">דופק 163+ | Zone 4–5</div>
+        </div>
+      </div>
+      <div class="guide-row">
+        <span class="guide-type">🏆 מרתון</span>
+        <div class="guide-vals">
+          <div class="guide-pace">5:41 /ק"מ</div>
+          <div class="guide-hr">דופק 140–155 | Zone 3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All 28 Weeks -->
+    <div id="plan-list"></div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="view-history" class="view">
+    <div id="history-list">
+      <div class="empty"><div class="ei">📋</div>עדיין אין ריצות מתועדות</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG MODAL -->
+<div class="modal-overlay" id="log-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">רשום אימון</div>
+    <div class="modal-sub" id="modal-sub"></div>
+
+    <div class="planned-info" id="planned-info">
+      <div class="pi-box"><span class="pi-val" id="pi-dist">—</span><div class="pi-lbl">ק"מ מתוכנן</div></div>
+      <div class="pi-box"><span class="pi-val" id="pi-type">—</span><div class="pi-lbl">סוג</div></div>
+      <div class="pi-box"><span class="pi-val" id="pi-zone">Z2</span><div class="pi-lbl">אזור דופק</div></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">מרחק (ק"מ)</label>
+      <input type="number" class="form-input" id="inp-dist" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">זמן (דק:שנ) — לדוגמה 35:20</label>
+      <input type="text" class="form-input" id="inp-time" placeholder="00:00" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">דופק ממוצע (bpm)</label>
+      <input type="number" class="form-input" id="inp-hr" placeholder="140" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מאמץ סובייקטיבי — <span id="effort-display">5</span>/10</label>
+      <div class="effort-row">
+        <input type="range" id="inp-effort" min="1" max="10" value="5">
+        <div class="effort-val" id="effort-val">5</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">הערות (אופציונלי)</label>
+      <input type="text" class="form-input" id="inp-notes" placeholder="..." style="font-family:Rubik; font-size:14px; direction:rtl; text-align:right;">
+    </div>
+
+    <button class="btn-primary" id="btn-save-workout">שמור אימון</button>
+    <button class="btn-secondary" id="btn-close-modal">ביטול</button>
+
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-hdr">📊 משוב מאמן</div>
+      <div class="feedback-lines" id="feedback-lines"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" data-view="dashboard" onclick="switchView('dashboard', this)">
+    <span class="ni">📊</span>לוח
+  </button>
+  <button class="nav-tab" data-view="plan" onclick="switchView('plan', this)">
+    <span class="ni">📅</span>תכנית
+  </button>
+  <button class="nav-tab" data-view="history" onclick="switchView('history', this)">
+    <span class="ni">📋</span>יומן
+  </button>
+</nav>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, child } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCNkfifRX7zgHcIXmAuB0HSSzCfCzsFKjk",
+  authDomain: "shopping-list-855d8.firebaseapp.com",
+  databaseURL: "https://shopping-list-855d8-default-rtdb.firebaseio.com",
+  projectId: "shopping-list-855d8",
+  storageBucket: "shopping-list-855d8.firebasestorage.app",
+  messagingSenderId: "467214739172",
+  appId: "1:467214739172:web:1c1e46e9072352197f2ef1"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const DB_PATH = 'marathon/roy/workouts';
+
+// ===== CONSTANTS =====
+const PLAN_START = new Date('2026-03-15T00:00:00');
+const RACE_DATE = new Date('2026-09-27T07:00:00');
+const TOTAL_PLAN_KM = 1820; // approximate total training km
+
+const DAY_OFFSETS = { tue: 2, wed: 3, fri: 5, sat: 6 };
+const DAY_NAMES = { tue: 'שלישי', wed: 'רביעי', fri: 'שישי', sat: 'שבת' };
+const TYPE_NAMES = { easy: 'קל', tempo: 'טמפו', intervals: 'אינטרוולים', long: 'ארוך', race: 'מרתון' };
+const TYPE_ICONS = { easy: '🟢', tempo: '🟠', intervals: '🔴', long: '🔵', race: '🏆' };
+const TYPE_CLASSES = { easy: 'i-easy', tempo: 'i-tempo', intervals: 'i-intervals', long: 'i-long', race: 'i-race' };
+const BADGE_CLASSES = { easy: 't-easy', tempo: 't-tempo', intervals: 't-intervals', long: 't-long', race: 't-race' };
+
+// Heart rate zones (age 38, max HR ~181)
+const HR_ZONES = {
+  easy:      { min: 109, max: 127, label: 'Zone 2', z: 'Z2' },
+  long:      { min: 109, max: 127, label: 'Zone 2', z: 'Z2' },
+  tempo:     { min: 145, max: 163, label: 'Zone 3–4', z: 'Z3–4' },
+  intervals: { min: 163, max: 181, label: 'Zone 4–5', z: 'Z4–5' },
+  race:      { min: 140, max: 155, label: 'Zone 3', z: 'Z3' }
+};
+
+// ===== TRAINING PLAN =====
+const PLAN = [
+  { week: 1, workouts: [ {day:'tue',type:'easy',dist:4}, {day:'fri',type:'easy',dist:5}, {day:'sat',type:'easy',dist:6} ] },
+  { week: 2, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:5,notes:'האצות'}, {day:'sat',type:'easy',dist:7} ] },
+  { week: 3, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'easy',dist:8} ] },
+  { week: 4, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'easy',dist:9} ] },
+  { week: 5, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:6,notes:'האצות'}, {day:'sat',type:'easy',dist:10} ] },
+  { week: 6, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'easy',dist:10} ] },
+  { week: 7, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'wed',type:'tempo',dist:5}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:12} ] },
+  { week: 8, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'wed',type:'intervals',dist:6}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:14} ] },
+  { week: 9, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:6}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:15} ] },
+  { week:10, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:6}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:16} ] },
+  { week:11, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:7}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:18} ] },
+  { week:12, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:7}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:19} ] },
+  { week:13, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:8}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:20} ] },
+  { week:14, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:8}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:22} ] },
+  { week:15, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:8}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:24} ] },
+  { week:16, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:9}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:25} ] },
+  { week:17, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:9}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:26} ] },
+  { week:18, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:27} ] },
+  { week:19, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:28} ] },
+  { week:20, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:28} ] },
+  { week:21, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:28} ] },
+  { week:22, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:30} ] },
+  { week:23, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:10}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:30} ] },
+  { week:24, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'tempo',dist:12}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:32} ] },
+  { week:25, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'wed',type:'intervals',dist:12}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:32} ] },
+  { week:26, workouts: [ {day:'tue',type:'easy',dist:6}, {day:'fri',type:'easy',dist:6}, {day:'sat',type:'long',dist:20} ] },
+  { week:27, workouts: [ {day:'tue',type:'easy',dist:5}, {day:'fri',type:'easy',dist:5} ] },
+  { week:28, workouts: [ {day:'sat',type:'race',dist:42.2,notes:'מרתון ברלין!'} ] }
+];
+
+// ===== STATE =====
+let allWorkouts = {}; // from Firebase: { "w1_tue": {...}, ... }
+let currentModalKey = null;
+let currentModalPlanned = null;
+
+// ===== HELPERS =====
+function getCurrentWeek() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const start = new Date(PLAN_START);
+  start.setHours(0,0,0,0);
+  const days = Math.floor((today - start) / 86400000);
+  return Math.max(1, Math.min(28, Math.floor(days / 7) + 1));
+}
+
+function getDaysToRace() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const race = new Date(RACE_DATE);
+  race.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((race - today) / 86400000));
+}
+
+function getWorkoutDate(weekNum, day) {
+  const d = new Date(PLAN_START);
+  d.setDate(d.getDate() + (weekNum - 1) * 7 + DAY_OFFSETS[day]);
+  return d;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+}
+
+function workoutKey(weekNum, day) {
+  return `w${weekNum}_${day}`;
+}
+
+function isPastDate(weekNum, day) {
+  const wDate = getWorkoutDate(weekNum, day);
+  const today = new Date(); today.setHours(0,0,0,0);
+  return wDate < today;
+}
+
+function isToday(weekNum, day) {
+  const wDate = getWorkoutDate(weekNum, day);
+  const today = new Date(); today.setHours(0,0,0,0);
+  return wDate.getTime() === today.getTime();
+}
+
+function weekTotalKm(weekData) {
+  return weekData.workouts.reduce((s, w) => s + w.dist, 0);
+}
+
+function parseTime(str) {
+  // returns minutes. Accepts "35:20" or "1:05:20"
+  if (!str) return 0;
+  const parts = str.trim().split(':').map(Number);
+  if (parts.length === 2) return parts[0] + parts[1] / 60;
+  if (parts.length === 3) return parts[0] * 60 + parts[1] + parts[2] / 60;
+  return 0;
+}
+
+function formatPace(distKm, timeMin) {
+  if (!distKm || !timeMin) return '—';
+  const paceMin = timeMin / distKm;
+  const m = Math.floor(paceMin);
+  const s = Math.round((paceMin - m) * 60);
+  return `${m}:${s.toString().padStart(2,'0')} /ק"מ`;
+}
+
+// ===== FEEDBACK ENGINE =====
+function generateFeedback(planned, actual) {
+  const lines = [];
+  const { dist, type } = planned;
+  const { distance, hr, effort, timeMin } = actual;
+  const isEasy = type === 'easy' || type === 'long';
+  const hrZone = HR_ZONES[type] || HR_ZONES.easy;
+
+  // HR analysis
+  if (hr) {
+    if (isEasy) {
+      if (hr > 145) lines.push('⚠️ דופק גבוה מדי לריצה קלה — Zone 2 = 109–127. האט ב-15–20 שנ׳ לק"מ');
+      else if (hr > 127) lines.push('🔶 הדופק קצת גבוה לריצה קלה — שמור על 109–127');
+      else if (hr >= 109) lines.push('✅ דופק Zone 2 מושלם — ככה צריך!');
+      else lines.push('🔵 דופק נמוך מאוד — בסדר גמור לריצת שחרור');
+    } else if (type === 'tempo') {
+      if (hr < 140) lines.push('⬆️ הדופק נמוך לטמפו — אפשר לדחוף יותר (יעד: 145–163)');
+      else if (hr > 163) lines.push('⬇️ הדופק גבוה מדי לטמפו — שמור על שליטה (עד 163)');
+      else lines.push('✅ דופק טמפו מדויק — כל הכבוד!');
+    } else if (type === 'intervals') {
+      if (hr < 163) lines.push('⬆️ אינטרוולים צריכים להגיע לדופק 163+ — תן יותר');
+      else lines.push('✅ דופק אינטרוולים טוב — עבודה קשה ומבוקרת');
+    }
+  }
+
+  // Distance analysis
+  if (distance) {
+    const diff = parseFloat(distance) - dist;
+    if (diff < -1.5) lines.push(`📏 רצת ${Math.abs(diff).toFixed(1)} ק"מ פחות מהמתוכנן (${dist} ק"מ)`);
+    else if (diff > 2) lines.push(`📏 רצת ${diff.toFixed(1)} ק"מ יותר מהמתוכנן — אל תפריז, עקוב אחר התוכנית`);
+    else if (Math.abs(diff) <= 0.5) lines.push('📏 מרחק מדויק ביחס לתכנון — מצוין!');
+  }
+
+  // Effort analysis
+  if (effort) {
+    const e = parseInt(effort);
+    if (isEasy && e >= 7) lines.push(`💪 מאמץ ${e}/10 גבוה לריצה קלה — יעד: 4–5. לפעמים עדיף לוותר על קצב ולשמור על האנרגיה`);
+    else if (type === 'tempo' && e < 6) lines.push('💪 מאמץ נמוך לטמפו — לאמן זה צריך להרגיש קשה אבל נשלט');
+    else if (type === 'intervals' && e < 7) lines.push('💪 לאינטרוולים תן יותר — יעד מאמץ 8–9');
+  }
+
+  // Pace tip
+  if (distance && timeMin) {
+    const pace = timeMin / distance;
+    if (isEasy && pace < 6.5) lines.push('🏃 קצב מהיר מדי לריצה קלה — יעד: 7:00–7:45 /ק"מ');
+    else if (type === 'tempo' && pace > 6.2) lines.push('⚡ קצב הטמפו איטי מהיעד — שאף ל-5:30–5:50 /ק"מ');
+  }
+
+  if (lines.length === 0) lines.push('👍 אימון תקין — המשך ככה!');
+  return lines;
+}
+
+function generateWeeklyCoaching(weekNum, completedWorkouts, plannedWorkouts) {
+  const planned = plannedWorkouts.length;
+  const done = completedWorkouts.length;
+  const lines = [];
+
+  if (done === 0) return ['❌ השבוע לא בוצעו ריצות — נסה לשמור על הרציפות השבוע הבא'];
+  if (done < planned) lines.push(`📋 הושלמו ${done} מתוך ${planned} אימונים — לא רע, אבל שאף לשלם`);
+  else lines.push(`✅ כל ${done} האימונים בוצעו — שבוע מושלם!`);
+
+  // HR check
+  const easyRuns = completedWorkouts.filter(w => w.type === 'easy' || w.type === 'long');
+  const highHrEasy = easyRuns.filter(w => w.hr && parseInt(w.hr) > 140);
+  if (highHrEasy.length > 0) lines.push('⚠️ שים לב: ריצות קלות בדופק גבוה — כלל זהב: אם לא אפשר לדבר בזמן הריצה, זה לא קל!');
+
+  // Load advice for next week
+  const totalKm = completedWorkouts.reduce((s,w) => s + (parseFloat(w.distance)||0), 0);
+  const plannedKm = plannedWorkouts.reduce((s,w) => s + w.dist, 0);
+  if (totalKm > plannedKm * 1.2) lines.push('🔥 שבוע עמוס! תן לגוף לנוח בין האימונים ושתה הרבה');
+  else if (totalKm < plannedKm * 0.7) lines.push('💤 שבוע קל מהמתוכנן — השבוע הבא תנסה לעמוד בתוכנית המלאה');
+  else lines.push(`🎯 עומס שבועי מאוזן — ${totalKm.toFixed(1)} ק"מ. המשך ככה!`);
+
+  if (weekNum < 7) lines.push('📈 אנחנו בבניית בסיס — אל תמהר. ריצות קלות = השקעה לעתיד');
+  else if (weekNum >= 26) lines.push('🏁 אנחנו בשלב הטייפר — פחות זה יותר! שמור אנרגיה למרוץ');
+
+  return lines;
+}
+
+// ===== FIREBASE =====
+function saveWorkout(key, data) {
+  return set(ref(db, `${DB_PATH}/${key}`), data);
+}
+
+// ===== RENDER =====
+function render() {
+  const week = getCurrentWeek();
+  const daysLeft = getDaysToRace();
+  const weekData = PLAN[week - 1];
+
+  // Header
+  document.getElementById('days-count').textContent = daysLeft;
+  document.getElementById('hdr-week').textContent = week;
+  document.getElementById('hdr-progress').style.width = `${(week / 28) * 100}%`;
+
+  // Total km done
+  let totalKmDone = 0;
+  Object.values(allWorkouts).forEach(w => { totalKmDone += parseFloat(w.distance) || 0; });
+  document.getElementById('hdr-km').textContent = `${totalKmDone.toFixed(0)} ק"מ`;
+  document.getElementById('stat-total').textContent = totalKmDone.toFixed(0);
+
+  // Goal progress
+  const pct = Math.min(100, (totalKmDone / TOTAL_PLAN_KM) * 100);
+  document.getElementById('goal-prog').style.width = `${pct}%`;
+  document.getElementById('goal-prog-done').textContent = `${totalKmDone.toFixed(0)} ק"מ אימון`;
+  document.getElementById('goal-prog-pct').textContent = `${pct.toFixed(0)}%`;
+
+  // This week stats
+  let weekKm = 0, weekDone = 0;
+  weekData.workouts.forEach(w => {
+    const key = workoutKey(week, w.day);
+    if (allWorkouts[key]) { weekKm += parseFloat(allWorkouts[key].distance) || 0; weekDone++; }
+  });
+  document.getElementById('stat-done').textContent = `${weekDone}/${weekData.workouts.length}`;
+  document.getElementById('stat-km').textContent = weekKm.toFixed(1);
+  document.getElementById('week-label-card').textContent = week;
+
+  // Render this week workouts
+  renderThisWeek(week, weekData);
+
+  // Training load
+  renderLoad(week, weekKm, weekData);
+
+  // Alerts
+  renderAlerts(week, weekData);
+
+  // Weekly coaching
+  renderCoaching(week, weekData);
+
+  // Plan list
+  renderPlan();
+
+  // History
+  renderHistory();
+}
+
+function renderThisWeek(week, weekData) {
+  const container = document.getElementById('this-week-workouts');
+  if (!weekData) { container.innerHTML = '<div class="empty"><div class="ei">🏁</div>תכנית הושלמה!</div>'; return; }
+
+  container.innerHTML = weekData.workouts.map(w => {
+    const key = workoutKey(week, w.day);
+    const done = allWorkouts[key];
+    const wDate = getWorkoutDate(week, w.day);
+    const past = isPastDate(week, w.day);
+    const today = isToday(week, w.day);
+
+    let actionHtml = '';
+    if (done) {
+      const pace = done.timeMin ? formatPace(parseFloat(done.distance), parseFloat(done.timeMin)) : '';
+      actionHtml = `
+        <div class="status-done"><div class="check-circle">✓</div>${(parseFloat(done.distance)||0).toFixed(1)} ק"מ</div>
+        <div class="done-stats">${done.hr ? `♥ ${done.hr}` : ''} ${pace ? `· ${pace}` : ''}</div>
+        <button class="btn-edit" onclick="openModal(${week}, '${w.day}', true)">ערוך</button>
+      `;
+    } else if (today) {
+      actionHtml = `<button class="btn-log" onclick="openModal(${week}, '${w.day}')">+ רשום</button><div class="status-upcoming" style="color:var(--accent)">היום!</div>`;
+    } else if (past) {
+      actionHtml = `<button class="btn-log" onclick="openModal(${week}, '${w.day}')">+ רשום</button><div class="status-missed">⚠️ לא בוצע</div>`;
+    } else {
+      actionHtml = `<button class="btn-log" style="opacity:0.5" onclick="openModal(${week}, '${w.day}')">+ רשום</button><div class="status-upcoming">${formatDate(wDate)}</div>`;
+    }
+
+    return `
+      <div class="workout-item">
+        <div class="w-icon ${TYPE_CLASSES[w.type]}">${TYPE_ICONS[w.type]}</div>
+        <div class="w-info">
+          <div class="w-day">${DAY_NAMES[w.day]} · ${formatDate(wDate)}</div>
+          <div class="w-name">${TYPE_NAMES[w.type]}${w.notes ? ` · ${w.notes}` : ''}</div>
+          <div class="w-dist">${w.dist} ק"מ</div>
+        </div>
+        <div class="w-action">${actionHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLoad(week, weekKm, weekData) {
+  const plannedKm = weekTotalKm(weekData);
+  const ratio = weekKm / plannedKm;
+  const section = document.getElementById('load-section');
+  const fill = document.getElementById('load-fill');
+  const badge = document.getElementById('load-badge');
+  const tip = document.getElementById('load-tip');
+
+  section.className = 'load-section';
+  let pct = Math.min(100, (weekKm / (plannedKm * 1.2)) * 100);
+
+  if (ratio < 0.5) {
+    section.classList.add('load-low');
+    badge.textContent = '🟢 נמוך';
+    tip.textContent = `${weekKm.toFixed(1)} / ${plannedKm} ק"מ — יש עוד מקום לריצות השבוע`;
+  } else if (ratio <= 1.1) {
+    section.classList.add('load-optimal');
+    badge.textContent = '🟠 אופטימלי';
+    tip.textContent = `${weekKm.toFixed(1)} / ${plannedKm} ק"מ — עומס שבועי תקין, המשך ככה`;
+  } else {
+    section.classList.add('load-high');
+    badge.textContent = '🔴 גבוה';
+    tip.textContent = `${weekKm.toFixed(1)} / ${plannedKm} ק"מ — חריגה מהתוכנית, שמור על מנוחה`;
+  }
+  fill.style.width = `${pct}%`;
+}
+
+function renderAlerts(week, weekData) {
+  const container = document.getElementById('alerts-section');
+  const alerts = [];
+
+  // High HR on easy runs
+  weekData.workouts.forEach(w => {
+    const key = workoutKey(week, w.day);
+    const done = allWorkouts[key];
+    if (done && (w.type === 'easy' || w.type === 'long') && parseInt(done.hr) > 140) {
+      alerts.push({ type: 'warn', msg: `⚠️ ריצת ${DAY_NAMES[w.day]} — דופק ${done.hr} גבוה מדי! ריצות קלות = Zone 2 (109–127 bpm)` });
+    }
+  });
+
+  // Missed workouts
+  let missedCount = 0;
+  weekData.workouts.forEach(w => {
+    const key = workoutKey(week, w.day);
+    if (!allWorkouts[key] && isPastDate(week, w.day)) missedCount++;
+  });
+  if (missedCount > 0) alerts.push({ type: 'info', msg: `📅 ${missedCount} אימון${missedCount>1?'ים':''} טרם תועד${missedCount>1?'ו':''} השבוע — אפשר לרשום גם בדיעבד` });
+
+  // Week 26-27 taper reminder
+  if (week >= 26) alerts.push({ type: 'ok', msg: '🏁 שלב הטייפר! עכשיו נח יותר ממה שרץ. הגוף שלך בונה כוח לקראת הגדול' });
+
+  // Heat warning (always relevant for Israel summer)
+  if (week >= 10) alerts.push({ type: 'warn', msg: '☀️ זכור: ישראל בקיץ — רוץ בבוקר מוקדם, שתה לפני ואחרי, הדופק יהיה גבוה יותר בחום' });
+
+  container.innerHTML = alerts.map(a => `
+    <div class="alert a-${a.type}">
+      <span class="alert-icon"></span>
+      <span>${a.msg}</span>
+    </div>
+  `).join('');
+}
+
+function renderCoaching(week, weekData) {
+  const card = document.getElementById('coaching-card');
+  const content = document.getElementById('coaching-content');
+  const wLabel = document.getElementById('coaching-week');
+
+  if (week < 2) { card.style.display = 'none'; return; }
+
+  // Analyze previous week
+  const prevWeek = week - 1;
+  const prevData = PLAN[prevWeek - 1];
+  if (!prevData) { card.style.display = 'none'; return; }
+
+  const prevCompleted = prevData.workouts.map(w => {
+    const key = workoutKey(prevWeek, w.day);
+    return allWorkouts[key] ? { ...w, ...allWorkouts[key] } : null;
+  }).filter(Boolean);
+
+  if (prevCompleted.length === 0 && prevWeek < week - 1) { card.style.display = 'none'; return; }
+
+  wLabel.textContent = prevWeek;
+  const lines = generateWeeklyCoaching(prevWeek, prevCompleted, prevData.workouts);
+  content.innerHTML = lines.map(l => `<div style="padding:3px 0">${l}</div>`).join('');
+  card.style.display = 'block';
+}
+
+function renderPlan() {
+  const container = document.getElementById('plan-list');
+  const currentWeek = getCurrentWeek();
+
+  container.innerHTML = PLAN.map(weekData => {
+    const { week, workouts } = weekData;
+    const totalKm = weekTotalKm(weekData);
+    const isCurrent = week === currentWeek;
+    const completedCount = workouts.filter(w => allWorkouts[workoutKey(week, w.day)]).length;
+    const isPast = week < currentWeek;
+
+    const weekStart = new Date(PLAN_START);
+    weekStart.setDate(PLAN_START.getDate() + (week - 1) * 7);
+    const weekLabel = weekStart.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+
+    let headerClass = '';
+    if (isCurrent) headerClass = ' is-current';
+    else if (isPast && completedCount === workouts.length) headerClass = ' is-done';
+
+    const workoutsHtml = workouts.map(w => {
+      const key = workoutKey(week, w.day);
+      const done = allWorkouts[key];
+      return `
+        <div class="plan-row">
+          <span class="plan-day">${DAY_NAMES[w.day]}</span>
+          <span class="type-badge ${BADGE_CLASSES[w.type]}">${TYPE_NAMES[w.type]}</span>
+          ${w.notes ? `<span style="font-size:11px;color:var(--muted)">${w.notes}</span>` : ''}
+          <span class="plan-row-km">${w.dist} ק"מ</span>
+          ${done
+            ? `<span class="plan-check">✓</span><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${parseFloat(done.distance).toFixed(1)}</span>`
+            : (week <= currentWeek ? `<button class="plan-btn-log" onclick="openModal(${week}, '${w.day}')">רשום</button>` : '')
+          }
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="plan-week">
+        <div class="plan-week-hdr${headerClass}${isCurrent ? ' open' : ''}" onclick="togglePlanWeek(this)">
+          <span class="plan-num">${week}</span>
+          <span class="plan-name">${week === 28 ? '🏆 מרוץ!' : `שבוע ${week}${isCurrent ? ' ← עכשיו' : ''}`}</span>
+          <span class="plan-km">${totalKm} ק"מ</span>
+          <span class="plan-arrow">›</span>
+        </div>
+        <div class="plan-body${isCurrent ? ' open' : ''}" id="plan-body-${week}">
+          <div style="font-size:11px;color:var(--muted);padding:6px 0 2px">${weekLabel} · ${completedCount}/${workouts.length} אימונים</div>
+          ${workoutsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  const entries = [];
+
+  PLAN.forEach(weekData => {
+    weekData.workouts.forEach(w => {
+      const key = workoutKey(weekData.week, w.day);
+      const done = allWorkouts[key];
+      if (done) {
+        entries.push({ week: weekData.week, day: w.day, planned: w, done, key,
+          date: getWorkoutDate(weekData.week, w.day) });
+      }
+    });
+  });
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="ei">📋</div>עדיין אין ריצות מתועדות<br><small>רשום את האימון הראשון שלך!</small></div>';
+    return;
+  }
+
+  entries.sort((a, b) => b.date - a.date);
+
+  container.innerHTML = entries.map(e => {
+    const { planned, done, date } = e;
+    const pace = (done.distance && done.timeMin) ? formatPace(parseFloat(done.distance), parseFloat(done.timeMin)) : '';
+    const feedback = done.feedback ? done.feedback.slice(0, 2).join(' · ') : '';
+
+    return `
+      <div class="history-item">
+        <div class="h-icon ${TYPE_CLASSES[planned.type]}">${TYPE_ICONS[planned.type]}</div>
+        <div class="h-info">
+          <div class="h-date">שבוע ${e.week} · ${DAY_NAMES[e.day]} · ${date.toLocaleDateString('he-IL', {day:'numeric',month:'long'})}</div>
+          <div class="h-main">${TYPE_NAMES[planned.type]}${planned.notes ? ` · ${planned.notes}` : ''}</div>
+          <div class="h-stats">
+            ${done.distance ? `<div class="h-stat"><span>${parseFloat(done.distance).toFixed(1)}</span> ק"מ</div>` : ''}
+            ${done.hr ? `<div class="h-stat">♥ <span>${done.hr}</span></div>` : ''}
+            ${pace ? `<div class="h-stat">⏱ <span>${pace}</span></div>` : ''}
+            ${done.effort ? `<div class="h-stat">מאמץ <span>${done.effort}/10</span></div>` : ''}
+          </div>
+          ${feedback ? `<div class="h-feedback">${feedback}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== MODAL =====
+window.openModal = function(weekNum, day, isEdit = false) {
+  const planned = PLAN[weekNum - 1]?.workouts.find(w => w.day === day);
+  if (!planned) return;
+
+  currentModalKey = workoutKey(weekNum, day);
+  currentModalPlanned = { ...planned, weekNum };
+
+  const existing = allWorkouts[currentModalKey];
+  const zone = HR_ZONES[planned.type] || HR_ZONES.easy;
+  const wDate = getWorkoutDate(weekNum, day);
+
+  document.getElementById('modal-title').textContent = isEdit ? 'ערוך אימון' : 'רשום אימון';
+  document.getElementById('modal-sub').textContent = `שבוע ${weekNum} · ${DAY_NAMES[day]} · ${formatDate(wDate)}`;
+  document.getElementById('pi-dist').textContent = `${planned.dist}`;
+  document.getElementById('pi-type').textContent = TYPE_NAMES[planned.type];
+  document.getElementById('pi-zone').textContent = zone.z;
+
+  // Fill fields
+  document.getElementById('inp-dist').value = existing ? existing.distance : '';
+  document.getElementById('inp-time').value = existing ? existing.timeStr || '' : '';
+  document.getElementById('inp-hr').value = existing ? existing.hr : '';
+  const effortVal = existing ? (existing.effort || 5) : 5;
+  document.getElementById('inp-effort').value = effortVal;
+  document.getElementById('effort-val').textContent = effortVal;
+  document.getElementById('effort-display').textContent = effortVal;
+  document.getElementById('inp-notes').value = existing ? (existing.notes || '') : '';
+  document.getElementById('feedback-box').classList.remove('visible');
+  document.getElementById('feedback-lines').innerHTML = '';
+
+  document.getElementById('log-modal').classList.add('open');
+};
+
+window.togglePlanWeek = function(el) {
+  const weekNum = parseInt(el.querySelector('.plan-num').textContent);
+  const body = document.getElementById(`plan-body-${weekNum}`);
+  el.classList.toggle('open');
+  body.classList.toggle('open');
+};
+
+// Effort slider
+document.getElementById('inp-effort').addEventListener('input', function() {
+  document.getElementById('effort-val').textContent = this.value;
+  document.getElementById('effort-display').textContent = this.value;
+});
+
+// Save workout
+document.getElementById('btn-save-workout').addEventListener('click', async function() {
+  const dist = parseFloat(document.getElementById('inp-dist').value);
+  const timeStr = document.getElementById('inp-time').value.trim();
+  const hr = parseInt(document.getElementById('inp-hr').value) || null;
+  const effort = parseInt(document.getElementById('inp-effort').value);
+  const notes = document.getElementById('inp-notes').value.trim();
+  const timeMin = parseTime(timeStr) || null;
+
+  if (!dist || dist <= 0) { alert('נא להזין מרחק'); return; }
+
+  this.disabled = true;
+  this.textContent = 'שומר...';
+
+  const feedbackLines = generateFeedback(currentModalPlanned, { distance: dist, hr, effort, timeMin });
+
+  const workoutData = {
+    distance: dist.toString(),
+    timeStr: timeStr || null,
+    timeMin: timeMin ? timeMin.toString() : null,
+    hr: hr ? hr.toString() : null,
+    effort: effort.toString(),
+    notes: notes || null,
+    feedback: feedbackLines,
+    completedAt: new Date().toISOString(),
+    plannedDist: currentModalPlanned.dist,
+    plannedType: currentModalPlanned.type
+  };
+
+  try {
+    await saveWorkout(currentModalKey, workoutData);
+    // Show feedback
+    document.getElementById('feedback-lines').innerHTML = feedbackLines.map(l => `<div class="fb-line">${l}</div>`).join('');
+    document.getElementById('feedback-box').classList.add('visible');
+    this.textContent = '✓ נשמר!';
+    setTimeout(() => {
+      this.disabled = false;
+      this.textContent = 'שמור אימון';
+    }, 2000);
+  } catch(e) {
+    console.error(e);
+    alert('שגיאה בשמירה — בדוק חיבור');
+    this.disabled = false;
+    this.textContent = 'שמור אימון';
+  }
+});
+
+document.getElementById('btn-close-modal').addEventListener('click', () => {
+  document.getElementById('log-modal').classList.remove('open');
+});
+document.getElementById('log-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// ===== NAV =====
+window.switchView = function(viewName, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + viewName).classList.add('active');
+  btn.classList.add('active');
+};
+
+// ===== FIREBASE LISTENER =====
+onValue(ref(db, DB_PATH), (snapshot) => {
+  allWorkouts = snapshot.val() || {};
+  render();
+});
+</script>
+</body>
+</html>
