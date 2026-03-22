@@ -1131,6 +1131,9 @@ window.switchView = function(viewName, btn) {
   btn.classList.add('active');
 };
 
+// ===== INITIAL RENDER (no Firebase needed) =====
+render();
+
 // ===== FIREBASE LISTENER =====
 onValue(ref(db, DB_PATH), (snapshot) => {
   allWorkouts = snapshot.val() || {};
