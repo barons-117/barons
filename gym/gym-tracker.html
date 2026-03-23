@@ -356,12 +356,17 @@ function exCard(ex,cat){
           onblur="GT.saveWt('${cat}','${ex.id}',this.value)"
           onkeydown="if(event.key==='Enter')this.blur()"
           onclick="event.stopPropagation()">
-        ${tm
-          ? `<select style="font-size:10px;color:var(--muted);border:none;background:transparent;text-align:center;cursor:pointer;padding:0;outline:none;direction:rtl;width:64px"
-               onchange="GT.up('${cat}','${ex.id}','weightUnit',this.value)" onclick="event.stopPropagation()">
-               ${['ק\"ג','פלטות','ערך'].map(u=>`<option value="${u}"${(ex.weightUnit||'ערך')===u?' selected':''} >${u}</option>`).join('')}
-             </select>`
-          : `<div class="wunit-label">${ex.weightUnit||'ערך'}</div>`}
+        ${(()=>{
+          const units=[['kg','ק"ג'],['plates','פלטות'],['val','ערך']];
+          const curKey=ex.weightUnit||'kg';
+          const curLabel=units.find(u=>u[0]===curKey)?.[1]||'ק"ג';
+          return tm
+            ? `<select style="font-size:10px;color:var(--muted);border:none;background:transparent;text-align:center;cursor:pointer;padding:0;outline:none;direction:rtl;width:64px"
+                 onchange="GT.up('${cat}','${ex.id}','weightUnit',this.value)" onclick="event.stopPropagation()">
+                 ${units.map(([k,l])=>`<option value="${k}"${curKey===k?' selected':''}>${l}</option>`).join('')}
+               </select>`
+            : `<div class="wunit-label">${curLabel}</div>`;
+        })()}
       </div>
       <div class="chevron" onclick="GT.open('${ex.id}')" style="transform:${open?'rotate(180deg)':'none'}">▼</div>
     </div>
