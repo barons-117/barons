@@ -356,7 +356,12 @@ function exCard(ex,cat){
           onblur="GT.saveWt('${cat}','${ex.id}',this.value)"
           onkeydown="if(event.key==='Enter')this.blur()"
           onclick="event.stopPropagation()">
-        <div class="wunit-label">ערך</div>
+        ${tm
+          ? `<select style="font-size:10px;color:var(--muted);border:none;background:transparent;text-align:center;cursor:pointer;padding:0;outline:none;direction:rtl;width:64px"
+               onchange="GT.up('${cat}','${ex.id}','weightUnit',this.value)" onclick="event.stopPropagation()">
+               ${['ק\"ג','פלטות','ערך'].map(u=>`<option value="${u}"${(ex.weightUnit||'ערך')===u?' selected':''} >${u}</option>`).join('')}
+             </select>`
+          : `<div class="wunit-label">${ex.weightUnit||'ערך'}</div>`}
       </div>
       <div class="chevron" onclick="GT.open('${ex.id}')" style="transform:${open?'rotate(180deg)':'none'}">▼</div>
     </div>
@@ -368,16 +373,14 @@ function exBody(ex,cat,hist){
   const tm=S.trainer;
   const notes=Object.values(ex.trainerNotes||{}).sort((a,b)=>b.date.localeCompare(a.date));
   return `<div class="ex-body">
-    <div class="field-grid fg-3">
+    <div class="field-grid fg-2">
       <div><div class="field-label">מס׳ מכשיר</div>
         ${tm?`<input class="field-input" value="${esc(ex.machineNumber)}" placeholder="19" onchange="GT.up('${cat}','${ex.id}','machineNumber',this.value)">`:`<div class="field-val">${esc(ex.machineNumber)||'—'}</div>`}
       </div>
       <div><div class="field-label">כיוונון</div>
         ${tm?`<input class="field-input" value="${esc(ex.adjustment)}" placeholder="גובה 3" onchange="GT.up('${cat}','${ex.id}','adjustment',this.value)">`:`<div class="field-val">${esc(ex.adjustment)||'—'}</div>`}
       </div>
-      <div><div class="field-label">קפיצת +/−</div>
-        ${tm?`<input class="field-input" value="${esc(String(ex.weightStep??'2.5'))}" placeholder="2.5" onchange="GT.up('${cat}','${ex.id}','weightStep',this.value)">`:`<div class="field-val">${ex.weightStep??'2.5'}</div>`}
-      </div>
+
     </div>
     <div class="field-grid fg-3" style="margin-top:7px">
       <div><div class="field-label">סטים</div>
