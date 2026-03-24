@@ -477,12 +477,25 @@
       <input type="number" class="form-input" id="inp-dist" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
     </div>
     <div class="form-group">
-      <label class="form-label">זמן (דק:שנ) — לדוגמה 35:20</label>
-      <input type="text" class="form-input" id="inp-time" placeholder="00:00" inputmode="numeric">
+      <label class="form-label">זמן ריצה</label>
+      <div style="display:grid;grid-template-columns:1fr 14px 1fr;align-items:center;gap:4px;">
+        <input type="number" class="form-input" id="inp-min" placeholder="35" inputmode="numeric" min="0" max="999" style="font-size:22px;">
+        <div style="text-align:center;font-size:22px;font-weight:700;color:var(--muted);line-height:1;">:</div>
+        <input type="number" class="form-input" id="inp-sec" placeholder="20" inputmode="numeric" min="0" max="59" style="font-size:22px;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 14px 1fr;margin-top:5px;">
+        <div style="font-size:10px;color:var(--muted);text-align:center;">דקות</div>
+        <div></div>
+        <div style="font-size:10px;color:var(--muted);text-align:center;">שניות (00–59)</div>
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">דופק ממוצע (bpm)</label>
+      <label class="form-label">דופק ממוצע (bpm) &nbsp;<span id="hr-zone-label" style="color:var(--accent);font-weight:700;"></span></label>
       <input type="number" class="form-input" id="inp-hr" placeholder="140" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Running Power (ואט) — אופציונלי</label>
+      <input type="number" class="form-input" id="inp-power" placeholder="220" inputmode="numeric">
     </div>
     <div class="form-group">
       <label class="form-label">מאמץ סובייקטיבי — <span id="effort-display">5</span>/10</label>
@@ -1043,8 +1056,17 @@ window.openModal = function(weekNum, day, isEdit = false) {
 
   // Fill fields
   document.getElementById('inp-dist').value = existing ? existing.distance : '';
-  document.getElementById('inp-time').value = existing ? existing.timeStr || '' : '';
+  if (existing && existing.timeStr) {
+    const parts = existing.timeStr.split(':');
+    document.getElementById('inp-min').value = parts[0] || '';
+    document.getElementById('inp-sec').value = parts[1] || '';
+  } else {
+    document.getElementById('inp-min').value = '';
+    document.getElementById('inp-sec').value = '';
+  }
   document.getElementById('inp-hr').value = existing ? existing.hr : '';
+  document.getElementById('inp-power').value = existing ? (existing.power || '') : '';
+  document.getElementById('hr-zone-label').textContent = '';
   const effortVal = existing ? (existing.effort || 5) : 5;
   document.getElementById('inp-effort').value = effortVal;
   document.getElementById('effort-val').textContent = effortVal;
@@ -1069,14 +1091,28 @@ document.getElementById('inp-effort').addEventListener('input', function() {
   document.getElementById('effort-display').textContent = this.value;
 });
 
+document.getElementById('inp-hr').addEventListener('input', function() {
+  const hr = parseInt(this.value);
+  const lbl = document.getElementById('hr-zone-label');
+  if (!hr) { lbl.textContent = ''; return; }
+  if (hr < 109)       lbl.textContent = '← Zone 1 (מנוחה)';
+  else if (hr <= 127) lbl.textContent = '← ✅ Zone 2 (קל)';
+  else if (hr <= 145) lbl.textContent = '← Zone 3 (בינוני)';
+  else if (hr <= 163) lbl.textContent = '← Zone 4 (טמפו)';
+  else                lbl.textContent = '← Zone 5 (מקסימלי)';
+});
+
 // Save workout
 document.getElementById('btn-save-workout').addEventListener('click', async function() {
   const dist = parseFloat(document.getElementById('inp-dist').value);
-  const timeStr = document.getElementById('inp-time').value.trim();
+  const mins = parseInt(document.getElementById('inp-min').value) || 0;
+  const secs = Math.min(59, parseInt(document.getElementById('inp-sec').value) || 0);
+  const timeStr = (mins > 0 || secs > 0) ? `${mins}:${secs.toString().padStart(2,'0')}` : null;
+  const timeMin = timeStr ? (mins + secs / 60) : null;
   const hr = parseInt(document.getElementById('inp-hr').value) || null;
+  const power = parseInt(document.getElementById('inp-power').value) || null;
   const effort = parseInt(document.getElementById('inp-effort').value);
   const notes = document.getElementById('inp-notes').value.trim();
-  const timeMin = parseTime(timeStr) || null;
 
   if (!dist || dist <= 0) { alert('נא להזין מרחק'); return; }
 
@@ -1090,6 +1126,7 @@ document.getElementById('btn-save-workout').addEventListener('click', async func
     timeStr: timeStr || null,
     timeMin: timeMin ? timeMin.toString() : null,
     hr: hr ? hr.toString() : null,
+    power: power ? power.toString() : null,
     effort: effort.toString(),
     notes: notes || null,
     feedback: feedbackLines,
@@ -1109,8 +1146,11 @@ document.getElementById('btn-save-workout').addEventListener('click', async func
       this.textContent = 'שמור אימון';
     }, 2000);
   } catch(e) {
-    console.error(e);
-    alert('שגיאה בשמירה — בדוק חיבור');
+    console.error('Firebase error:', e);
+    const msg = e?.code === 'PERMISSION_DENIED'
+      ? 'אין הרשאת כתיבה ל-Firebase.\nיש לפתוח Rules ב-Realtime Database:\n{\n  "rules": { ".read": true, ".write": true }\n}'
+      : `שגיאה בשמירה: ${e?.message || 'בדוק חיבור אינטרנט'}`;
+    alert(msg);
     this.disabled = false;
     this.textContent = 'שמור אימון';
   }
