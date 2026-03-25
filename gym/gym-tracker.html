@@ -423,7 +423,7 @@ function memTab(){
     <p style="margin-bottom:18px;font-size:13px;color:var(--muted)">הוסף כרטיסייה לעקוב אחרי השיעורים שלך</p>
     <button class="btn-red" onclick="GT.modal('newMembership')">+ כרטיסייה חדשה</button></div>`;
 
-  const sess=Object.values(m.sessions||{}).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  const sess=Object.entries(m.sessions||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
   const used=sess.length, total=m.total, rem=total-used, pct=Math.min(100,(used/total)*100);
   return `
     <div class="plan-hdr">
@@ -449,6 +449,7 @@ function memTab(){
       <div class="session-num">${used-i}</div>
       <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.date}</div><div style="font-size:11px;color:var(--muted)">${s.time}</div></div>
       <div style="font-size:12px;color:var(--green);font-weight:700">✓ בוצע</div>
+      <button onclick="GT.delSess('${s._key}')" style="background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:4px 6px;line-height:1" title="מחק אימון">×</button>
     </div>`).join('')}`;
 }
 
@@ -614,6 +615,7 @@ window.GT = {
   memTotal: n => { S.modal={...S.modal,total:n}; render(); },
   doCreateMem: () => { const t=parseInt(document.getElementById('memTotal')?.value)||S.modal.total||10; createMembership(t); },
   doMarkSess: () => { markSession(document.getElementById('sessDate')?.value||today(), document.getElementById('sessTime')?.value||timeNow()); },
+  delSess: async (key) => { if(!confirm('למחוק אימון זה?'))return; await set(dbRef('membership/sessions/'+key), null); },
   doNote: () => { const t=document.getElementById('noteText')?.value?.trim(); if(t&&S.modal)addNote(S.modal.cat,S.modal.exId,t); },
 };
 </script>
