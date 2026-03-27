@@ -1,1 +1,280 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Barons Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e0c;
+  --panel: #1a1814;
+  --border: #2a2620;
+  --on: #f5a623;
+  --off: #2e2b27;
+  --off-text: #6b6560;
+  --text: #f0ebe3;
+  --muted: #8a8278;
+  --dafna: #e8916a;
+  --daniel: #7eb8d4;
+  --green: #9bc46a;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--text); font-family:'Heebo',sans-serif; min-height:100dvh; padding-bottom:50px; }
 
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:20px 20px 16px; border-bottom:1px solid var(--border); }
+.logo { font-size:20px; font-weight:800; letter-spacing:3px; color:var(--on); }
+.logo span { color:var(--text); }
+.subtitle { font-size:11px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+#clock { font-size:26px; font-weight:300; letter-spacing:2px; }
+
+.tabs { display:flex; padding:14px 16px 0; gap:8px; }
+.tab { flex:1; padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--panel); color:var(--muted); font-family:'Heebo',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.tab.active { background:var(--on); color:#1a1200; border-color:var(--on); }
+
+.sec { font-size:10px; font-weight:600; letter-spacing:2.5px; color:var(--muted); text-transform:uppercase; padding:22px 20px 10px; }
+
+.view { display:none; }
+.view.active { display:block; }
+
+/* KIDS */
+.kids-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 14px; }
+.kids-grid.full { grid-template-columns:1fr; }
+.kcard { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:16px 14px; display:flex; flex-direction:column; gap:10px; }
+.kcard.wide { flex-direction:row; align-items:center; gap:14px; }
+.kcard .icon { font-size:20px; }
+.kcard .name { font-size:14px; font-weight:600; }
+.kcard .sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.kcard .info { flex:1; }
+.btn-row { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.kcard.wide .btn-row { width:136px; flex-shrink:0; }
+.btn { display:block; text-align:center; padding:10px 0; border-radius:11px; font-family:'Heebo',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; line-height:1; text-decoration:none; }
+.btn-on { background:var(--on); color:#1a1200; }
+.btn-off { background:var(--off); color:var(--off-text); border:1px solid var(--border); }
+.btn:active { transform:scale(0.94); opacity:0.85; }
+.c-dafna .name { color:var(--dafna); }
+.c-dafna .btn-on { background:var(--dafna); }
+.c-daniel .name { color:var(--daniel); }
+.c-daniel .btn-on { background:var(--daniel); color:#0f1a20; }
+.c-green .name { color:var(--green); }
+.c-green .btn-on { background:var(--green); color:#1a2010; }
+
+/* ALL */
+.room-card { margin:0 14px 12px; background:var(--panel); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+.room-header { display:flex; align-items:center; gap:10px; padding:13px 16px; border-bottom:1px solid var(--border); }
+.room-header .icon { font-size:18px; }
+.room-header .rname { font-size:15px; font-weight:700; flex:1; }
+.room-header .all-btns { display:flex; gap:6px; }
+.room-header .btn { padding:7px 12px; font-size:12px; border-radius:9px; }
+.light-row { display:flex; align-items:center; padding:11px 16px; border-bottom:1px solid var(--border); gap:10px; }
+.light-row:last-child { border-bottom:none; }
+.light-dot { width:7px; height:7px; border-radius:50%; background:var(--off); flex-shrink:0; transition:background 0.3s; }
+.light-dot.on { background:var(--on); box-shadow:0 0 6px var(--on); }
+.light-name { flex:1; font-size:13px; color:var(--muted); }
+.light-row .btn-row { width:120px; flex-shrink:0; }
+.light-row .btn { padding:8px 0; font-size:12px; }
+
+#toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--on); color:#1a1200; padding:9px 20px; border-radius:30px; font-size:13px; font-weight:600; opacity:0; transition:all 0.25s; pointer-events:none; white-space:nowrap; z-index:99; }
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+#token-warn { margin:14px; padding:14px; border-radius:14px; background:#2a1a10; border:1px solid #6b3a18; font-size:13px; color:#f5a070; line-height:1.5; display:none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="logo">BARONS<span>.</span></div>
+    <div class="subtitle">בית חכם</div>
+  </div>
+  <div id="clock">--:--</div>
+</div>
+
+<div id="token-warn">⚠️ טוקן לא הוגדר — ערוך את הקובץ והכנס TOKEN בשורה המתאימה</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('kids',this)">👧 ילדות</button>
+  <button class="tab" onclick="switchTab('all',this)">🏠 הכל</button>
+</div>
+
+<!-- KIDS VIEW -->
+<div id="view-kids" class="view active">
+  <div class="sec">חדרי הילדות</div>
+  <div class="kids-grid full">
+    <div class="kcard wide c-dafna">
+      <div class="icon">🌸</div>
+      <div class="info"><div class="name">חדר דפנה</div><div class="sub">תאורה ראשית + מאוורר</div></div>
+      <div class="btn-row">
+        <button class="btn btn-on" onclick="ctrl(['switch.daphna_light','light.daphna_ceiling_fan_daphna'],'on','חדר דפנה')">הדלק</button>
+        <button class="btn btn-off" onclick="ctrl(['switch.daphna_light','light.daphna_ceiling_fan_daphna'],'off','חדר דפנה')">כבה</button>
+      </div>
+    </div>
+    <div class="kcard wide c-daniel">
+      <div class="icon">⭐</div>
+      <div class="info"><div class="name">חדר דניאל</div><div class="sub">תאורה ראשית + מאוורר</div></div>
+      <div class="btn-row">
+        <button class="btn btn-on" onclick="ctrl(['switch.danielle_light','light.danielle_ceiling_fan_light'],'on','חדר דניאל')">הדלק</button>
+        <button class="btn btn-off" onclick="ctrl(['switch.danielle_light','light.danielle_ceiling_fan_light'],'off','חדר דניאל')">כבה</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">חללים משותפים</div>
+  <div class="kids-grid">
+    <div class="kcard"><div class="icon">🛋️</div><div class="name">סלון</div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.living_room_light_1','switch.living_room_light_2','switch.living_room_light_3'],'on','סלון')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.living_room_light_1','switch.living_room_light_2','switch.living_room_light_3'],'off','סלון')">כבה</button></div>
+    </div>
+    <div class="kcard"><div class="icon">🍳</div><div class="name">מטבח</div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kitchen_main_light','switch.island_light'],'on','מטבח')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kitchen_main_light','switch.island_light'],'off','מטבח')">כבה</button></div>
+    </div>
+    <div class="kcard"><div class="icon">🍽️</div><div class="name">שולחן אוכל</div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.dining_light'],'on','שולחן אוכל')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.dining_light'],'off','שולחן אוכל')">כבה</button></div>
+    </div>
+    <div class="kcard"><div class="icon">🚿</div><div class="name">מקלחת ילדים</div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kids_bathroom_main_light','switch.kids_bathroom_above_mirror_light'],'on','מקלחת ילדים')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kids_bathroom_main_light','switch.kids_bathroom_above_mirror_light'],'off','מקלחת ילדים')">כבה</button></div>
+    </div>
+  </div>
+
+  <div class="sec">מרפסת</div>
+  <div class="kids-grid full">
+    <div class="kcard wide c-green"><div class="icon">🌿</div><div class="info"><div class="name">תאורה הקפית</div><div class="sub">עמודים + סראונד</div></div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.balcony_poles_light','switch.balcony_surround_light'],'on','מרפסת הקפית')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.balcony_poles_light','switch.balcony_surround_light'],'off','מרפסת הקפית')">כבה</button></div>
+    </div>
+    <div class="kcard wide c-green"><div class="icon">💡</div><div class="info"><div class="name">תאורה ראשית</div><div class="sub">קיר מרפסת</div></div>
+      <div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.balcony_wall_light'],'on','מרפסת ראשית')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.balcony_wall_light'],'off','מרפסת ראשית')">כבה</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL VIEW -->
+<div id="view-all" class="view">
+  <div class="sec">כל האורות</div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🚪</span><span class="rname">מסדרון</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.hallway_wall_light','switch.hallway_spot_lights'],'on','מסדרון')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.hallway_wall_light','switch.hallway_spot_lights'],'off','מסדרון')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.hallway_wall_light"></div><div class="light-name">תאורת קיר</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.hallway_wall_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.hallway_wall_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.hallway_spot_lights"></div><div class="light-name">ספוטים</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.hallway_spot_lights'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.hallway_spot_lights'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🛋️</span><span class="rname">סלון</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.living_room_light_1','switch.living_room_light_2','switch.living_room_light_3'],'on','סלון')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.living_room_light_1','switch.living_room_light_2','switch.living_room_light_3'],'off','סלון')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.living_room_light_1"></div><div class="light-name">תאורה 1</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.living_room_light_1'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.living_room_light_1'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.living_room_light_2"></div><div class="light-name">תאורה 2</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.living_room_light_2'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.living_room_light_2'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.living_room_light_3"></div><div class="light-name">תאורה 3</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.living_room_light_3'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.living_room_light_3'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🍽️</span><span class="rname">פינת אוכל</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.dining_light'],'on','פינת אוכל')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.dining_light'],'off','פינת אוכל')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.dining_light"></div><div class="light-name">תאורת שולחן</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.dining_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.dining_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🍳</span><span class="rname">מטבח</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.kitchen_main_light','switch.island_light','switch.kitchen_service_light'],'on','מטבח')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.kitchen_main_light','switch.island_light','switch.kitchen_service_light'],'off','מטבח')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.kitchen_main_light"></div><div class="light-name">תאורה ראשית</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kitchen_main_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kitchen_main_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.island_light"></div><div class="light-name">איילנד</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.island_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.island_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.kitchen_service_light"></div><div class="light-name">תאורת שירות</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kitchen_service_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kitchen_service_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card" style="border-color:rgba(232,145,106,0.25)">
+    <div class="room-header"><span class="icon">🌸</span><span class="rname" style="color:var(--dafna)">חדר דפנה</span><div class="all-btns"><button class="btn btn-on" style="background:var(--dafna)" onclick="ctrl(['switch.daphna_light','light.daphna_ceiling_fan_daphna'],'on','חדר דפנה')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.daphna_light','light.daphna_ceiling_fan_daphna'],'off','חדר דפנה')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.daphna_light"></div><div class="light-name">תאורה ראשית</div><div class="btn-row"><button class="btn btn-on" style="background:var(--dafna)" onclick="ctrl(['switch.daphna_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.daphna_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.daphna_ceiling_fan_daphna"></div><div class="light-name">תאורת מאוורר</div><div class="btn-row"><button class="btn btn-on" style="background:var(--dafna)" onclick="ctrl(['light.daphna_ceiling_fan_daphna'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.daphna_ceiling_fan_daphna'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card" style="border-color:rgba(126,184,212,0.25)">
+    <div class="room-header"><span class="icon">⭐</span><span class="rname" style="color:var(--daniel)">חדר דניאל</span><div class="all-btns"><button class="btn btn-on" style="background:var(--daniel);color:#0f1a20" onclick="ctrl(['switch.danielle_light','light.danielle_ceiling_fan_light'],'on','חדר דניאל')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.danielle_light','light.danielle_ceiling_fan_light'],'off','חדר דניאל')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.danielle_light"></div><div class="light-name">תאורה ראשית</div><div class="btn-row"><button class="btn btn-on" style="background:var(--daniel);color:#0f1a20" onclick="ctrl(['switch.danielle_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.danielle_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.danielle_ceiling_fan_light"></div><div class="light-name">תאורת מאוורר</div><div class="btn-row"><button class="btn btn-on" style="background:var(--daniel);color:#0f1a20" onclick="ctrl(['light.danielle_ceiling_fan_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.danielle_ceiling_fan_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🚿</span><span class="rname">מקלחת ילדים</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.kids_bathroom_main_light','switch.kids_bathroom_above_mirror_light','switch.kids_bathroom_mirror_switch'],'on','מקלחת ילדים')">הכל</button><button class="btn btn-off" onclick="ctrl(['switch.kids_bathroom_main_light','switch.kids_bathroom_above_mirror_light','switch.kids_bathroom_mirror_switch'],'off','מקלחת ילדים')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.kids_bathroom_main_light"></div><div class="light-name">תאורה ראשית</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kids_bathroom_main_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kids_bathroom_main_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.kids_bathroom_above_mirror_light"></div><div class="light-name">מעל מראה</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kids_bathroom_above_mirror_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kids_bathroom_above_mirror_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.kids_bathroom_mirror_switch"></div><div class="light-name">מראה</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.kids_bathroom_mirror_switch'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.kids_bathroom_mirror_switch'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🛏️</span><span class="rname">חדר הורים</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['light.master_fan','switch.master_bathroom_light','switch.master_bedroom_closet_light','switch.roy_reading_light','switch.erez_reading_light'],'on','חדר הורים')">הכל</button><button class="btn btn-off" onclick="ctrl(['light.master_fan','switch.master_bathroom_light','switch.master_bedroom_closet_light','switch.roy_reading_light','switch.erez_reading_light'],'off','חדר הורים')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.master_fan"></div><div class="light-name">תאורת מאוורר</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['light.master_fan'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.master_fan'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.master_bathroom_light"></div><div class="light-name">חדר אמבטיה</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.master_bathroom_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.master_bathroom_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.master_bedroom_closet_light"></div><div class="light-name">ארון</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.master_bedroom_closet_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.master_bedroom_closet_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.roy_reading_light"></div><div class="light-name">אור קריאה — רוי</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.roy_reading_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.roy_reading_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.erez_reading_light"></div><div class="light-name">אור קריאה — ארז</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.erez_reading_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.erez_reading_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">💻</span><span class="rname">משרד</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['light.office_fan','switch.office_table_light'],'on','משרד')">הכל</button><button class="btn btn-off" onclick="ctrl(['light.office_fan','switch.office_table_light'],'off','משרד')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.office_fan"></div><div class="light-name">תאורת מאוורר</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['light.office_fan'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.office_fan'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.office_table_light"></div><div class="light-name">תאורת שולחן</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.office_table_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.office_table_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card" style="border-color:rgba(155,196,106,0.2)">
+    <div class="room-header"><span class="icon">🌿</span><span class="rname" style="color:var(--green)">מרפסת</span><div class="all-btns"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['light.led_outdoor_kitchen','light.balcony_ceiling_fan','switch.balcony_poles_light','switch.jacuzzi_wall_light','switch.balcony_surround_light','switch.balcony_wall_light'],'on','מרפסת')">הכל</button><button class="btn btn-off" onclick="ctrl(['light.led_outdoor_kitchen','light.balcony_ceiling_fan','switch.balcony_poles_light','switch.jacuzzi_wall_light','switch.balcony_surround_light','switch.balcony_wall_light'],'off','מרפסת')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.led_outdoor_kitchen"></div><div class="light-name">פס LED מטבח חוץ</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['light.led_outdoor_kitchen'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.led_outdoor_kitchen'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-light.balcony_ceiling_fan"></div><div class="light-name">תאורת מאוורר</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['light.balcony_ceiling_fan'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['light.balcony_ceiling_fan'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.balcony_poles_light"></div><div class="light-name">עמודים</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['switch.balcony_poles_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.balcony_poles_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.balcony_surround_light"></div><div class="light-name">תאורה הקפית</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['switch.balcony_surround_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.balcony_surround_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.balcony_wall_light"></div><div class="light-name">תאורת קיר</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['switch.balcony_wall_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.balcony_wall_light'],'off')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.jacuzzi_wall_light"></div><div class="light-name">קיר ג׳קוזי</div><div class="btn-row"><button class="btn btn-on" style="background:var(--green);color:#1a2010" onclick="ctrl(['switch.jacuzzi_wall_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.jacuzzi_wall_light'],'off')">כבה</button></div></div>
+  </div>
+
+  <div class="room-card">
+    <div class="room-header"><span class="icon">🫧</span><span class="rname">כביסה</span><div class="all-btns"><button class="btn btn-on" onclick="ctrl(['switch.laundry_room_light'],'on','כביסה')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.laundry_room_light'],'off','כביסה')">כבה</button></div></div>
+    <div class="light-row"><div class="light-dot" id="dot-switch.laundry_room_light"></div><div class="light-name">תאורת חדר כביסה</div><div class="btn-row"><button class="btn btn-on" onclick="ctrl(['switch.laundry_room_light'],'on')">הדלק</button><button class="btn btn-off" onclick="ctrl(['switch.laundry_room_light'],'off')">כבה</button></div></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+const HA_URL = 'https://ginnie-pc-erez-baron.hass.ginnie.co.il';
+const TOKEN  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI1YzEzY2FhZTNhNDM0NDI5ODkyZTY5MWFjN2E0ZmJhMyIsImlhdCI6MTc3NDYzNzUwNiwiZXhwIjoyMDg5OTk3NTA2fQ.GXXo59P-oaeVVWJqshhmIv8DS6T1hLox1w5hRfIMapc';
+
+if (TOKEN === 'YOUR_TOKEN_HERE') document.getElementById('token-warn').style.display = 'block';
+
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 10000);
+
+function switchTab(t, el) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + t).classList.add('active');
+  el.classList.add('active');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+async function ctrl(entities, action, label) {
+  entities.forEach(e => {
+    const d = document.getElementById('dot-' + e);
+    if (d) d.classList.toggle('on', action === 'on');
+  });
+  if (label) showToast((action === 'on' ? '💡 ' : '🌑 ') + label);
+
+  const groups = {};
+  entities.forEach(e => { const dm = e.split('.')[0]; (groups[dm] = groups[dm]||[]).push(e); });
+
+  for (const [domain, ids] of Object.entries(groups)) {
+    try {
+      await fetch(`${HA_URL}/api/services/${domain}/turn_${action}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity_id: ids })
+      });
+    } catch(err) { showToast('⚠️ שגיאת חיבור'); }
+  }
+}
+</script>
+</body>
+</html>
