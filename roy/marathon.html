@@ -1171,13 +1171,34 @@ window.switchView = function(viewName, btn) {
   btn.classList.add('active');
 };
 
+// ===== ONE-TIME MIGRATION: move w2 → w1 =====
+async function migrateW2toW1() {
+  const migratedRef = ref(db, `${DB_PATH}/_migrated_w2_to_w1`);
+  const alreadyDone = await get(migratedRef);
+  if (alreadyDone.val()) return;
+
+  const days = ['tue', 'wed', 'fri', 'sat'];
+  for (const day of days) {
+    const oldRef = ref(db, `${DB_PATH}/w2_${day}`);
+    const snap = await get(oldRef);
+    if (snap.val()) {
+      await set(ref(db, `${DB_PATH}/w1_${day}`), snap.val());
+      await set(oldRef, null);
+    }
+  }
+  await set(migratedRef, true);
+  console.log('Migration w2→w1 done');
+}
+
 // ===== INITIAL RENDER (no Firebase needed) =====
 render();
 
 // ===== FIREBASE LISTENER =====
-onValue(ref(db, DB_PATH), (snapshot) => {
-  allWorkouts = snapshot.val() || {};
-  render();
+migrateW2toW1().then(() => {
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    allWorkouts = snapshot.val() || {};
+    render();
+  });
 });
 </script>
 </body>
