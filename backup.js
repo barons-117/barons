@@ -7,7 +7,8 @@ import { join } from 'path'
 
 // ⚠️  החלף ב-Service Role Key:
 //     Supabase Dashboard → Project Settings → API → service_role
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZXdzZnVzd2lpbGlyaXRpa3ZoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA0MjQ3OSwiZXhwIjoyMDg4NjE4NDc5fQ.u73ZQaHXZo73J496nqIUQmY-Ox8lK2_P-1xh7v3Qc8M'
+const serviceKey = process.env.SUPABASE_SERVICE_KEY
+
 
 const supabase = createClient(
   'https://cwewsfuswiiliritikvh.supabase.co',
