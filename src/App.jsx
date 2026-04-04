@@ -1,121 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from './lib/supabase'
+import Home from './pages/Home'
+import Travels from './pages/Travels'
+import TripDetail from './pages/TripDetail'
+import Search from './pages/Search'
+import Stats from './pages/Stats'
+import Vouchers from './pages/Vouchers'
+import Cards from './pages/Cards'
+import Recipes from './pages/Recipes'
+import RecipeDetail from './pages/RecipeDetail'
+import Marathon from './pages/Marathon'
+import Gym from './pages/Gym'
+import FamilyTree from './pages/FamilyTree'
 
-function App() {
-  const [count, setCount] = useState(0)
+// ─── Permissions ──────────────────────────────────────────────────────────────
+const SUPER_ADMIN = 'erez@barons.co.il'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const ROUTE_PERMISSIONS = {
+  '/travels':  [SUPER_ADMIN],
+  '/search':   [SUPER_ADMIN],
+  '/stats':    [SUPER_ADMIN],
+  '/vouchers': [SUPER_ADMIN, 'roy@barons.co.il'],
+  '/cards':    [SUPER_ADMIN, 'roy@barons.co.il'],
+  '/recipes':  [SUPER_ADMIN, 'roy@barons.co.il'],
+  '/marathon': [SUPER_ADMIN, 'roy@barons.co.il'],
+  '/gym':      [SUPER_ADMIN],
+  '/family':   [SUPER_ADMIN, 'roy@barons.co.il', 'user@barons.co.il'],
 }
 
-export default App
+function canAccess(email, route) {
+  if (!email) return false
+  if (email === SUPER_ADMIN) return true
+  return (ROUTE_PERMISSIONS[route] || []).includes(email)
+}
+
+function Guard({ session, route, children }) {
+  if (!session) return <Navigate to="/" replace />
+  if (!canAccess(session.user.email, route)) return <Navigate to="/" replace />
+  return children
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session); setLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0f1a2e', color:'white', fontSize:'20px' }}>BARONS</div>
+  )
+
+  const G = (route, el) => <Guard session={session} route={route}>{el}</Guard>
+
+  return (
+    <HashRouter>
+      <Routes>
+        <Route path="/"            element={<Home session={session} />} />
+        <Route path="/travels"     element={G('/travels',  <Travels    session={session} />)} />
+        <Route path="/travels/:id" element={G('/travels',  <TripDetail session={session} />)} />
+        <Route path="/search"      element={G('/search',   <Search     session={session} />)} />
+        <Route path="/stats"       element={G('/stats',    <Stats      session={session} />)} />
+        <Route path="/vouchers"    element={G('/vouchers', <Vouchers   session={session} />)} />
+        <Route path="/cards"       element={G('/cards',    <Cards      session={session} />)} />
+        <Route path="/recipes"     element={G('/recipes',  <Recipes    session={session} />)} />
+        <Route path="/recipes/:id" element={G('/recipes',  <RecipeDetail session={session} />)} />
+        <Route path="/marathon"    element={G('/marathon', <Marathon   session={session} />)} />
+        <Route path="/gym"         element={G('/gym',      <Gym        session={session} />)} />
+        <Route path="/family"      element={G('/family',   <FamilyTree session={session} />)} />
+        <Route path="*"            element={<Navigate to="/" replace />} />
+      </Routes>
+    </HashRouter>
+  )
+}
