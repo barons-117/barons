@@ -1,18 +1,16 @@
 // backup.js — גיבוי מלא של Supabase
 // הרץ מתיקיית הפרויקט: node backup.js
 
+import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 
-// ⚠️  החלף ב-Service Role Key:
-//     Supabase Dashboard → Project Settings → API → service_role
 const serviceKey = process.env.SUPABASE_SERVICE_KEY
-
 
 const supabase = createClient(
   'https://cwewsfuswiiliritikvh.supabase.co',
-  SERVICE_ROLE_KEY,
+  serviceKey,
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
@@ -45,13 +43,15 @@ const TABLES = [
   'residents',
   'requests',
   'notices',
-  'documents',
   'gate_phone_requests',
   'lobby_media',
   'professionals',
   'pro_categories',
   'pro_recommendations',
   'profile_update_requests',
+
+  // עץ משפחה
+  'family_members',
 ]
 
 // הסר כפילויות אם יש
@@ -61,10 +61,8 @@ const UNIQUE_TABLES = [...new Set(TABLES)]
 async function backupTable(tableName) {
   process.stdout.write(`  ⏳ ${tableName.padEnd(30)}`)
 
-  // נסה עם order לפי created_at
   let { data, error } = await supabase.from(tableName).select('*').order('created_at', { ascending: true })
 
-  // אם אין עמודת created_at — נסה בלי order
   if (error?.message?.includes('created_at')) {
     ;({ data, error } = await supabase.from(tableName).select('*'))
   }
@@ -80,9 +78,10 @@ async function backupTable(tableName) {
 
 // ── Main ─────────────────────────────────────────────────────────
 async function main() {
-  if (SERVICE_ROLE_KEY === 'YOUR_SERVICE_ROLE_KEY') {
-    console.error('\n❌  עדכן את SERVICE_ROLE_KEY בתחילת הקובץ!\n')
-    console.error('   Supabase Dashboard → Project Settings → API → service_role\n')
+  if (!serviceKey) {
+    console.error('\n❌  חסר SUPABASE_SERVICE_KEY ב-.env!\n')
+    console.error('   הוסף לקובץ .env:')
+    console.error('   SUPABASE_SERVICE_KEY=your-service-role-key\n')
     process.exit(1)
   }
 

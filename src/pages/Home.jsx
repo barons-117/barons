@@ -8,6 +8,7 @@ const USER_MENUS = {
     { label: 'נסיעות',    sub: 'יומן הטיולים שלי',        path: '/travels',  internal: true },
     { label: 'כושר',      sub: 'מעקב אימונים',             path: '/gym',      internal: true },
     { label: 'מתכונים',   sub: 'ספר המתכונים המשפחתי',     path: '/recipes',  internal: true },
+    { label: 'קניות',     sub: 'רשימת קניות משפחתית',      path: '/shopping', internal: true },
     { label: 'שוברים',    sub: 'ניהול שוברים',             path: '/vouchers', internal: true },
     { label: 'כרטיסים',   sub: 'כרטיסי מתנה',              path: '/cards',    internal: true },
     { label: 'מרתון',     sub: 'אימוני ריצה — רועי',       path: '/marathon', internal: true },
@@ -16,12 +17,15 @@ const USER_MENUS = {
   'roy@barons.co.il': [
     { label: 'מרתון',     sub: 'אימוני ריצה — ברלין 2026', path: '/marathon', internal: true },
     { label: 'מתכונים',   sub: 'ספר המתכונים המשפחתי',     path: '/recipes',  internal: true },
+    { label: 'קניות',     sub: 'רשימת קניות משפחתית',      path: '/shopping', internal: true },
     { label: 'שוברים',    sub: 'ניהול שוברים',             path: '/vouchers', internal: true },
     { label: 'כרטיסים',   sub: 'כרטיסי מתנה',              path: '/cards',    internal: true },
     { label: 'עץ משפחה',  sub: 'גרוסמן-ארטג לדורותיה',    path: '/family',   internal: true },
   ],
   'user@barons.co.il': [
     { label: 'עץ משפחה',  sub: 'גרוסמן-ארטג לדורותיה',    path: '/family',   internal: true },
+    { label: 'מתכונים',   sub: 'ספר המתכונים המשפחתי',     path: '/recipes',  internal: true },
+    { label: 'קניות',     sub: 'רשימת קניות משפחתית',      path: '/shopping', internal: true },
   ],
 }
 
