@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Floor Plan Calibration</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1e293b; font-family: Arial, sans-serif; padding: 20px; }
+
+  .fp-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+  .fp-wrap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .fp-overlay {
+    position: absolute;
+    inset: 0;
+  }
+  .room {
+    position: absolute;
+    background: rgba(99,102,241,0.2);
+    border: 2px solid rgba(99,102,241,0.8);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .room:hover { background: rgba(99,102,241,0.45); }
+  .room.active { background: rgba(99,102,241,0.55); border-color: #fbbf24; border-width: 3px; }
+  .room-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.8);
+    text-align: center;
+    pointer-events: none;
+    white-space: pre-line;
+    line-height: 1.3;
+  }
+
+  .info-bar {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    min-height: 44px;
+  }
+  .info-bar strong { color: #fbbf24; }
+  .info-bar span { color: #e2e8f0; }
+</style>
+</head>
+<body>
+
+<div class="fp-wrap" id="fp-wrap">
+  <img src="Picture1.png" alt="floor plan" id="fp-img" />
+  <div class="fp-overlay" id="overlay"></div>
+</div>
+<div class="info-bar" id="info">לחץ על חדר כדי לבדוק את הגבולות</div>
+
+<script>
+const ROOMS = [
+  { id:'Laundry Room',    label:'Laundry',         x:0.00, y:0.00, w:0.17, h:0.12 },
+  { id:"Daphna's Room",   label:"Daphna",          x:0.00, y:0.12, w:0.17, h:0.22 },
+  { id:"Danielle's Room", label:"Danielle",        x:0.00, y:0.34, w:0.17, h:0.18 },
+  { id:'Master Bathroom', label:'Master\nBath',    x:0.00, y:0.49, w:0.17, h:0.10 },
+  { id:'Master Bedroom',  label:'Master\nBedroom', x:0.00, y:0.59, w:0.22, h:0.22 },
+  { id:'Kids Bathroom',   label:'Kids\nBathroom',  x:0.17, y:0.05, w:0.18, h:0.27 },
+  { id:'Guest Toilet',    label:'Guest\nToilet',   x:0.17, y:0.28, w:0.12, h:0.13 },
+  { id:'Hallway',         label:'Hallway\n(אנכי)', x:0.17, y:0.12, w:0.08, h:0.46 },
+  { id:'Hallway',         label:'Hallway\n(אופקי)',x:0.17, y:0.40, w:0.25, h:0.08 },
+  { id:'Office',          label:'Office',          x:0.22, y:0.55, w:0.20, h:0.22 },
+  { id:'Entrance',        label:'Entrance\n+Gate', x:0.34, y:0.40, w:0.10, h:0.10 },
+  { id:'Kitchen',         label:'Kitchen',         x:0.43, y:0.33, w:0.24, h:0.20 },
+  { id:'Living Room',     label:'Living\nRoom',    x:0.42, y:0.44, w:0.37, h:0.33 },
+  { id:'South Balcony',   label:'South\nBalcony',  x:0.68, y:0.33, w:0.32, h:0.44 },
+  { id:'West Balcony',    label:'West\nBalcony',   x:0.26, y:0.78, w:0.74, h:0.22 },
+];
+
+let active = null;
+
+function build() {
+  const overlay = document.getElementById('overlay');
+  overlay.innerHTML = '';
+
+  ROOMS.forEach((r) => {
+    const div = document.createElement('div');
+    div.className = 'room';
+    div.dataset.id = r.id;
+    div.style.left   = (r.x * 100) + '%';
+    div.style.top    = (r.y * 100) + '%';
+    div.style.width  = (r.w * 100) + '%';
+    div.style.height = (r.h * 100) + '%';
+
+    const span = document.createElement('span');
+    span.className = 'room-label';
+    span.textContent = r.label;
+    div.appendChild(span);
+
+    div.addEventListener('click', () => {
+      const clickedId = r.id;
+      active = (active === clickedId + r.label) ? null : clickedId + r.label;
+
+      document.querySelectorAll('.room').forEach(el => el.classList.remove('active'));
+
+      if (active) {
+        div.classList.add('active');
+        document.getElementById('info').innerHTML =
+          '<strong>' + r.id + '</strong> — <span>' +
+          'x:' + (r.x*100).toFixed(0) + '% ' +
+          'y:' + (r.y*100).toFixed(0) + '% ' +
+          'w:' + (r.w*100).toFixed(0) + '% ' +
+          'h:' + (r.h*100).toFixed(0) + '% ' +
+          '</span> · נכון? ספר לי מה צריך לשנות';
+      } else {
+        active = null;
+        document.getElementById('info').textContent = 'לחץ על חדר כדי לבדוק את הגבולות';
+      }
+    });
+
+    overlay.appendChild(div);
+  });
+}
+
+// Wait for image to load so percentages are based on actual rendered size
+document.getElementById('fp-img').addEventListener('load', build);
+// If already cached
+if (document.getElementById('fp-img').complete) build();
+</script>
+
+</body>
+</html>
