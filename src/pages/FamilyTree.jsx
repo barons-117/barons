@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import BaronsHeader from './BaronsHeader'
 import { supabase } from '../lib/supabase'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -435,36 +436,31 @@ export default function FamilyTree({ session }) {
     <div style={{ direction: 'rtl', fontFamily: "'Open Sans','Open Sans Hebrew',Arial,sans-serif", background: '#f0f4ff', minHeight: '100vh' }}>
 
       {/* Header */}
-      <header style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 100, padding: '12px 20px' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#94a3b8', marginBottom: 6 }}>
-          <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1d4ed8', fontFamily: 'inherit', fontSize: 14, padding: 0, fontWeight: 600 }}>BARONS</button>
-          <span>/</span><span style={{ color: '#1e293b', fontWeight: 600 }}>עץ משפחה</span>
-        </nav>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 21, fontWeight: 800, color: '#0f172a' }}>🌳 עץ המשפחה BARONS</h1>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
-              {members.length} אנשים
-              {focusedId && <> · מוקד: <strong>{nameOf(focusedId)}</strong>
-                <button onClick={() => { setFocusedId(null); setTfm({ x: 40, y: 40, s: 0.75 }) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 12, fontFamily: 'inherit', marginRight: 6, padding: 0 }}>✕ הצג הכל</button>
-              </>}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: 8, padding: 3 }}>
-              {[{ id: 'tree', label: '🌳 עץ' }, { id: 'list', label: '📋 רשימה' }].map(v => (
-                <button key={v.id} onClick={() => setView(v.id)} style={{ background: view === v.id ? '#fff' : 'transparent', border: 'none', borderRadius: 6, padding: '5px 13px', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: view === v.id ? '#1d4ed8' : '#64748b', boxShadow: view === v.id ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>{v.label}</button>
-              ))}
-            </div>
-            {isAdmin && <button onClick={openAdd} style={{ ...primaryBtn, padding: '8px 18px' }}>+ הוסף</button>}
-          </div>
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍  חפש שם — לחץ על אדם ואז 🎯 מקד כדי לראות את העץ שלו"
-            style={{ ...iStyle, background: '#f8fafc' }} />
-        </div>
-      </header>
+            <BaronsHeader
+        title="עץ משפחה"
+        subtitle="שושלת ברון לדורותיה"
+        breadcrumbs={[{ label: 'עץ משפחה', path: '/family' }]}
+        actions={[]}
+      />
+
+      {/* Search + View Toggle */}
+      <div style={{ background:'white', borderBottom:'1px solid #e2e8f0', padding:'8px 16px', display:'flex', alignItems:'center', gap:8, direction:'rtl' }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="חפש אדם בעץ..."
+          style={{ flex:1, border:'1px solid #e2e8f0', borderRadius:8, padding:'7px 12px', fontSize:14, fontFamily:"'Open Sans','Open Sans Hebrew',Arial,sans-serif", outline:'none', direction:'rtl' }}
+        />
+        {search && (
+          <button onClick={() => setSearch('')} style={{ background:'none', border:'none', color:'#94a3b8', cursor:'pointer', fontSize:16, padding:'4px 8px' }}>✕</button>
+        )}
+        <button
+          onClick={() => setView(view === 'tree' ? 'list' : 'tree')}
+          style={{ background: view === 'list' ? '#1d4ed8' : '#f1f5f9', color: view === 'list' ? 'white' : '#475569', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:"'Open Sans','Open Sans Hebrew',Arial,sans-serif" }}
+        >
+          {view === 'tree' ? '📋 רשימה' : '🌳 עץ'}
+        </button>
+      </div>
 
       {/* Tree View */}
       {view === 'tree' && !search && (

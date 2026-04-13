@@ -7,7 +7,6 @@ import TripDetail from './pages/TripDetail'
 import Search from './pages/Search'
 import Stats from './pages/Stats'
 import Vouchers from './pages/Vouchers'
-import Cards from './pages/Cards'
 import Recipes from './pages/Recipes'
 import RecipeDetail from './pages/RecipeDetail'
 import Marathon from './pages/Marathon'
@@ -15,6 +14,10 @@ import Gym from './pages/Gym'
 import FamilyTree from './pages/FamilyTree'
 import Shopping from './pages/Shopping'
 import ShoppingQuick from './pages/ShoppingQuick'
+import Assets from './pages/Assets'
+import AssetDetail from './pages/AssetDetail'
+import School from './pages/School'
+import SmartHome from './pages/SmartHome'
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
 const SUPER_ADMIN = 'erez@barons.co.il'
@@ -23,13 +26,15 @@ const ROUTE_PERMISSIONS = {
   '/travels':  [SUPER_ADMIN],
   '/search':   [SUPER_ADMIN],
   '/stats':    [SUPER_ADMIN],
+  '/assets':   [SUPER_ADMIN, 'roy@barons.co.il'],
   '/vouchers': [SUPER_ADMIN, 'roy@barons.co.il'],
-  '/cards':    [SUPER_ADMIN, 'roy@barons.co.il'],
   '/recipes':  [SUPER_ADMIN, 'roy@barons.co.il', 'user@barons.co.il'],
   '/marathon': [SUPER_ADMIN, 'roy@barons.co.il'],
   '/gym':      [SUPER_ADMIN],
   '/family':   [SUPER_ADMIN, 'roy@barons.co.il', 'user@barons.co.il'],
   '/shopping': [SUPER_ADMIN, 'roy@barons.co.il', 'user@barons.co.il'],
+  '/school':   [SUPER_ADMIN, 'roy@barons.co.il', 'daphna@barons.co.il', 'danielle@barons.co.il'],
+  '/smarthome': [SUPER_ADMIN, 'roy@barons.co.il'],
 }
 
 function canAccess(email, route) {
@@ -69,16 +74,19 @@ export default function App() {
         <Route path="/"                element={<Home session={session} />} />
         <Route path="/travels"         element={G('/travels',  <Travels      session={session} />)} />
         <Route path="/travels/:id"     element={G('/travels',  <TripDetail   session={session} />)} />
+        <Route path="/assets"          element={G('/assets',   <Assets       session={session} />)} />
+        <Route path="/assets/:id"      element={G('/assets',   <AssetDetail  session={session} />)} />
         <Route path="/search"          element={G('/search',   <Search       session={session} />)} />
         <Route path="/stats"           element={G('/stats',    <Stats        session={session} />)} />
         <Route path="/vouchers"        element={G('/vouchers', <Vouchers     session={session} />)} />
-        <Route path="/cards"           element={G('/cards',    <Cards        session={session} />)} />
         <Route path="/recipes"         element={G('/recipes',  <Recipes      session={session} />)} />
         <Route path="/recipes/:id"     element={G('/recipes',  <RecipeDetail session={session} />)} />
         <Route path="/marathon"        element={G('/marathon', <Marathon     session={session} />)} />
         <Route path="/gym"             element={G('/gym',      <Gym          session={session} />)} />
         <Route path="/family"          element={G('/family',   <FamilyTree   session={session} />)} />
         <Route path="/shopping"        element={G('/shopping', <Shopping     session={session} />)} />
+        <Route path="/school"          element={G('/school',   <School       session={session} />)} />
+        <Route path="/smarthome"      element={G('/smarthome', <SmartHome   session={session} />)} />
         <Route path="/shopping-quick"  element={<ShoppingQuick />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
