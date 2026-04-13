@@ -2073,11 +2073,11 @@ ${h===`מיקס 🎲`?`נושא המשימה: מיקס מפתיע! בחר 5 נו
 {"subject":"math","title":"...","description":"...","icon":"EMOJI","color":"#hex","xp":35,"grade":5,"questions":[]}`,{data:t,error:n}=await V.functions.invoke(`anthropic-proxy`,{body:{model:`gpt-4o`,response_format:{type:`json_object`},messages:[{role:`system`,content:`אתה מורה מתמטיקה מדויק. לפני שאתה מחזיר JSON, בדוק כל חישוב מתמטי בעצמך — ודא שהתשובה הנכונה אכן נכונה, שאינדקס correct מצביע לתשובה הנכונה ב-options, שאין תשובות כפולות ב-drag_match, ושכל שאלה הגיונית. רק אחרי בדיקה עצמית — החזר JSON תקני בלבד, ללא markdown.`},{role:`user`,content:e}]}});if(n)throw Error(n.message);let r=t.choices[0].message.content,a=JSON.parse(r),o={short_answer:`number_input`,text_input:`number_input`,numeric:`number_input`,open_ended:`number_input`,multiple_choice:`mc`,choice:`mc`,single_choice:`mc`,matching:`drag_match`,match:`drag_match`,fill_in_the_blank:`fill_blank`,fill_in:`fill_blank`,cloze:`fill_blank`,story:`story_mc`};a.questions=(a.questions||[]).map(e=>({...e,type:o[e.type]||e.type,answer:e.answer!==void 0&&!isNaN(Number(e.answer))?Number(e.answer):e.answer})),console.log(`Question types after normalization:`,a.questions.map(e=>e.type));let s=[];a.questions=a.questions.filter(e=>{if(e.type!==`drag_match`||!e.pairs)return!0;let t=e.pairs.map(e=>String(e.answer));return new Set(t).size<t.length?(s.push(`שאלת התאמה עם תשובות כפולות — הוסרה`),!1):!0});let{error:c}=await V.from(`school_missions`).insert({...a,active:!0});if(c)throw c;let l=s.length?` (⚠️ ${s.join(`, `)})`:``;v(`✅ משימת "${a.title}" נוספה!${l} רענן לראות.`),i&&i()}catch(e){v(`❌ שגיאה: `+e.message)}b(!1)}async function j(){if(a.trim()){c(!0),u(``);try{let{data:e,error:t}=await V.functions.invoke(`anthropic-proxy`,{body:{model:`gpt-4o`,response_format:{type:`json_object`},messages:[{role:`system`,content:`You are an English teacher creating reading missions. Always respond with valid JSON only, no markdown.`},{role:`user`,content:`Create an English reading mission for Israeli 5th grade girls (age 10-11) who struggle with English.
 Study material: ---\n${a}\n---
 Return JSON exactly:
-{"subject":"english","title":"SHORT TITLE","description":"Brief","icon":"EMOJI","color":"#hex","xp":35,"grade":5,"passage":{"title":"Title","text":"3 paragraphs grade 4-5. Hard words: <span data-hint='HEBREW' style='cursor:pointer;border-bottom:2px dotted #1d4ed8;color:#1d4ed8;font-weight:600'>WORD</span>"},"questions":[{"type":"mc","text":"Q?","hint_he":"בעברית?","options":["A","B","C","D"],"correct":0,"feedback_correct":"Great!","feedback_wrong":"Hint"},{"type":"mc","text":"Q2?","hint_he":"בעברית?","options":["A","B","C","D"],"correct":2,"feedback_correct":"Correct!","feedback_wrong":"Hint"},{"type":"open","text":"Open Q?","hint_he":"בעברית?","keywords":["w1","w2","w3"],"feedback_correct":"Great!","feedback_partial":"Add more","feedback_wrong":"Hint"}]}`}]}});if(t)throw Error(t.message);let n=e.choices[0].message.content,r=JSON.parse(n),{error:i}=await V.from(`school_missions`).insert({...r,active:!0});if(i)throw i;u(`✅ משימה נוספה! רענן לראות.`),o(``)}catch(e){u(`❌ שגיאה: `+e.message)}c(!1)}}async function ee(e){console.log(`doDelete called:`,e);let{data:t,error:n}=await V.from(`school_missions`).delete().eq(`id`,e).select();console.log(`Delete data:`,t,`error:`,n),S(null),i&&i()}async function M(e){await V.from(`school_missions`).update({active:!1}).eq(`id`,e),i&&i()}async function te(e){await V.from(`school_missions`).update({active:!0}).eq(`id`,e),D(t=>t.filter(t=>t.id!==e)),i&&i()}async function N(e){await V.from(`school_missions`).delete().eq(`id`,e),D(t=>t.filter(t=>t.id!==e))}return(0,H.jsxs)(`div`,{className:`ba-root`,style:{minHeight:`100vh`,background:$.bgGrad,fontFamily:sE,direction:`rtl`},children:[(0,H.jsx)(SE,{}),(0,H.jsx)(Tc,{variant:`light`,title:`אקדמיית ברון — הורה`,subtitle:`לוח בקרה`,breadcrumbs:[{label:`לימודים`,path:`/school`}],actions:[{label:C?`📋 פעיל`:`📦 ארכיון`,onClick:()=>w(e=>!e)},{label:`👁️ תצוגת בנות`,onClick:()=>f(!0)},{label:`← בית`,onClick:r}],session:e}),(0,H.jsxs)(`div`,{style:{maxWidth:860,margin:`0 auto`,padding:`24px 16px`},children:[C&&(0,H.jsxs)(`div`,{style:{marginBottom:28},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:16,color:$.navy,marginBottom:14},children:`📦 ארכיון משימות`}),T.length===0?(0,H.jsx)(`div`,{style:{textAlign:`center`,color:$.light,padding:40,background:$.white,borderRadius:16,fontSize:14},children:`הארכיון ריק`}):(0,H.jsx)(`div`,{style:{background:`rgba(255,255,255,0.85)`,backdropFilter:`blur(12px)`,borderRadius:20,boxShadow:$.shadow,border:`1px solid ${$.border}`,overflow:`hidden`},children:T.map((e,t)=>(0,H.jsxs)(`div`,{className:`ba-table-row`,style:{display:`flex`,alignItems:`center`,gap:12,padding:`14px 20px`,borderBottom:t<T.length-1?`1px solid ${$.border}`:`none`,transition:`background 0.2s ease`},children:[(0,H.jsx)(`div`,{style:{width:40,height:40,borderRadius:10,background:`${e.color}22`,display:`flex`,alignItems:`center`,justifyContent:`center`,fontSize:20,flexShrink:0},children:e.icon}),(0,H.jsxs)(`div`,{style:{flex:1,minWidth:0},children:[(0,H.jsx)(`div`,{style:{fontWeight:700,fontSize:14,color:$.navy},children:e.title}),(0,H.jsxs)(`div`,{style:{fontSize:11,color:$.light},children:[e.subject===`math`?`🔢 מתמטיקה`:`🇬🇧 אנגלית`,` · `,(e.questions||[]).length,` שאלות`]})]}),(0,H.jsxs)(`div`,{style:{display:`flex`,gap:6},children:[(0,H.jsx)(`button`,{onClick:()=>te(e.id),style:{padding:`5px 12px`,fontSize:12,fontWeight:700,fontFamily:sE,background:$.greenL,color:`#065f46`,border:`1.5px solid ${$.green}`,borderRadius:8,cursor:`pointer`},children:`↩️ שחזר`}),(0,H.jsx)(`button`,{onClick:()=>N(e.id),style:{padding:`5px 10px`,fontSize:12,fontWeight:700,fontFamily:sE,background:$.redL,color:$.red,border:`1.5px solid ${$.red}`,borderRadius:8,cursor:`pointer`},children:`🗑️`})]})]},e.id))})]}),(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:16,color:$.navy,marginBottom:14},children:`👧 סטטוס הבנות`}),(0,H.jsx)(`div`,{style:{display:`grid`,gridTemplateColumns:`repeat(auto-fit,minmax(240px,1fr))`,gap:16,marginBottom:28},children:Object.entries(uE).map(([e,t])=>{let r=n[e]||{},i=Object.values(r).reduce((e,t)=>e+(t.xp||0),0),a=Object.values(r).filter(e=>e.completed).length,o=Object.values(r).filter(e=>(e.answers||[]).length>0&&!e.completed).length;return(0,H.jsxs)(`div`,{className:`ba-card ba-animate-in`,style:{padding:`20px`},children:[(0,H.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`,gap:12,marginBottom:14},children:[(0,H.jsx)(`div`,{style:{width:44,height:44,borderRadius:`50%`,background:t.color,display:`flex`,alignItems:`center`,justifyContent:`center`,fontSize:22},children:t.emoji}),(0,H.jsxs)(`div`,{children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy},children:t.name}),(0,H.jsxs)(`div`,{style:{fontSize:12,color:$.mid},children:[`Level `,pE(i),` · `,i,` XP`]})]})]}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:8},children:[{n:a,label:`הושלמו`,bg:$.greenL,color:$.green},{n:o,label:`בתהליך`,bg:$.purpleL,color:$.purple},{n:i,label:`XP`,bg:$.goldL,color:$.gold}].map(({n:e,label:t,bg:n,color:r})=>(0,H.jsxs)(`div`,{style:{flex:1,textAlign:`center`,padding:`8px 4px`,background:n,borderRadius:10},children:[(0,H.jsx)(`div`,{style:{fontWeight:900,fontSize:18,color:r},children:e}),(0,H.jsx)(`div`,{style:{fontSize:10,fontWeight:700,color:$.mid,marginTop:2},children:t})]},t))})]},e)})}),[`english`,`math`].map(e=>{let r=t.filter(t=>t.subject===e);if(r.length===0)return null;let i=e===`english`?`🇬🇧 אנגלית`:`🔢 מתמטיקה`,a=[`danielle@barons.co.il`,`daphna@barons.co.il`],o=[...r].sort((e,t)=>{let r=a.every(t=>(n[t]||{})[e.id]?.completed);return r===a.every(e=>(n[e]||{})[t.id]?.completed)?0:r?1:-1});return(0,H.jsxs)(`div`,{style:{marginBottom:24},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:10},children:i}),(0,H.jsxs)(`div`,{style:{background:`rgba(255,255,255,0.85)`,backdropFilter:`blur(12px)`,borderRadius:20,boxShadow:$.shadow,border:`1px solid ${$.border}`,overflow:`hidden`},children:[(0,H.jsxs)(`div`,{style:{display:`grid`,gridTemplateColumns:`2fr 1fr 1fr auto`,padding:`10px 20px`,borderBottom:`1.5px solid ${$.border}`,fontWeight:700,color:$.navy,fontSize:12,background:`#f8fafc`},children:[(0,H.jsx)(`div`,{children:`משימה`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`דניאל`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`דפנה`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`פעולות`})]}),o.map(e=>{let t=(e.questions||[]).length,r=a.every(t=>(n[t]||{})[e.id]?.completed);return(0,H.jsxs)(`div`,{className:`ba-table-row`,style:{display:`grid`,gridTemplateColumns:`2fr 1fr 1fr auto`,padding:`11px 20px`,borderBottom:`1px solid ${$.border}`,alignItems:`center`,background:r?`rgba(209,250,229,0.3)`:$.white},children:[(0,H.jsxs)(`div`,{onClick:()=>m(e),style:{fontWeight:700,color:$.navy,display:`flex`,alignItems:`center`,gap:6,cursor:`pointer`},children:[r&&(0,H.jsx)(`span`,{style:{fontSize:11},children:`✅`}),(0,H.jsxs)(`span`,{children:[e.icon,` `,e.title]})]}),a.map(r=>{let i=(n[r]||{})[e.id]||{},a=i.completed&&t>0?Math.min(100,Math.round(i.score/t*100)):null,o=i.attempts||0,s=i.last_completed_at?new Date(i.last_completed_at).toLocaleDateString(`he-IL`,{day:`numeric`,month:`short`}):null;return(0,H.jsx)(`div`,{style:{textAlign:`center`},children:i.completed?(0,H.jsxs)(`div`,{style:{display:`flex`,flexDirection:`column`,alignItems:`center`,gap:2},children:[(0,H.jsx)(hE,{label:`${a}%`,style:{background:a>=80?$.greenL:$.goldL,color:a>=80?`#065f46`:`#92400e`}}),o>1&&(0,H.jsxs)(`span`,{style:{fontSize:10,color:$.purple,fontWeight:700},children:[`🔄 `,o,`x`]}),s&&(0,H.jsxs)(`span`,{style:{fontSize:10,color:$.light},children:[`📅 `,s]})]}):(i.answers||[]).length>0?(0,H.jsx)(hE,{label:`▶`,style:{background:$.purpleL,color:`#5b21b6`}}):(0,H.jsx)(`span`,{style:{color:$.light},children:`—`})},r)}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:4,justifyContent:`center`,alignItems:`center`},children:x===e.id?(0,H.jsxs)(`div`,{style:{display:`flex`,gap:4,alignItems:`center`},children:[(0,H.jsx)(`span`,{style:{fontSize:11,color:$.red,fontWeight:700},children:`למחוק?`}),(0,H.jsx)(`button`,{onClick:()=>{console.log(`DELETE CLICKED`,e.id),ee(e.id)},style:{padding:`3px 8px`,fontSize:11,fontWeight:800,fontFamily:sE,background:$.red,color:$.white,border:`none`,borderRadius:6,cursor:`pointer`},children:`כן`}),(0,H.jsx)(`button`,{onClick:()=>S(null),style:{padding:`3px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:$.border,color:$.mid,border:`none`,borderRadius:6,cursor:`pointer`},children:`לא`})]}):(0,H.jsxs)(H.Fragment,{children:[r&&(0,H.jsx)(`button`,{onClick:()=>M(e.id),title:`העבר לארכיון`,style:{padding:`4px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:`#f0f4ff`,color:$.mid,border:`1.5px solid ${$.border}`,borderRadius:7,cursor:`pointer`,whiteSpace:`nowrap`},children:`📦 ארכיון`}),(0,H.jsx)(`button`,{onClick:()=>S(e.id),title:`מחק משימה`,style:{padding:`4px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:$.redL,color:$.red,border:`1.5px solid ${$.red}`,borderRadius:7,cursor:`pointer`},children:`🗑️`})]})})]},e.id)})]})]},e)}),!O&&(0,H.jsxs)(`div`,{style:{background:`rgba(209,250,229,0.4)`,backdropFilter:`blur(12px)`,borderRadius:20,padding:`22px 24px`,boxShadow:$.shadow,marginBottom:16,border:`1.5px solid rgba(16,185,129,0.25)`},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:4},children:`🔢 צור משימת מתמטיקה עם AI`}),(0,H.jsx)(`div`,{style:{fontSize:13,color:$.mid,marginBottom:14},children:`בחר נושא ו-Claude ייצר משימה חדשה עם 5 שאלות מגוונות — כולל סיפורים עם דפנה, דניאל, ארז, רועי וירונה!`}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:8,flexWrap:`wrap`,marginBottom:12},children:k.map(e=>{let t=e===`מיקס 🎲`,n=h===e;return(0,H.jsx)(`button`,{onClick:()=>g(e),className:`ba-tab`,style:{padding:`7px 16px`,borderRadius:99,fontSize:13,fontWeight:700,fontFamily:sE,border:n?`none`:t?`2px dashed rgba(139,92,246,0.5)`:`1.5px solid ${$.border}`,background:n?t?`linear-gradient(135deg,#8b5cf6,#6366f1)`:`linear-gradient(135deg,#10b981,#34d399)`:`rgba(255,255,255,0.8)`,color:n?$.white:t?$.purple:$.mid,cursor:`pointer`,boxShadow:n?`0 4px 14px ${t?`rgba(139,92,246,0.35)`:`rgba(16,185,129,0.35)`}`:$.shadow,backdropFilter:`blur(8px)`},children:e},e)})}),(0,H.jsx)(`button`,{className:y?``:`ba-btn-primary`,onClick:A,disabled:y,style:{padding:`12px 24px`,background:y?$.light:`linear-gradient(135deg,#10b981,#34d399)`,color:$.white,border:`none`,borderRadius:14,fontSize:14,fontWeight:800,fontFamily:sE,cursor:y?`default`:`pointer`,display:`flex`,alignItems:`center`,gap:8,boxShadow:y?`none`:`0 6px 20px rgba(16,185,129,0.35)`},children:y?`⏳ מייצר משימה...`:`✨ צור משימת "${h}"`}),_&&(0,H.jsx)(`div`,{style:{marginTop:10,fontSize:13,fontWeight:700,color:_.startsWith(`✅`)?$.green:$.red},children:_})]}),!O&&(0,H.jsxs)(`div`,{style:{background:`rgba(255,255,255,0.8)`,backdropFilter:`blur(12px)`,borderRadius:20,padding:`22px 24px`,boxShadow:$.shadow,marginBottom:16,border:`1px solid ${$.border}`},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:6},children:`📥 צור משימת אנגלית מחומר לימוד`}),(0,H.jsx)(`div`,{style:{fontSize:13,color:$.mid,marginBottom:14},children:`הדבק חומר לימוד — Claude יייצר משימת קריאה עם שאלות אוטומטית.`}),(0,H.jsx)(`textarea`,{value:a,onChange:e=>o(e.target.value),placeholder:`הדבק כאן את חומר הלימוד...`,style:{width:`100%`,minHeight:120,padding:`12px`,border:`2px solid ${$.border}`,borderRadius:12,fontSize:13,fontFamily:sE,direction:`rtl`,resize:`vertical`}}),(0,H.jsx)(`button`,{onClick:j,disabled:s||!a.trim(),style:{marginTop:10,padding:`10px 20px`,background:s?$.light:$.navy,color:$.white,border:`none`,borderRadius:12,fontSize:14,fontWeight:700,fontFamily:sE,cursor:s?`default`:`pointer`},children:s?`⏳ יוצר משימה...`:`✨ צור משימה עם AI`}),l&&(0,H.jsx)(`div`,{style:{marginTop:10,fontSize:13,fontWeight:700,color:l.startsWith(`✅`)?$.green:$.red},children:l})]})]})]})}var kE=`'Open Sans Hebrew','Open Sans',Arial,sans-serif`,AE={Entrance:`כניסה`,Kitchen:`מטבח`,"Living Room":`סלון`,"South Balcony":`מרפסת דרום`,"West Balcony":`מרפסת מערב`,Hallway:`מסדרון`,Office:`משרד`,"Master Bedroom":`חדר שינה ראשי`,"Master Bathroom":`חדר אמבטיה ראשי`,"Danielle's Room":`דניאל`,"Daphna's Room":`דפנה`,"Guest Toilet":`שירותי אורחים`,"Kids Bathroom":`חדר ילדים - אמבטיה`,"Laundry Room":`כביסה`,"All Rooms":`כל הבית`,"Building Gate":`שער הבניין`},jE=[{id:`net`,icon:`🌐`,name:`Internet & WiFi`,desc:`רשת ביתית`,accent:`#0284c7`,accentLight:`#e0f2fe`,devices:[{name:`Partner Fiber 1000/250`,room:`All Rooms`},{name:`BE5000 — ארון תקשורת`,room:`Hallway`},{name:`BE5000 — סלון`,room:`Living Room`},{name:`BE5000 — תקרה חבויה`,room:`Hallway`},{name:`AX1800 — Deco Node`,room:`South Balcony`}]},{id:`apple`,icon:``,name:`Apple Ecosystem`,desc:`Apple Home · AirPlay`,accent:`#64748b`,accentLight:`#f1f5f9`,devices:[{name:`HomePod + Apple TV`,room:`Living Room`},{name:`HomePod Mini + Apple TV`,room:`Master Bedroom`},{name:`HomePod Mini + Apple TV`,room:`Danielle's Room`},{name:`HomePod Mini + Apple TV`,room:`Daphna's Room`},{name:`Apple TV`,room:`South Balcony`},{name:`HomePod Mini + iMac`,room:`Office`}]},{id:`poe`,icon:`📷`,name:`PoE Cameras`,desc:`מצלמות אבטחה`,accent:`#ea580c`,accentLight:`#fff7ed`,devices:[{name:`Aqara G5 Pro`,room:`South Balcony`},{name:`Aqara G5 Pro`,room:`West Balcony`}]},{id:`ha`,icon:`🏠`,name:`Home Assistant`,desc:`מרכז אוטומציה`,accent:`#0891b2`,accentLight:`#ecfeff`,devices:[{name:`BroadLink RM3 Mini`,room:`Kids Bathroom`},{name:`BroadLink RM Pro`,room:`West Balcony`},{name:`Sundance Hamilton 780 Jacuzzi`,room:`South Balcony`},{name:`Water Boiler Switch`,room:`Hallway`},{name:`Heater Switch`,room:`Kids Bathroom`},{name:`Heater Switch`,room:`Master Bathroom`},{name:`PAL — Building Gate`,room:`Building Gate`},{name:`POE Master`,room:`Living Room`},{name:`Living Room Cam Master`,room:`Living Room`},{name:`Door Cam & Bell Master`,room:`Entrance`},{name:`Hallway Shelf`,room:`Hallway`},{name:`Master Bathroom Sub-Heat`,room:`Master Bathroom`},{name:`Kitchen Water Heater`,room:`Kitchen`}]},{id:`tuya`,icon:`🔌`,name:`Tuya`,desc:`שקעים חכמים · LED`,accent:`#dc2626`,accentLight:`#fef2f2`,devices:[{name:`Towel Warmer`,room:`Kids Bathroom`},{name:`Towel Warmer`,room:`Master Bathroom`},{name:`LED Strip (Kitchen)`,room:`West Balcony`}]},{id:`bond`,icon:`🌀`,name:`Bond Bridge (RF)`,desc:`מאווררי תקרה · תריסים`,accent:`#7c3aed`,accentLight:`#f5f3ff`,devices:[{name:`Ceiling Fan`,room:`Office`},{name:`Ceiling Fan`,room:`Daphna's Room`},{name:`Ceiling Fan`,room:`Danielle's Room`},{name:`Ceiling Fan`,room:`Master Bedroom`},{name:`Ceiling Fan`,room:`West Balcony`},{name:`Outside Shades (Ziptrak)`,room:`West Balcony`}]},{id:`ir`,icon:`📡`,name:`BroadLink (IR)`,desc:`שלט אינפרא-אדום`,accent:`#e11d48`,accentLight:`#fff1f2`,devices:[{name:`Heater`,room:`Kids Bathroom`},{name:`Outdoor Heater`,room:`West Balcony`}]},{id:`wifi`,icon:`📶`,name:`WiFi Devices`,desc:`מכשירי WiFi ישירים`,accent:`#059669`,accentLight:`#ecfdf5`,devices:[{name:`BTicino Switches & Hub`,room:`All Rooms`},{name:`Bond Bridge`,room:`Living Room`},{name:`Aqara Doorbell + Cam`,room:`Entrance`},{name:`Aqara Cam G100`,room:`Entrance`},{name:`Aqara Cam E1`,room:`Living Room`},{name:`WiiM Amp`,room:`South Balcony`},{name:`WiiM Amp`,room:`West Balcony`},{name:`WiiM Amp`,room:`Living Room`},{name:`Aqara Wireless Switches`,room:`All Rooms`},{name:`Qrevo Edge 5v1`,room:`All Rooms`},{name:`Balcony South Neon & LED`,room:`South Balcony`}]},{id:`nuki`,icon:`🔐`,name:`NUKI + Matter`,desc:`מנעול חכם`,accent:`#a21caf`,accentLight:`#fdf4ff`,devices:[{name:`NUKI Pro 4`,room:`Entrance`},{name:`Matter Hub`,room:`Living Room`}]},{id:`bticino`,icon:`💡`,name:`BTicino`,desc:`תאורה · תריסים · וילונות`,accent:`#b45309`,accentLight:`#fffbeb`,wide:!0,devices:[{name:`Entrance Light`,room:`Entrance`},{name:`Main Light`,room:`Kitchen`},{name:`Island Light`,room:`Kitchen`},{name:`Service Light`,room:`Kitchen`},{name:`Light Strip 1`,room:`Living Room`},{name:`Light Strip 2`,room:`Living Room`},{name:`Light Strip 3`,room:`Living Room`},{name:`Dining Table Light`,room:`Living Room`},{name:`South Shutters`,room:`Living Room`},{name:`West Shutters`,room:`Living Room`},{name:`South Curtain`,room:`Living Room`},{name:`West Curtain`,room:`Living Room`},{name:`South Wall Light`,room:`South Balcony`},{name:`West Wall Light`,room:`West Balcony`},{name:`Surround LED Light`,room:`West Balcony`},{name:`Poles Light`,room:`West Balcony`},{name:`Ceiling Fan Main`,room:`West Balcony`},{name:`Spot Lights`,room:`Hallway`},{name:`Wall Fixtures`,room:`Hallway`},{name:`Table Light`,room:`Office`},{name:`Ceiling Fan Main`,room:`Office`},{name:`Shutters`,room:`Office`},{name:`Closet Light`,room:`Master Bedroom`},{name:`Ceiling Fan Main`,room:`Master Bedroom`},{name:`Erez Reading Light`,room:`Master Bedroom`},{name:`Roy Reading Light`,room:`Master Bedroom`},{name:`Shutters`,room:`Master Bedroom`},{name:`Main Light`,room:`Master Bathroom`},{name:`Ceiling Fan Main`,room:`Danielle's Room`},{name:`Shutters`,room:`Danielle's Room`},{name:`Ceiling Fan Main`,room:`Daphna's Room`},{name:`Light + Ventilation Fan`,room:`Guest Toilet`},{name:`Main Light`,room:`Kids Bathroom`},{name:`Above Mirror Light`,room:`Kids Bathroom`},{name:`Ventilation Fan`,room:`Kids Bathroom`},{name:`Mirror Light`,room:`Kids Bathroom`},{name:`Main Light`,room:`Laundry Room`}]}],ME=[{icon:`🌐`,name:`Partner Fiber`,sub:`1000 / 250 Mbps`},{icon:`📡`,name:`Deco Mesh`,sub:`4 Nodes · WiFi 6`},{icon:`🏠`,name:`בית חכם`,sub:`כל המכשירים`}],NE=[{room:`Daphna's Room`,label:`דפנה`,x:0,y:0,w:148,h:118,color:`#7c3aed`},{room:`Danielle's Room`,label:`דניאל`,x:148,y:0,w:142,h:118,color:`#6366f1`},{room:`Kids Bathroom`,label:`אמבטיה
+{"subject":"english","title":"SHORT TITLE","description":"Brief","icon":"EMOJI","color":"#hex","xp":35,"grade":5,"passage":{"title":"Title","text":"3 paragraphs grade 4-5. Hard words: <span data-hint='HEBREW' style='cursor:pointer;border-bottom:2px dotted #1d4ed8;color:#1d4ed8;font-weight:600'>WORD</span>"},"questions":[{"type":"mc","text":"Q?","hint_he":"בעברית?","options":["A","B","C","D"],"correct":0,"feedback_correct":"Great!","feedback_wrong":"Hint"},{"type":"mc","text":"Q2?","hint_he":"בעברית?","options":["A","B","C","D"],"correct":2,"feedback_correct":"Correct!","feedback_wrong":"Hint"},{"type":"open","text":"Open Q?","hint_he":"בעברית?","keywords":["w1","w2","w3"],"feedback_correct":"Great!","feedback_partial":"Add more","feedback_wrong":"Hint"}]}`}]}});if(t)throw Error(t.message);let n=e.choices[0].message.content,r=JSON.parse(n),{error:i}=await V.from(`school_missions`).insert({...r,active:!0});if(i)throw i;u(`✅ משימה נוספה! רענן לראות.`),o(``)}catch(e){u(`❌ שגיאה: `+e.message)}c(!1)}}async function ee(e){console.log(`doDelete called:`,e);let{data:t,error:n}=await V.from(`school_missions`).delete().eq(`id`,e).select();console.log(`Delete data:`,t,`error:`,n),S(null),i&&i()}async function M(e){await V.from(`school_missions`).update({active:!1}).eq(`id`,e),i&&i()}async function te(e){await V.from(`school_missions`).update({active:!0}).eq(`id`,e),D(t=>t.filter(t=>t.id!==e)),i&&i()}async function N(e){await V.from(`school_missions`).delete().eq(`id`,e),D(t=>t.filter(t=>t.id!==e))}return(0,H.jsxs)(`div`,{className:`ba-root`,style:{minHeight:`100vh`,background:$.bgGrad,fontFamily:sE,direction:`rtl`},children:[(0,H.jsx)(SE,{}),(0,H.jsx)(Tc,{variant:`light`,title:`אקדמיית ברון — הורה`,subtitle:`לוח בקרה`,breadcrumbs:[{label:`לימודים`,path:`/school`}],actions:[{label:C?`📋 פעיל`:`📦 ארכיון`,onClick:()=>w(e=>!e)},{label:`👁️ תצוגת בנות`,onClick:()=>f(!0)},{label:`← בית`,onClick:r}],session:e}),(0,H.jsxs)(`div`,{style:{maxWidth:860,margin:`0 auto`,padding:`24px 16px`},children:[C&&(0,H.jsxs)(`div`,{style:{marginBottom:28},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:16,color:$.navy,marginBottom:14},children:`📦 ארכיון משימות`}),T.length===0?(0,H.jsx)(`div`,{style:{textAlign:`center`,color:$.light,padding:40,background:$.white,borderRadius:16,fontSize:14},children:`הארכיון ריק`}):(0,H.jsx)(`div`,{style:{background:`rgba(255,255,255,0.85)`,backdropFilter:`blur(12px)`,borderRadius:20,boxShadow:$.shadow,border:`1px solid ${$.border}`,overflow:`hidden`},children:T.map((e,t)=>(0,H.jsxs)(`div`,{className:`ba-table-row`,style:{display:`flex`,alignItems:`center`,gap:12,padding:`14px 20px`,borderBottom:t<T.length-1?`1px solid ${$.border}`:`none`,transition:`background 0.2s ease`},children:[(0,H.jsx)(`div`,{style:{width:40,height:40,borderRadius:10,background:`${e.color}22`,display:`flex`,alignItems:`center`,justifyContent:`center`,fontSize:20,flexShrink:0},children:e.icon}),(0,H.jsxs)(`div`,{style:{flex:1,minWidth:0},children:[(0,H.jsx)(`div`,{style:{fontWeight:700,fontSize:14,color:$.navy},children:e.title}),(0,H.jsxs)(`div`,{style:{fontSize:11,color:$.light},children:[e.subject===`math`?`🔢 מתמטיקה`:`🇬🇧 אנגלית`,` · `,(e.questions||[]).length,` שאלות`]})]}),(0,H.jsxs)(`div`,{style:{display:`flex`,gap:6},children:[(0,H.jsx)(`button`,{onClick:()=>te(e.id),style:{padding:`5px 12px`,fontSize:12,fontWeight:700,fontFamily:sE,background:$.greenL,color:`#065f46`,border:`1.5px solid ${$.green}`,borderRadius:8,cursor:`pointer`},children:`↩️ שחזר`}),(0,H.jsx)(`button`,{onClick:()=>N(e.id),style:{padding:`5px 10px`,fontSize:12,fontWeight:700,fontFamily:sE,background:$.redL,color:$.red,border:`1.5px solid ${$.red}`,borderRadius:8,cursor:`pointer`},children:`🗑️`})]})]},e.id))})]}),(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:16,color:$.navy,marginBottom:14},children:`👧 סטטוס הבנות`}),(0,H.jsx)(`div`,{style:{display:`grid`,gridTemplateColumns:`repeat(auto-fit,minmax(240px,1fr))`,gap:16,marginBottom:28},children:Object.entries(uE).map(([e,t])=>{let r=n[e]||{},i=Object.values(r).reduce((e,t)=>e+(t.xp||0),0),a=Object.values(r).filter(e=>e.completed).length,o=Object.values(r).filter(e=>(e.answers||[]).length>0&&!e.completed).length;return(0,H.jsxs)(`div`,{className:`ba-card ba-animate-in`,style:{padding:`20px`},children:[(0,H.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`,gap:12,marginBottom:14},children:[(0,H.jsx)(`div`,{style:{width:44,height:44,borderRadius:`50%`,background:t.color,display:`flex`,alignItems:`center`,justifyContent:`center`,fontSize:22},children:t.emoji}),(0,H.jsxs)(`div`,{children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy},children:t.name}),(0,H.jsxs)(`div`,{style:{fontSize:12,color:$.mid},children:[`Level `,pE(i),` · `,i,` XP`]})]})]}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:8},children:[{n:a,label:`הושלמו`,bg:$.greenL,color:$.green},{n:o,label:`בתהליך`,bg:$.purpleL,color:$.purple},{n:i,label:`XP`,bg:$.goldL,color:$.gold}].map(({n:e,label:t,bg:n,color:r})=>(0,H.jsxs)(`div`,{style:{flex:1,textAlign:`center`,padding:`8px 4px`,background:n,borderRadius:10},children:[(0,H.jsx)(`div`,{style:{fontWeight:900,fontSize:18,color:r},children:e}),(0,H.jsx)(`div`,{style:{fontSize:10,fontWeight:700,color:$.mid,marginTop:2},children:t})]},t))})]},e)})}),[`english`,`math`].map(e=>{let r=t.filter(t=>t.subject===e);if(r.length===0)return null;let i=e===`english`?`🇬🇧 אנגלית`:`🔢 מתמטיקה`,a=[`danielle@barons.co.il`,`daphna@barons.co.il`],o=[...r].sort((e,t)=>{let r=a.every(t=>(n[t]||{})[e.id]?.completed);return r===a.every(e=>(n[e]||{})[t.id]?.completed)?0:r?1:-1});return(0,H.jsxs)(`div`,{style:{marginBottom:24},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:10},children:i}),(0,H.jsxs)(`div`,{style:{background:`rgba(255,255,255,0.85)`,backdropFilter:`blur(12px)`,borderRadius:20,boxShadow:$.shadow,border:`1px solid ${$.border}`,overflow:`hidden`},children:[(0,H.jsxs)(`div`,{style:{display:`grid`,gridTemplateColumns:`2fr 1fr 1fr auto`,padding:`10px 20px`,borderBottom:`1.5px solid ${$.border}`,fontWeight:700,color:$.navy,fontSize:12,background:`#f8fafc`},children:[(0,H.jsx)(`div`,{children:`משימה`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`דניאל`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`דפנה`}),(0,H.jsx)(`div`,{style:{textAlign:`center`},children:`פעולות`})]}),o.map(e=>{let t=(e.questions||[]).length,r=a.every(t=>(n[t]||{})[e.id]?.completed);return(0,H.jsxs)(`div`,{className:`ba-table-row`,style:{display:`grid`,gridTemplateColumns:`2fr 1fr 1fr auto`,padding:`11px 20px`,borderBottom:`1px solid ${$.border}`,alignItems:`center`,background:r?`rgba(209,250,229,0.3)`:$.white},children:[(0,H.jsxs)(`div`,{onClick:()=>m(e),style:{fontWeight:700,color:$.navy,display:`flex`,alignItems:`center`,gap:6,cursor:`pointer`},children:[r&&(0,H.jsx)(`span`,{style:{fontSize:11},children:`✅`}),(0,H.jsxs)(`span`,{children:[e.icon,` `,e.title]})]}),a.map(r=>{let i=(n[r]||{})[e.id]||{},a=i.completed&&t>0?Math.min(100,Math.round(i.score/t*100)):null,o=i.attempts||0,s=i.last_completed_at?new Date(i.last_completed_at).toLocaleDateString(`he-IL`,{day:`numeric`,month:`short`}):null;return(0,H.jsx)(`div`,{style:{textAlign:`center`},children:i.completed?(0,H.jsxs)(`div`,{style:{display:`flex`,flexDirection:`column`,alignItems:`center`,gap:2},children:[(0,H.jsx)(hE,{label:`${a}%`,style:{background:a>=80?$.greenL:$.goldL,color:a>=80?`#065f46`:`#92400e`}}),o>1&&(0,H.jsxs)(`span`,{style:{fontSize:10,color:$.purple,fontWeight:700},children:[`🔄 `,o,`x`]}),s&&(0,H.jsxs)(`span`,{style:{fontSize:10,color:$.light},children:[`📅 `,s]})]}):(i.answers||[]).length>0?(0,H.jsx)(hE,{label:`▶`,style:{background:$.purpleL,color:`#5b21b6`}}):(0,H.jsx)(`span`,{style:{color:$.light},children:`—`})},r)}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:4,justifyContent:`center`,alignItems:`center`},children:x===e.id?(0,H.jsxs)(`div`,{style:{display:`flex`,gap:4,alignItems:`center`},children:[(0,H.jsx)(`span`,{style:{fontSize:11,color:$.red,fontWeight:700},children:`למחוק?`}),(0,H.jsx)(`button`,{onClick:()=>{console.log(`DELETE CLICKED`,e.id),ee(e.id)},style:{padding:`3px 8px`,fontSize:11,fontWeight:800,fontFamily:sE,background:$.red,color:$.white,border:`none`,borderRadius:6,cursor:`pointer`},children:`כן`}),(0,H.jsx)(`button`,{onClick:()=>S(null),style:{padding:`3px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:$.border,color:$.mid,border:`none`,borderRadius:6,cursor:`pointer`},children:`לא`})]}):(0,H.jsxs)(H.Fragment,{children:[r&&(0,H.jsx)(`button`,{onClick:()=>M(e.id),title:`העבר לארכיון`,style:{padding:`4px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:`#f0f4ff`,color:$.mid,border:`1.5px solid ${$.border}`,borderRadius:7,cursor:`pointer`,whiteSpace:`nowrap`},children:`📦 ארכיון`}),(0,H.jsx)(`button`,{onClick:()=>S(e.id),title:`מחק משימה`,style:{padding:`4px 8px`,fontSize:11,fontWeight:700,fontFamily:sE,background:$.redL,color:$.red,border:`1.5px solid ${$.red}`,borderRadius:7,cursor:`pointer`},children:`🗑️`})]})})]},e.id)})]})]},e)}),!O&&(0,H.jsxs)(`div`,{style:{background:`rgba(209,250,229,0.4)`,backdropFilter:`blur(12px)`,borderRadius:20,padding:`22px 24px`,boxShadow:$.shadow,marginBottom:16,border:`1.5px solid rgba(16,185,129,0.25)`},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:4},children:`🔢 צור משימת מתמטיקה עם AI`}),(0,H.jsx)(`div`,{style:{fontSize:13,color:$.mid,marginBottom:14},children:`בחר נושא ו-Claude ייצר משימה חדשה עם 5 שאלות מגוונות — כולל סיפורים עם דפנה, דניאל, ארז, רועי וירונה!`}),(0,H.jsx)(`div`,{style:{display:`flex`,gap:8,flexWrap:`wrap`,marginBottom:12},children:k.map(e=>{let t=e===`מיקס 🎲`,n=h===e;return(0,H.jsx)(`button`,{onClick:()=>g(e),className:`ba-tab`,style:{padding:`7px 16px`,borderRadius:99,fontSize:13,fontWeight:700,fontFamily:sE,border:n?`none`:t?`2px dashed rgba(139,92,246,0.5)`:`1.5px solid ${$.border}`,background:n?t?`linear-gradient(135deg,#8b5cf6,#6366f1)`:`linear-gradient(135deg,#10b981,#34d399)`:`rgba(255,255,255,0.8)`,color:n?$.white:t?$.purple:$.mid,cursor:`pointer`,boxShadow:n?`0 4px 14px ${t?`rgba(139,92,246,0.35)`:`rgba(16,185,129,0.35)`}`:$.shadow,backdropFilter:`blur(8px)`},children:e},e)})}),(0,H.jsx)(`button`,{className:y?``:`ba-btn-primary`,onClick:A,disabled:y,style:{padding:`12px 24px`,background:y?$.light:`linear-gradient(135deg,#10b981,#34d399)`,color:$.white,border:`none`,borderRadius:14,fontSize:14,fontWeight:800,fontFamily:sE,cursor:y?`default`:`pointer`,display:`flex`,alignItems:`center`,gap:8,boxShadow:y?`none`:`0 6px 20px rgba(16,185,129,0.35)`},children:y?`⏳ מייצר משימה...`:`✨ צור משימת "${h}"`}),_&&(0,H.jsx)(`div`,{style:{marginTop:10,fontSize:13,fontWeight:700,color:_.startsWith(`✅`)?$.green:$.red},children:_})]}),!O&&(0,H.jsxs)(`div`,{style:{background:`rgba(255,255,255,0.8)`,backdropFilter:`blur(12px)`,borderRadius:20,padding:`22px 24px`,boxShadow:$.shadow,marginBottom:16,border:`1px solid ${$.border}`},children:[(0,H.jsx)(`div`,{style:{fontWeight:800,fontSize:15,color:$.navy,marginBottom:6},children:`📥 צור משימת אנגלית מחומר לימוד`}),(0,H.jsx)(`div`,{style:{fontSize:13,color:$.mid,marginBottom:14},children:`הדבק חומר לימוד — Claude יייצר משימת קריאה עם שאלות אוטומטית.`}),(0,H.jsx)(`textarea`,{value:a,onChange:e=>o(e.target.value),placeholder:`הדבק כאן את חומר הלימוד...`,style:{width:`100%`,minHeight:120,padding:`12px`,border:`2px solid ${$.border}`,borderRadius:12,fontSize:13,fontFamily:sE,direction:`rtl`,resize:`vertical`}}),(0,H.jsx)(`button`,{onClick:j,disabled:s||!a.trim(),style:{marginTop:10,padding:`10px 20px`,background:s?$.light:$.navy,color:$.white,border:`none`,borderRadius:12,fontSize:14,fontWeight:700,fontFamily:sE,cursor:s?`default`:`pointer`},children:s?`⏳ יוצר משימה...`:`✨ צור משימה עם AI`}),l&&(0,H.jsx)(`div`,{style:{marginTop:10,fontSize:13,fontWeight:700,color:l.startsWith(`✅`)?$.green:$.red},children:l})]})]})]})}var kE=`'Open Sans Hebrew','Open Sans',Arial,sans-serif`,AE={Entrance:`כניסה`,Kitchen:`מטבח`,"Living Room":`סלון`,"South Balcony":`מרפסת דרום`,"West Balcony":`מרפסת מערב`,Hallway:`מסדרון`,Office:`משרד`,"Master Bedroom":`חדר שינה ראשי`,"Master Bathroom":`חדר אמבטיה ראשי`,"Danielle's Room":`דניאל`,"Daphna's Room":`דפנה`,"Guest Toilet":`שירותי אורחים`,"Kids Bathroom":`חדר ילדים - אמבטיה`,"Laundry Room":`כביסה`,"All Rooms":`כל הבית`,"Building Gate":`שער הבניין`},jE=[{id:`net`,icon:`🌐`,name:`Internet & WiFi`,desc:`רשת ביתית`,accent:`#0284c7`,accentLight:`#e0f2fe`},{id:`apple`,icon:``,name:`Apple Ecosystem`,desc:`Apple Home · AirPlay`,accent:`#64748b`,accentLight:`#f1f5f9`},{id:`poe`,icon:`📷`,name:`PoE Cameras`,desc:`מצלמות אבטחה`,accent:`#ea580c`,accentLight:`#fff7ed`},{id:`ha`,icon:`🏠`,name:`Home Assistant`,desc:`מרכז אוטומציה`,accent:`#0891b2`,accentLight:`#ecfeff`},{id:`tuya`,icon:`🔌`,name:`Tuya`,desc:`שקעים חכמים · LED`,accent:`#dc2626`,accentLight:`#fef2f2`},{id:`bond`,icon:`🌀`,name:`Bond Bridge (RF)`,desc:`מאווררי תקרה · תריסים`,accent:`#7c3aed`,accentLight:`#f5f3ff`},{id:`ir`,icon:`📡`,name:`BroadLink (IR)`,desc:`שלט אינפרא-אדום`,accent:`#e11d48`,accentLight:`#fff1f2`},{id:`wifi`,icon:`📶`,name:`WiFi Devices`,desc:`מכשירי WiFi ישירים`,accent:`#059669`,accentLight:`#ecfdf5`},{id:`nuki`,icon:`🔐`,name:`NUKI + Matter`,desc:`מנעול חכם`,accent:`#a21caf`,accentLight:`#fdf4ff`},{id:`bticino`,icon:`💡`,name:`BTicino`,desc:`תאורה · תריסים · וילונות`,accent:`#b45309`,accentLight:`#fffbeb`,wide:!0}],ME=[{label:`רשת`,color:`#0284c7`},{label:`Apple`,color:`#64748b`},{label:`Home Assistant`,color:`#0891b2`},{label:`Bond (RF)`,color:`#7c3aed`},{label:`BroadLink (IR)`,color:`#e11d48`},{label:`Tuya`,color:`#dc2626`},{label:`BTicino`,color:`#b45309`},{label:`PoE`,color:`#ea580c`},{label:`WiFi`,color:`#059669`},{label:`NUKI / Matter`,color:`#a21caf`}],NE=[{icon:`🌐`,name:`Partner Fiber`,sub:`1000 / 250 Mbps`},{icon:`📡`,name:`Deco Mesh`,sub:`4 Nodes · WiFi 6`},{icon:`🏠`,name:`בית חכם`,sub:`כל המכשירים`}],PE=[{room:`Daphna's Room`,label:`דפנה`,x:0,y:0,w:148,h:118,color:`#7c3aed`},{room:`Danielle's Room`,label:`דניאל`,x:148,y:0,w:142,h:118,color:`#6366f1`},{room:`Kids Bathroom`,label:`אמבטיה
 ילדים`,x:290,y:0,w:92,h:118,color:`#0891b2`},{room:`Guest Toilet`,label:`שירותי
 אורחים`,x:382,y:0,w:63,h:118,color:`#0e7490`},{room:`Laundry Room`,label:`כביסה`,x:445,y:0,w:75,h:118,color:`#64748b`},{room:`Entrance`,label:`כניסה`,x:520,y:0,w:240,h:118,color:`#b45309`},{room:`Master Bathroom`,label:`אמבטיה
 ראשי`,x:0,y:118,w:148,h:152,color:`#0891b2`},{room:`Hallway`,label:`מסדרון`,x:148,y:118,w:142,h:282,color:`#475569`},{room:`Office`,label:`משרד`,x:290,y:118,w:230,h:152,color:`#059669`},{room:`Kitchen`,label:`מטבח`,x:520,y:118,w:240,h:152,color:`#dc2626`},{room:`Master Bedroom`,label:`חדר שינה
-ראשי`,x:0,y:270,w:290,h:130,color:`#1d4ed8`},{room:`Living Room`,label:`סלון`,x:290,y:270,w:470,h:130,color:`#15803d`},{room:`West Balcony`,label:`מרפסת מערב`,x:0,y:400,w:470,h:120,color:`#0284c7`},{room:`South Balcony`,label:`מרפסת דרום`,x:470,y:400,w:290,h:120,color:`#0369a1`}],PE=[{label:`רשת`,color:`#0284c7`},{label:`Apple`,color:`#64748b`},{label:`Home Assistant`,color:`#0891b2`},{label:`Bond (RF)`,color:`#7c3aed`},{label:`BroadLink (IR)`,color:`#e11d48`},{label:`Tuya`,color:`#dc2626`},{label:`BTicino`,color:`#b45309`},{label:`PoE`,color:`#ea580c`},{label:`WiFi`,color:`#059669`},{label:`NUKI / Matter`,color:`#a21caf`}],FE=`smarthome-v3-styles`,IE=`
+ראשי`,x:0,y:270,w:290,h:130,color:`#1d4ed8`},{room:`Living Room`,label:`סלון`,x:290,y:270,w:470,h:130,color:`#15803d`},{room:`West Balcony`,label:`מרפסת מערב`,x:0,y:400,w:470,h:120,color:`#0284c7`},{room:`South Balcony`,label:`מרפסת דרום`,x:470,y:400,w:290,h:120,color:`#0369a1`}],FE=`smarthome-v4-styles`,IE=`
   .sh {
     --ease: cubic-bezier(0.23, 1, 0.32, 1);
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2092,7 +2092,7 @@ Return JSON exactly:
     padding: 0 20px 64px;
   }
 
-  /* ── Hero banner ── */
+  /* ── Hero ── */
   .sh-hero {
     background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 60%, #1a1a2e 100%);
     border-radius: 20px;
@@ -2125,7 +2125,7 @@ Return JSON exactly:
   }
   @keyframes sh-hero-in {
     from { opacity: 0; transform: translateY(-16px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   .sh-hero-text { position: relative; z-index: 1; }
   .sh-hero-badge {
@@ -2159,10 +2159,7 @@ Return JSON exactly:
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .sh-stat-label {
-    font-size: 11px; color: #94a3b8;
-    letter-spacing: 0.5px; margin-top: 2px;
-  }
+  .sh-stat-label { font-size: 11px; color: #94a3b8; letter-spacing: 0.5px; margin-top: 2px; }
 
   /* ── Section titles ── */
   .sh-section-title {
@@ -2217,11 +2214,9 @@ Return JSON exactly:
   }
   .sh-topo-icon { font-size: 24px; }
   .sh-topo-name { font-size: 13px; font-weight: 700; color: #1e293b; }
-  .sh-topo-sub { font-size: 11px; color: #94a3b8; }
+  .sh-topo-sub  { font-size: 11px; color: #94a3b8; }
   .sh-topo-arrow {
-    padding: 0 14px;
-    font-size: 20px;
-    color: #cbd5e1;
+    padding: 0 14px; font-size: 20px; color: #cbd5e1;
     display: flex; align-items: center;
   }
 
@@ -2236,17 +2231,9 @@ Return JSON exactly:
     box-shadow: 0 2px 12px rgba(0,0,0,0.03);
     animation: sh-up 0.5s 0.15s var(--ease) both;
   }
-  .sh-legend-label {
-    font-size: 12px; font-weight: 700; color: #64748b;
-    margin-left: 8px;
-  }
-  .sh-legend-item {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: #475569;
-  }
-  .sh-legend-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
+  .sh-legend-label { font-size: 12px; font-weight: 700; color: #64748b; margin-left: 8px; }
+  .sh-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; }
+  .sh-legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
   /* ── Filter pills ── */
   .sh-filters {
@@ -2254,10 +2241,7 @@ Return JSON exactly:
     margin-bottom: 20px;
     animation: sh-up 0.5s 0.2s var(--ease) both;
   }
-  .sh-filter-label {
-    font-size: 12px; font-weight: 700; color: #64748b;
-    margin-left: 8px;
-  }
+  .sh-filter-label { font-size: 12px; font-weight: 700; color: #64748b; margin-left: 8px; }
   .sh-pill {
     padding: 6px 16px;
     border-radius: 100px;
@@ -2271,7 +2255,7 @@ Return JSON exactly:
     transition: all 0.25s var(--ease);
     user-select: none;
   }
-  .sh-pill:hover { border-color: #818cf8; color: #4f46e5; background: #f5f3ff; }
+  .sh-pill:hover  { border-color: #818cf8; color: #4f46e5; background: #f5f3ff; }
   .sh-pill:active { transform: scale(0.96); }
   .sh-pill.active {
     background: linear-gradient(135deg, #4f46e5, #6366f1);
@@ -2317,12 +2301,8 @@ Return JSON exactly:
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(0,0,0,0.08);
   }
-  .sh-card.hidden {
-    opacity: 0.12;
-    pointer-events: none;
-    transform: scale(0.97);
-  }
-  .sh-card.wide { grid-column: span 2; }
+  .sh-card.hidden { display: none; }
+  .sh-card.wide   { grid-column: span 2; }
   @media (max-width: 720px) { .sh-card.wide { grid-column: span 1; } }
 
   .sh-card-header {
@@ -2334,25 +2314,34 @@ Return JSON exactly:
     width: 42px; height: 42px;
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    font-size: 20px; flex-shrink: 0;
     transition: transform 0.35s var(--spring);
   }
   .sh-card:hover .sh-card-icon { transform: scale(1.12) rotate(-4deg); }
-  .sh-card-info { flex: 1; min-width: 0; }
-  .sh-card-name {
-    font-size: 15px; font-weight: 700;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .sh-card-desc { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .sh-card-info  { flex: 1; min-width: 0; }
+  .sh-card-name  { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sh-card-desc  { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .sh-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .sh-card-count {
     font-size: 12px; font-weight: 700;
     padding: 3px 10px;
     border-radius: 100px;
     background: #f1f5f9;
     color: #64748b;
-    flex-shrink: 0;
   }
+  .sh-edit-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s var(--ease);
+    font-family: ${kE};
+  }
+  .sh-edit-btn:hover { background: #e0f2fe; border-color: #0284c7; color: #0284c7; }
 
   .sh-devices { padding: 8px 12px 14px; }
   .sh-device {
@@ -2362,23 +2351,19 @@ Return JSON exactly:
     transition: all 0.2s var(--ease);
   }
   .sh-device:hover { background: #f8fafc; transform: translateX(-2px); }
-  .sh-device.hl { background: #eff6ff; }
-  .sh-device.dim { opacity: 0.3; }
-  .sh-device-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
-  }
-  .sh-device-name {
-    font-size: 13px; flex: 1;
-    color: #334155;
-  }
+  .sh-device-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.04); }
+  .sh-device-name { font-size: 13px; flex: 1; color: #334155; }
   .sh-device-room {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: #f1f5f9;
-    color: #64748b;
-    white-space: nowrap;
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 6px; background: #f1f5f9; color: #64748b; white-space: nowrap;
+  }
+
+  /* ── Empty state (system has no devices in this room) ── */
+  .sh-empty {
+    padding: 18px 12px;
+    text-align: center;
+    font-size: 12px;
+    color: #cbd5e1;
   }
 
   /* ── Footer ── */
@@ -2391,18 +2376,179 @@ Return JSON exactly:
   }
   .sh-footer-dot {
     display: inline-block; width: 6px; height: 6px;
-    background: #22c55e; border-radius: 50%;
-    margin-left: 6px;
+    background: #22c55e; border-radius: 50%; margin-left: 6px;
     animation: sh-blink 1.5s ease-in-out infinite;
   }
   @keyframes sh-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
+  /* ── Loading ── */
+  .sh-loading {
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 0; font-size: 13px; color: #94a3b8; gap: 10px;
+  }
+  .sh-spinner {
+    width: 18px; height: 18px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: sh-spin 0.7s linear infinite;
+  }
+  @keyframes sh-spin { to { transform: rotate(360deg); } }
+
+  /* ══════════════════════════════════════════════════════
+     EDIT MODAL
+  ══════════════════════════════════════════════════════ */
+  .sh-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: sh-fade-in 0.2s ease both;
+  }
+  @keyframes sh-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .sh-modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+    animation: sh-modal-in 0.3s var(--ease) both;
+    direction: rtl;
+  }
+  @keyframes sh-modal-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .sh-modal-head {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sh-modal-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .sh-modal-title { flex: 1; }
+  .sh-modal-title h3 { font-size: 16px; font-weight: 700; margin: 0 0 2px; }
+  .sh-modal-title p  { font-size: 12px; color: #94a3b8; margin: 0; }
+  .sh-modal-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #f8fafc;
+    cursor: pointer;
+    font-size: 18px; color: #64748b;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ${kE};
+    transition: all 0.2s;
+  }
+  .sh-modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+
+  .sh-modal-body {
+    flex: 1; overflow-y: auto;
+    padding: 16px 24px;
+  }
+
+  /* device list in modal */
+  .sh-modal-device {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+  .sh-modal-device:hover { background: #f8fafc; }
+  .sh-modal-device-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sh-modal-device-name { font-size: 13px; flex: 1; color: #334155; }
+  .sh-modal-device-room {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 6px; background: #f1f5f9; color: #64748b; white-space: nowrap;
+  }
+  .sh-modal-del {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ${kE};
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .sh-modal-del:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+
+  /* add form */
+  .sh-modal-add {
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 16px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .sh-modal-add-title {
+    font-size: 12px; font-weight: 700; color: #64748b;
+    margin-bottom: 2px;
+  }
+  .sh-modal-row { display: flex; gap: 8px; }
+  .sh-input {
+    flex: 1;
+    height: 36px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-family: ${kE};
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s;
+    direction: rtl;
+  }
+  .sh-input:focus { border-color: #6366f1; background: #fff; }
+  .sh-select {
+    height: 36px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 13px;
+    font-family: ${kE};
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .sh-select:focus { border-color: #6366f1; }
+  .sh-add-btn {
+    height: 36px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: ${kE};
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    white-space: nowrap;
+  }
+  .sh-add-btn:hover   { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.35); }
+  .sh-add-btn:active  { transform: scale(0.97); }
+  .sh-add-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
   /* ── Responsive ── */
   @media (max-width: 640px) {
-    .sh-hero { flex-direction: column; align-items: flex-start; padding: 24px; }
-    .sh-stats { align-self: stretch; justify-content: space-around; }
-    .sh-footer { flex-direction: column; gap: 8px; text-align: center; }
-    .sh-grid { grid-template-columns: 1fr; }
+    .sh-hero    { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .sh-stats   { align-self: stretch; justify-content: space-around; }
+    .sh-footer  { flex-direction: column; gap: 8px; text-align: center; }
+    .sh-grid    { grid-template-columns: 1fr; }
+    .sh-modal-row { flex-direction: column; }
   }
-`;function LE({totalDevices:e}){return(0,H.jsxs)(`div`,{className:`sh-hero`,children:[(0,H.jsxs)(`div`,{className:`sh-hero-text`,children:[(0,H.jsx)(`div`,{className:`sh-hero-badge`,children:`HOME 117`}),(0,H.jsxs)(`h1`,{children:[(0,H.jsx)(`span`,{children:`Smart Home`}),` Architecture`]}),(0,H.jsx)(`p`,{className:`sh-hero-sub`,children:`מפת מערכות הבית החכם — גרסה אינטראקטיבית`})]}),(0,H.jsxs)(`div`,{className:`sh-stats`,children:[(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:e}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`מכשירים`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:`10`}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`מערכות`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:`14`}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`חדרים`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:`1G`}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`סיב`})]})]})]})}function RE(){return(0,H.jsxs)(`div`,{className:`sh-topo`,children:[(0,H.jsx)(`div`,{className:`sh-section-title`,children:`Network Topology`}),(0,H.jsx)(`div`,{className:`sh-topo-flow`,children:ME.map((e,t)=>(0,H.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`},children:[t>0&&(0,H.jsx)(`div`,{className:`sh-topo-arrow`,children:`←`}),(0,H.jsxs)(`div`,{className:`sh-topo-node`,children:[(0,H.jsx)(`div`,{className:`sh-topo-icon`,children:e.icon}),(0,H.jsx)(`div`,{className:`sh-topo-name`,children:e.name}),(0,H.jsx)(`div`,{className:`sh-topo-sub`,children:e.sub})]})]},t))})]})}function zE({activeRoom:e,onToggle:t,orderedRooms:n}){return(0,H.jsxs)(`div`,{className:`sh-filters`,children:[(0,H.jsx)(`span`,{className:`sh-filter-label`,children:`סנן לפי חדר:`}),(0,H.jsx)(`div`,{className:`sh-pill${e?``:` active`}`,onClick:()=>t(``),children:`הכל`}),n.map(n=>(0,H.jsx)(`div`,{className:`sh-pill${e===n?` active`:``}`,onClick:()=>t(n),children:AE[n]||n},n))]})}function BE({activeRoom:e,onToggle:t,roomDevCount:n}){let[r,i]=(0,E.useState)(null);return(0,H.jsxs)(`div`,{className:`sh-floor`,children:[(0,H.jsx)(`div`,{className:`sh-section-title`,children:`מפת הבית — לחצו על חדר לסינון`}),(0,H.jsx)(`div`,{style:{width:`100%`,overflowX:`auto`},children:(0,H.jsxs)(`svg`,{viewBox:`0 0 760 520`,style:{width:`100%`,maxWidth:860,display:`block`,fontFamily:kE},children:[(0,H.jsx)(`defs`,{children:(0,H.jsx)(`pattern`,{id:`sh-grid2`,patternUnits:`userSpaceOnUse`,width:`20`,height:`20`,children:(0,H.jsx)(`path`,{d:`M 20 0 L 0 0 0 20`,fill:`none`,stroke:`rgba(99,102,241,0.06)`,strokeWidth:`0.5`})})}),(0,H.jsx)(`rect`,{width:`760`,height:`520`,fill:`#f8fafc`,rx:`8`}),(0,H.jsx)(`rect`,{width:`760`,height:`520`,fill:`url(#sh-grid2)`,rx:`8`}),(0,H.jsx)(`rect`,{x:`1`,y:`1`,width:`758`,height:`518`,fill:`none`,stroke:`rgba(99,102,241,0.15)`,strokeWidth:`1.5`,rx:`8`}),NE.map(a=>{let o=e===a.room,s=!e,c=r===a.room&&!o,l=s?.12:o?.25:.04,u=o||c?a.color:`rgba(148,163,184,0.35)`,d=o?2.5:1.2,f=o?1:c?.6:1,p=n[a.room]||0,m=a.label.split(`
-`),h=m.length*15,g=a.x+a.w/2,_=a.y+a.h/2-h/2+11,v=a.w<80?8.5:a.w<120?10:12;return(0,H.jsxs)(`g`,{style:{cursor:`pointer`},onClick:()=>t(a.room),onMouseEnter:()=>i(a.room),onMouseLeave:()=>i(null),children:[(0,H.jsx)(`rect`,{x:a.x,y:a.y,width:a.w,height:a.h,fill:a.color,fillOpacity:c?.18:l,style:{transition:`fill-opacity 0.3s`}}),(0,H.jsx)(`rect`,{x:a.x,y:a.y,width:a.w,height:a.h,fill:`none`,stroke:u,strokeWidth:d,strokeOpacity:f,style:{transition:`all 0.3s`}}),(0,H.jsx)(`circle`,{cx:a.x+a.w-14,cy:a.y+14,r:`10`,fill:`#fff`,stroke:a.color,strokeWidth:`1`,strokeOpacity:`0.4`}),(0,H.jsx)(`text`,{x:a.x+a.w-14,y:a.y+17.5,textAnchor:`middle`,fontSize:`9`,fontWeight:`700`,fill:a.color,pointerEvents:`none`,children:p}),m.map((e,t)=>(0,H.jsx)(`text`,{x:g,y:_+t*15,textAnchor:`middle`,fontSize:v,fontWeight:`700`,fill:o?a.color:`#475569`,fillOpacity:s?.85:o?1:.35,pointerEvents:`none`,style:{transition:`fill 0.3s, fill-opacity 0.3s`},children:e},t))]},a.room)})]})})]})}function VE({sys:e,activeRoom:t,delay:n}){let r=!t||e.devices.some(e=>e.room===t);return(0,H.jsxs)(`div`,{className:`sh-card${e.wide?` wide`:``}${r?``:` hidden`}`,style:{animationDelay:`${n}ms`},children:[(0,H.jsxs)(`div`,{className:`sh-card-header`,children:[(0,H.jsx)(`div`,{className:`sh-card-icon`,style:{background:e.accentLight},children:e.icon}),(0,H.jsxs)(`div`,{className:`sh-card-info`,children:[(0,H.jsx)(`div`,{className:`sh-card-name`,style:{color:e.accent},children:e.name}),(0,H.jsx)(`div`,{className:`sh-card-desc`,children:e.desc})]}),(0,H.jsx)(`div`,{className:`sh-card-count`,children:e.devices.length})]}),(0,H.jsx)(`div`,{className:`sh-devices`,children:e.devices.map((n,r)=>{let i=!t||n.room===t;return(0,H.jsxs)(`div`,{className:`sh-device${t&&i?` hl`:``}${t&&!i?` dim`:``}`,children:[(0,H.jsx)(`div`,{className:`sh-device-dot`,style:{background:e.accent}}),(0,H.jsx)(`div`,{className:`sh-device-name`,children:n.name}),(0,H.jsx)(`div`,{className:`sh-device-room`,children:AE[n.room]||n.room})]},r)})})]})}function HE({session:e}){ft();let t=(0,E.useRef)(!1),[n,r]=(0,E.useState)(``);(0,E.useEffect)(()=>{if(!t.current){if(!document.getElementById(FE)){let e=document.createElement(`style`);e.id=FE,e.textContent=IE,document.head.appendChild(e)}return t.current=!0,()=>{let e=document.getElementById(FE);e&&e.remove()}}},[]);let i=(0,E.useMemo)(()=>jE.reduce((e,t)=>e+t.devices.length,0),[]),a=(0,E.useMemo)(()=>{let e={};return jE.forEach(t=>t.devices.forEach(t=>{e[t.room]=(e[t.room]||0)+1})),e},[]),o=(0,E.useMemo)(()=>{let e=NE.map(e=>e.room),t=[...new Set(jE.flatMap(e=>e.devices.map(e=>e.room)))];return[...e.filter(e=>t.includes(e)),...t.filter(t=>!e.includes(t))]},[]),s=e=>r(t=>t===e?``:e);return(0,H.jsxs)(`div`,{className:`sh`,dir:`rtl`,children:[(0,H.jsx)(Tc,{session:e,title:`בית חכם`,subtitle:`HOME117 Smart Home`}),(0,H.jsxs)(`div`,{className:`sh-inner`,children:[(0,H.jsx)(LE,{totalDevices:i}),(0,H.jsx)(RE,{}),(0,H.jsxs)(`div`,{className:`sh-legend`,children:[(0,H.jsx)(`span`,{className:`sh-legend-label`,children:`מערכות:`}),PE.map((e,t)=>(0,H.jsxs)(`div`,{className:`sh-legend-item`,children:[(0,H.jsx)(`div`,{className:`sh-legend-dot`,style:{background:e.color}}),e.label]},t))]}),(0,H.jsx)(zE,{activeRoom:n,onToggle:s,orderedRooms:o}),(0,H.jsx)(BE,{activeRoom:n,onToggle:s,roomDevCount:a}),(0,H.jsx)(`div`,{className:`sh-grid`,children:jE.map((e,t)=>(0,H.jsx)(VE,{sys:e,activeRoom:n,delay:350+t*50},e.id))}),(0,H.jsxs)(`footer`,{className:`sh-footer`,children:[(0,H.jsxs)(`div`,{children:[(0,H.jsx)(`span`,{className:`sh-footer-dot`}),`HOME117 Smart Home · Architecture Map`]}),(0,H.jsx)(`div`,{children:`Partner Fiber 1000/250 · tp-link Deco Mesh · Apple Home`})]})]})]})}var UE=`erez@barons.co.il`,WE={"/travels":[UE],"/search":[UE],"/stats":[UE],"/assets":[UE,`roy@barons.co.il`],"/vouchers":[UE,`roy@barons.co.il`],"/recipes":[UE,`roy@barons.co.il`,`user@barons.co.il`],"/marathon":[UE,`roy@barons.co.il`],"/gym":[UE],"/family":[UE,`roy@barons.co.il`,`user@barons.co.il`],"/shopping":[UE,`roy@barons.co.il`,`user@barons.co.il`],"/school":[UE,`roy@barons.co.il`,`daphna@barons.co.il`,`danielle@barons.co.il`],"/smarthome":[UE,`roy@barons.co.il`]};function GE(e,t){return e?e===UE?!0:(WE[t]||[]).includes(e):!1}function KE({session:e,route:t,children:n}){return!e||!GE(e.user.email,t)?(0,H.jsx)(Rt,{to:`/`,replace:!0}):n}function qE(){let[e,t]=(0,E.useState)(null),[n,r]=(0,E.useState)(!0);if((0,E.useEffect)(()=>{V.auth.getSession().then(({data:{session:e}})=>{t(e),r(!1)});let{data:{subscription:e}}=V.auth.onAuthStateChange((e,n)=>t(n));return()=>e.unsubscribe()},[]),n)return(0,H.jsx)(`div`,{style:{display:`flex`,alignItems:`center`,justifyContent:`center`,height:`100vh`,background:`#0f1a2e`,color:`white`,fontSize:`20px`},children:`BARONS`});let i=(t,n)=>(0,H.jsx)(KE,{session:e,route:t,children:n});return(0,H.jsx)(On,{children:(0,H.jsxs)(Vt,{children:[(0,H.jsx)(zt,{path:`/`,element:(0,H.jsx)(dc,{session:e})}),(0,H.jsx)(zt,{path:`/travels`,element:i(`/travels`,(0,H.jsx)(Jc,{session:e}))}),(0,H.jsx)(zt,{path:`/travels/:id`,element:i(`/travels`,(0,H.jsx)(Ol,{session:e}))}),(0,H.jsx)(zt,{path:`/assets`,element:i(`/assets`,(0,H.jsx)(dT,{session:e}))}),(0,H.jsx)(zt,{path:`/assets/:id`,element:i(`/assets`,(0,H.jsx)(rE,{session:e}))}),(0,H.jsx)(zt,{path:`/search`,element:i(`/search`,(0,H.jsx)(Rl,{session:e}))}),(0,H.jsx)(zt,{path:`/stats`,element:i(`/stats`,(0,H.jsx)($l,{session:e}))}),(0,H.jsx)(zt,{path:`/vouchers`,element:i(`/vouchers`,(0,H.jsx)(Hu,{session:e}))}),(0,H.jsx)(zt,{path:`/recipes`,element:i(`/recipes`,(0,H.jsx)(id,{session:e}))}),(0,H.jsx)(zt,{path:`/recipes/:id`,element:i(`/recipes`,(0,H.jsx)(gd,{session:e}))}),(0,H.jsx)(zt,{path:`/marathon`,element:i(`/marathon`,(0,H.jsx)(ef,{session:e}))}),(0,H.jsx)(zt,{path:`/gym`,element:i(`/gym`,(0,H.jsx)(dC,{session:e}))}),(0,H.jsx)(zt,{path:`/family`,element:i(`/family`,(0,H.jsx)(WC,{session:e}))}),(0,H.jsx)(zt,{path:`/shopping`,element:i(`/shopping`,(0,H.jsx)(lw,{session:e}))}),(0,H.jsx)(zt,{path:`/school`,element:i(`/school`,(0,H.jsx)(wE,{session:e}))}),(0,H.jsx)(zt,{path:`/smarthome`,element:i(`/smarthome`,(0,H.jsx)(HE,{session:e}))}),(0,H.jsx)(zt,{path:`/shopping-quick`,element:(0,H.jsx)(Iw,{})}),(0,H.jsx)(zt,{path:`*`,element:(0,H.jsx)(Rt,{to:`/`,replace:!0})})]})})}(0,D.createRoot)(document.getElementById(`root`)).render((0,H.jsx)(E.StrictMode,{children:(0,H.jsx)(qE,{})}));
+`;function LE({totalDevices:e}){return(0,H.jsxs)(`div`,{className:`sh-hero`,children:[(0,H.jsxs)(`div`,{className:`sh-hero-text`,children:[(0,H.jsx)(`div`,{className:`sh-hero-badge`,children:`HOME 117`}),(0,H.jsxs)(`h1`,{children:[(0,H.jsx)(`span`,{children:`Smart Home`}),` Architecture`]}),(0,H.jsx)(`p`,{className:`sh-hero-sub`,children:`מפת מערכות הבית החכם — גרסה אינטראקטיבית`})]}),(0,H.jsxs)(`div`,{className:`sh-stats`,children:[(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:e}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`מכשירים`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:jE.length}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`מערכות`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:PE.length}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`חדרים`})]}),(0,H.jsxs)(`div`,{className:`sh-stat`,children:[(0,H.jsx)(`div`,{className:`sh-stat-num`,children:`1G`}),(0,H.jsx)(`div`,{className:`sh-stat-label`,children:`סיב`})]})]})]})}function RE(){return(0,H.jsxs)(`div`,{className:`sh-topo`,children:[(0,H.jsx)(`div`,{className:`sh-section-title`,children:`Network Topology`}),(0,H.jsx)(`div`,{className:`sh-topo-flow`,children:NE.map((e,t)=>(0,H.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`},children:[t>0&&(0,H.jsx)(`div`,{className:`sh-topo-arrow`,children:`←`}),(0,H.jsxs)(`div`,{className:`sh-topo-node`,children:[(0,H.jsx)(`div`,{className:`sh-topo-icon`,children:e.icon}),(0,H.jsx)(`div`,{className:`sh-topo-name`,children:e.name}),(0,H.jsx)(`div`,{className:`sh-topo-sub`,children:e.sub})]})]},t))})]})}function zE({activeRoom:e,onToggle:t,orderedRooms:n}){return(0,H.jsxs)(`div`,{className:`sh-filters`,children:[(0,H.jsx)(`span`,{className:`sh-filter-label`,children:`סנן לפי חדר:`}),(0,H.jsx)(`div`,{className:`sh-pill${e?``:` active`}`,onClick:()=>t(``),children:`הכל`}),n.map(n=>(0,H.jsx)(`div`,{className:`sh-pill${e===n?` active`:``}`,onClick:()=>t(n),children:AE[n]||n},n))]})}function BE({activeRoom:e,onToggle:t,roomDevCount:n}){let[r,i]=(0,E.useState)(null);return(0,H.jsxs)(`div`,{className:`sh-floor`,children:[(0,H.jsx)(`div`,{className:`sh-section-title`,children:`מפת הבית — לחצו על חדר לסינון`}),(0,H.jsx)(`div`,{style:{width:`100%`,overflowX:`auto`},children:(0,H.jsxs)(`svg`,{viewBox:`0 0 760 520`,style:{width:`100%`,maxWidth:860,display:`block`,fontFamily:kE},children:[(0,H.jsx)(`defs`,{children:(0,H.jsx)(`pattern`,{id:`sh-grid2`,patternUnits:`userSpaceOnUse`,width:`20`,height:`20`,children:(0,H.jsx)(`path`,{d:`M 20 0 L 0 0 0 20`,fill:`none`,stroke:`rgba(99,102,241,0.06)`,strokeWidth:`0.5`})})}),(0,H.jsx)(`rect`,{width:`760`,height:`520`,fill:`#f8fafc`,rx:`8`}),(0,H.jsx)(`rect`,{width:`760`,height:`520`,fill:`url(#sh-grid2)`,rx:`8`}),(0,H.jsx)(`rect`,{x:`1`,y:`1`,width:`758`,height:`518`,fill:`none`,stroke:`rgba(99,102,241,0.15)`,strokeWidth:`1.5`,rx:`8`}),PE.map(a=>{let o=e===a.room,s=!e,c=r===a.room&&!o,l=s?.12:o?.25:.04,u=o||c?a.color:`rgba(148,163,184,0.35)`,d=o?2.5:1.2,f=o?1:c?.6:1,p=n[a.room]||0,m=a.label.split(`
+`),h=m.length*15,g=a.x+a.w/2,_=a.y+a.h/2-h/2+11,v=a.w<80?8.5:a.w<120?10:12;return(0,H.jsxs)(`g`,{style:{cursor:`pointer`},onClick:()=>t(a.room),onMouseEnter:()=>i(a.room),onMouseLeave:()=>i(null),children:[(0,H.jsx)(`rect`,{x:a.x,y:a.y,width:a.w,height:a.h,fill:a.color,fillOpacity:c?.18:l,style:{transition:`fill-opacity 0.3s`}}),(0,H.jsx)(`rect`,{x:a.x,y:a.y,width:a.w,height:a.h,fill:`none`,stroke:u,strokeWidth:d,strokeOpacity:f,style:{transition:`all 0.3s`}}),(0,H.jsx)(`circle`,{cx:a.x+a.w-14,cy:a.y+14,r:`10`,fill:`#fff`,stroke:a.color,strokeWidth:`1`,strokeOpacity:`0.4`}),(0,H.jsx)(`text`,{x:a.x+a.w-14,y:a.y+17.5,textAnchor:`middle`,fontSize:`9`,fontWeight:`700`,fill:a.color,pointerEvents:`none`,children:p}),m.map((e,t)=>(0,H.jsx)(`text`,{x:g,y:_+t*15,textAnchor:`middle`,fontSize:v,fontWeight:`700`,fill:o?a.color:`#475569`,fillOpacity:s?.85:o?1:.35,pointerEvents:`none`,style:{transition:`fill 0.3s, fill-opacity 0.3s`},children:e},t))]},a.room)})]})})]})}function VE({sys:e,devices:t,onClose:n,onSave:r}){let[i,a]=(0,E.useState)(t),[o,s]=(0,E.useState)(``),[c,l]=(0,E.useState)(`Living Room`),[u,d]=(0,E.useState)(!1),[f,p]=(0,E.useState)(null),m=async()=>{if(!o.trim())return;d(!0);let{data:t,error:n}=await V.from(`smart_home_devices`).insert({system_id:e.id,name:o.trim(),room:c,sort_order:i.length+1}).select().single();d(!1),!n&&t&&(a(e=>[...e,t]),r(e.id,[...i,t]),s(``))},h=async t=>{p(t);let{error:n}=await V.from(`smart_home_devices`).delete().eq(`id`,t);if(p(null),!n){let n=i.filter(e=>e.id!==t);a(n),r(e.id,n)}};return(0,H.jsx)(`div`,{className:`sh-overlay`,onClick:e=>{e.target===e.currentTarget&&n()},children:(0,H.jsxs)(`div`,{className:`sh-modal`,children:[(0,H.jsxs)(`div`,{className:`sh-modal-head`,children:[(0,H.jsx)(`div`,{className:`sh-modal-icon`,style:{background:e.accentLight},children:e.icon}),(0,H.jsxs)(`div`,{className:`sh-modal-title`,children:[(0,H.jsx)(`h3`,{style:{color:e.accent},children:e.name}),(0,H.jsxs)(`p`,{children:[i.length,` מכשירים`]})]}),(0,H.jsx)(`button`,{className:`sh-modal-close`,onClick:n,children:`✕`})]}),(0,H.jsxs)(`div`,{className:`sh-modal-body`,children:[i.length===0&&(0,H.jsx)(`div`,{className:`sh-empty`,children:`אין מכשירים — הוסף למטה`}),i.map(t=>(0,H.jsxs)(`div`,{className:`sh-modal-device`,children:[(0,H.jsx)(`div`,{className:`sh-modal-device-dot`,style:{background:e.accent}}),(0,H.jsx)(`div`,{className:`sh-modal-device-name`,children:t.name}),(0,H.jsx)(`div`,{className:`sh-modal-device-room`,children:AE[t.room]||t.room}),(0,H.jsx)(`button`,{className:`sh-modal-del`,onClick:()=>h(t.id),disabled:f===t.id,title:`מחק`,children:f===t.id?`…`:`✕`})]},t.id))]}),(0,H.jsxs)(`div`,{className:`sh-modal-add`,children:[(0,H.jsx)(`div`,{className:`sh-modal-add-title`,children:`הוסף מכשיר`}),(0,H.jsxs)(`div`,{className:`sh-modal-row`,children:[(0,H.jsx)(`input`,{className:`sh-input`,placeholder:`שם המכשיר`,value:o,onChange:e=>s(e.target.value),onKeyDown:e=>e.key===`Enter`&&m()}),(0,H.jsx)(`select`,{className:`sh-select`,value:c,onChange:e=>l(e.target.value),children:Object.entries(AE).map(([e,t])=>(0,H.jsx)(`option`,{value:e,children:t},e))})]}),(0,H.jsx)(`button`,{className:`sh-add-btn`,onClick:m,disabled:u||!o.trim(),children:u?`שומר…`:`+ הוסף`})]})]})})}function HE({sys:e,devices:t,activeRoom:n,delay:r,onEdit:i}){let a=n?t.filter(e=>e.room===n||e.room===`All Rooms`):t,o=n&&a.length===0;return(0,H.jsxs)(`div`,{className:`sh-card${e.wide?` wide`:``}${o?` hidden`:``}`,style:{animationDelay:`${r}ms`},children:[(0,H.jsxs)(`div`,{className:`sh-card-header`,children:[(0,H.jsx)(`div`,{className:`sh-card-icon`,style:{background:e.accentLight},children:e.icon}),(0,H.jsxs)(`div`,{className:`sh-card-info`,children:[(0,H.jsx)(`div`,{className:`sh-card-name`,style:{color:e.accent},children:e.name}),(0,H.jsx)(`div`,{className:`sh-card-desc`,children:e.desc})]}),(0,H.jsxs)(`div`,{className:`sh-card-actions`,children:[(0,H.jsx)(`div`,{className:`sh-card-count`,children:t.length}),(0,H.jsx)(`button`,{className:`sh-edit-btn`,onClick:()=>i(e),title:`ערוך`,children:`✏️`})]})]}),(0,H.jsxs)(`div`,{className:`sh-devices`,children:[a.length===0&&!o&&(0,H.jsx)(`div`,{className:`sh-empty`,children:`אין מכשירים בחדר זה`}),a.map(t=>(0,H.jsxs)(`div`,{className:`sh-device`,children:[(0,H.jsx)(`div`,{className:`sh-device-dot`,style:{background:e.accent}}),(0,H.jsx)(`div`,{className:`sh-device-name`,children:t.name}),(0,H.jsx)(`div`,{className:`sh-device-room`,children:AE[t.room]||t.room})]},t.id))]})]})}function UE({session:e}){let t=(0,E.useRef)(!1),[n,r]=(0,E.useState)(``),[i,a]=(0,E.useState)(!0),[o,s]=(0,E.useState)({}),[c,l]=(0,E.useState)(null);(0,E.useEffect)(()=>{if(!t.current){if(!document.getElementById(FE)){let e=document.createElement(`style`);e.id=FE,e.textContent=IE,document.head.appendChild(e)}return t.current=!0,()=>{let e=document.getElementById(FE);e&&e.remove()}}},[]),(0,E.useEffect)(()=>{async function e(){a(!0);let{data:e,error:t}=await V.from(`smart_home_devices`).select(`*`).order(`sort_order`,{ascending:!0});if(!t&&e){let t={};e.forEach(e=>{t[e.system_id]||(t[e.system_id]=[]),t[e.system_id].push(e)}),s(t)}a(!1)}e()},[]);let u=(e,t)=>{s(n=>({...n,[e]:t}))},d=(0,E.useMemo)(()=>Object.values(o).reduce((e,t)=>e+t.length,0),[o]),f=(0,E.useMemo)(()=>{let e={};return Object.values(o).flat().forEach(t=>{e[t.room]=(e[t.room]||0)+1}),e},[o]),p=(0,E.useMemo)(()=>{let e=PE.map(e=>e.room),t=[...new Set(Object.values(o).flat().map(e=>e.room))];return[...e.filter(e=>t.includes(e)),...t.filter(t=>!e.includes(t))]},[o]),m=e=>r(t=>t===e?``:e);return(0,H.jsxs)(`div`,{className:`sh`,dir:`rtl`,children:[(0,H.jsx)(Tc,{session:e,title:`בית חכם`,subtitle:`HOME117 Smart Home`}),(0,H.jsxs)(`div`,{className:`sh-inner`,children:[(0,H.jsx)(LE,{totalDevices:d}),(0,H.jsx)(RE,{}),(0,H.jsxs)(`div`,{className:`sh-legend`,children:[(0,H.jsx)(`span`,{className:`sh-legend-label`,children:`מערכות:`}),ME.map((e,t)=>(0,H.jsxs)(`div`,{className:`sh-legend-item`,children:[(0,H.jsx)(`div`,{className:`sh-legend-dot`,style:{background:e.color}}),e.label]},t))]}),i?(0,H.jsxs)(`div`,{className:`sh-loading`,children:[(0,H.jsx)(`div`,{className:`sh-spinner`}),`טוען מכשירים…`]}):(0,H.jsxs)(H.Fragment,{children:[(0,H.jsx)(zE,{activeRoom:n,onToggle:m,orderedRooms:p}),(0,H.jsx)(BE,{activeRoom:n,onToggle:m,roomDevCount:f}),(0,H.jsx)(`div`,{className:`sh-grid`,children:jE.map((e,t)=>(0,H.jsx)(HE,{sys:e,devices:o[e.id]||[],activeRoom:n,delay:350+t*50,onEdit:l},e.id))})]}),(0,H.jsxs)(`footer`,{className:`sh-footer`,children:[(0,H.jsxs)(`div`,{children:[(0,H.jsx)(`span`,{className:`sh-footer-dot`}),`HOME117 Smart Home · Architecture Map`]}),(0,H.jsx)(`div`,{children:`Partner Fiber 1000/250 · tp-link Deco Mesh · Apple Home`})]})]}),c&&(0,H.jsx)(VE,{sys:c,devices:o[c.id]||[],onClose:()=>l(null),onSave:u})]})}var WE=`erez@barons.co.il`,GE={"/travels":[WE],"/search":[WE],"/stats":[WE],"/assets":[WE,`roy@barons.co.il`],"/vouchers":[WE,`roy@barons.co.il`],"/recipes":[WE,`roy@barons.co.il`,`user@barons.co.il`],"/marathon":[WE,`roy@barons.co.il`],"/gym":[WE],"/family":[WE,`roy@barons.co.il`,`user@barons.co.il`],"/shopping":[WE,`roy@barons.co.il`,`user@barons.co.il`],"/school":[WE,`roy@barons.co.il`,`daphna@barons.co.il`,`danielle@barons.co.il`],"/smarthome":[WE,`roy@barons.co.il`]};function KE(e,t){return e?e===WE?!0:(GE[t]||[]).includes(e):!1}function qE({session:e,route:t,children:n}){return!e||!KE(e.user.email,t)?(0,H.jsx)(Rt,{to:`/`,replace:!0}):n}function JE(){let[e,t]=(0,E.useState)(null),[n,r]=(0,E.useState)(!0);if((0,E.useEffect)(()=>{V.auth.getSession().then(({data:{session:e}})=>{t(e),r(!1)});let{data:{subscription:e}}=V.auth.onAuthStateChange((e,n)=>t(n));return()=>e.unsubscribe()},[]),n)return(0,H.jsx)(`div`,{style:{display:`flex`,alignItems:`center`,justifyContent:`center`,height:`100vh`,background:`#0f1a2e`,color:`white`,fontSize:`20px`},children:`BARONS`});let i=(t,n)=>(0,H.jsx)(qE,{session:e,route:t,children:n});return(0,H.jsx)(On,{children:(0,H.jsxs)(Vt,{children:[(0,H.jsx)(zt,{path:`/`,element:(0,H.jsx)(dc,{session:e})}),(0,H.jsx)(zt,{path:`/travels`,element:i(`/travels`,(0,H.jsx)(Jc,{session:e}))}),(0,H.jsx)(zt,{path:`/travels/:id`,element:i(`/travels`,(0,H.jsx)(Ol,{session:e}))}),(0,H.jsx)(zt,{path:`/assets`,element:i(`/assets`,(0,H.jsx)(dT,{session:e}))}),(0,H.jsx)(zt,{path:`/assets/:id`,element:i(`/assets`,(0,H.jsx)(rE,{session:e}))}),(0,H.jsx)(zt,{path:`/search`,element:i(`/search`,(0,H.jsx)(Rl,{session:e}))}),(0,H.jsx)(zt,{path:`/stats`,element:i(`/stats`,(0,H.jsx)($l,{session:e}))}),(0,H.jsx)(zt,{path:`/vouchers`,element:i(`/vouchers`,(0,H.jsx)(Hu,{session:e}))}),(0,H.jsx)(zt,{path:`/recipes`,element:i(`/recipes`,(0,H.jsx)(id,{session:e}))}),(0,H.jsx)(zt,{path:`/recipes/:id`,element:i(`/recipes`,(0,H.jsx)(gd,{session:e}))}),(0,H.jsx)(zt,{path:`/marathon`,element:i(`/marathon`,(0,H.jsx)(ef,{session:e}))}),(0,H.jsx)(zt,{path:`/gym`,element:i(`/gym`,(0,H.jsx)(dC,{session:e}))}),(0,H.jsx)(zt,{path:`/family`,element:i(`/family`,(0,H.jsx)(WC,{session:e}))}),(0,H.jsx)(zt,{path:`/shopping`,element:i(`/shopping`,(0,H.jsx)(lw,{session:e}))}),(0,H.jsx)(zt,{path:`/school`,element:i(`/school`,(0,H.jsx)(wE,{session:e}))}),(0,H.jsx)(zt,{path:`/smarthome`,element:i(`/smarthome`,(0,H.jsx)(UE,{session:e}))}),(0,H.jsx)(zt,{path:`/shopping-quick`,element:(0,H.jsx)(Iw,{})}),(0,H.jsx)(zt,{path:`*`,element:(0,H.jsx)(Rt,{to:`/`,replace:!0})})]})})}(0,D.createRoot)(document.getElementById(`root`)).render((0,H.jsx)(E.StrictMode,{children:(0,H.jsx)(JE,{})}));
