@@ -2,12 +2,9 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BaronsHeader from './BaronsHeader'
 
-// ── Data ────────────────────────────────────────────────────────────────────────
-const ROOMS = [
-  'כניסה','מטבח','סלון','מרפסת דרום','מרפסת מערב','מסדרון','משרד',
-  'חדר שינה ראשי','חדר אמבטיה ראשי','דניאל','דפנה','שירותי אורחים','חדר ילדים - אמבטיה','כביסה'
-]
+const FONT = "'Open Sans Hebrew','Open Sans',Arial,sans-serif"
 
+// ── Data ────────────────────────────────────────────────────────────────────────
 const ROOM_MAP = {
   'Entrance':'כניסה','Kitchen':'מטבח','Living Room':'סלון',
   'South Balcony':'מרפסת דרום','West Balcony':'מרפסת מערב',
@@ -20,7 +17,8 @@ const ROOM_MAP = {
 
 const SYSTEMS = [
   {
-    id:'net', cls:'c-net', icon:'🌐', name:'Internet & WiFi', desc:'NETWORK BACKBONE',
+    id:'net', icon:'🌐', name:'Internet & WiFi', desc:'רשת ביתית',
+    accent:'#0284c7', accentLight:'#e0f2fe',
     devices:[
       {name:'Partner Fiber 1000/250', room:'All Rooms'},
       {name:'BE5000 — ארון תקשורת', room:'Hallway'},
@@ -30,10 +28,11 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'apple', cls:'c-apple', icon:'', name:'Apple Ecosystem', desc:'APPLE HOME · AIRPLAY',
+    id:'apple', icon:'', name:'Apple Ecosystem', desc:'Apple Home · AirPlay',
+    accent:'#64748b', accentLight:'#f1f5f9',
     devices:[
       {name:'HomePod + Apple TV', room:'Living Room'},
-      {name:'HomePod Mini + Apple TV', room:"Master Bedroom"},
+      {name:'HomePod Mini + Apple TV', room:'Master Bedroom'},
       {name:'HomePod Mini + Apple TV', room:"Danielle's Room"},
       {name:'HomePod Mini + Apple TV', room:"Daphna's Room"},
       {name:'Apple TV', room:'South Balcony'},
@@ -41,14 +40,16 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'poe', cls:'c-poe', icon:'📷', name:'PoE Cameras', desc:'POWER OVER ETHERNET',
+    id:'poe', icon:'📷', name:'PoE Cameras', desc:'מצלמות אבטחה',
+    accent:'#ea580c', accentLight:'#fff7ed',
     devices:[
       {name:'Aqara G5 Pro', room:'South Balcony'},
       {name:'Aqara G5 Pro', room:'West Balcony'},
     ]
   },
   {
-    id:'ha', cls:'c-ha', icon:'🏠', name:'Home Assistant', desc:'AUTOMATION HUB',
+    id:'ha', icon:'🏠', name:'Home Assistant', desc:'מרכז אוטומציה',
+    accent:'#0891b2', accentLight:'#ecfeff',
     devices:[
       {name:'BroadLink RM3 Mini', room:'Kids Bathroom'},
       {name:'BroadLink RM Pro', room:'West Balcony'},
@@ -66,7 +67,8 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'tuya', cls:'c-tuya', icon:'🔌', name:'Tuya', desc:'SMART PLUG / HEAT / LED',
+    id:'tuya', icon:'🔌', name:'Tuya', desc:'שקעים חכמים · LED',
+    accent:'#dc2626', accentLight:'#fef2f2',
     devices:[
       {name:'Towel Warmer', room:'Kids Bathroom'},
       {name:'Towel Warmer', room:'Master Bathroom'},
@@ -74,7 +76,8 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'bond', cls:'c-bond', icon:'🌀', name:'Bond Bridge (RF)', desc:'CEILING FANS · SHADES',
+    id:'bond', icon:'🌀', name:'Bond Bridge (RF)', desc:'מאווררי תקרה · תריסים',
+    accent:'#7c3aed', accentLight:'#f5f3ff',
     devices:[
       {name:'Ceiling Fan', room:'Office'},
       {name:'Ceiling Fan', room:"Daphna's Room"},
@@ -85,14 +88,16 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'ir', cls:'c-ir', icon:'📡', name:'BroadLink (IR)', desc:'INFRARED CONTROL',
+    id:'ir', icon:'📡', name:'BroadLink (IR)', desc:'שלט אינפרא-אדום',
+    accent:'#e11d48', accentLight:'#fff1f2',
     devices:[
       {name:'Heater', room:'Kids Bathroom'},
       {name:'Outdoor Heater', room:'West Balcony'},
     ]
   },
   {
-    id:'wifi', cls:'c-wifi', icon:'📶', name:'WiFi Devices', desc:'DIRECT WIFI',
+    id:'wifi', icon:'📶', name:'WiFi Devices', desc:'מכשירי WiFi ישירים',
+    accent:'#059669', accentLight:'#ecfdf5',
     devices:[
       {name:'BTicino Switches & Hub', room:'All Rooms'},
       {name:'Bond Bridge', room:'Living Room'},
@@ -108,14 +113,16 @@ const SYSTEMS = [
     ]
   },
   {
-    id:'nuki', cls:'c-nuki', icon:'🔐', name:'NUKI + Matter', desc:'SMART LOCK · PROTOCOL',
+    id:'nuki', icon:'🔐', name:'NUKI + Matter', desc:'מנעול חכם',
+    accent:'#a21caf', accentLight:'#fdf4ff',
     devices:[
       {name:'NUKI Pro 4', room:'Entrance'},
       {name:'Matter Hub', room:'Living Room'},
     ]
   },
   {
-    id:'bticino', cls:'c-bticino', icon:'💡', name:'BTicino', desc:'LIGHTS · SHUTTERS · CURTAINS',
+    id:'bticino', icon:'💡', name:'BTicino', desc:'תאורה · תריסים · וילונות',
+    accent:'#b45309', accentLight:'#fffbeb',
     wide: true,
     devices:[
       {name:'Entrance Light', room:'Entrance'},
@@ -160,341 +167,404 @@ const SYSTEMS = [
 ]
 
 const TOPO_NODES = [
-  {icon:'🌐', name:'Partner Fiber', sub:'1000/250 Mbps'},
+  {icon:'🌐', name:'Partner Fiber', sub:'1000 / 250 Mbps'},
   {icon:'📡', name:'Deco Mesh', sub:'4 Nodes · WiFi 6'},
   {icon:'🏠', name:'בית חכם', sub:'כל המכשירים'},
 ]
 
 const FLOOR_ROOMS = [
-  {room:"Daphna's Room",   label:"דפנה",            x:0,   y:0,   w:148, h:118},
-  {room:"Danielle's Room", label:"דניאל",           x:148, y:0,   w:142, h:118},
-  {room:'Kids Bathroom',   label:"אמבטיה\nילדים",   x:290, y:0,   w:92,  h:118},
-  {room:'Guest Toilet',    label:"שירותי\nאורחים",  x:382, y:0,   w:63,  h:118},
-  {room:'Laundry Room',    label:"כביסה",            x:445, y:0,   w:75,  h:118},
-  {room:'Entrance',        label:"כניסה",            x:520, y:0,   w:240, h:118},
-  {room:'Master Bathroom', label:"אמבטיה\nראשי",    x:0,   y:118, w:148, h:152},
-  {room:'Hallway',         label:"מסדרון",           x:148, y:118, w:142, h:282},
-  {room:'Office',          label:"משרד",             x:290, y:118, w:230, h:152},
-  {room:'Kitchen',         label:"מטבח",             x:520, y:118, w:240, h:152},
-  {room:'Master Bedroom',  label:"חדר שינה\nראשי",  x:0,   y:270, w:290, h:130},
-  {room:'Living Room',     label:"סלון",             x:290, y:270, w:470, h:130},
-  {room:'West Balcony',    label:"מרפסת מערב",       x:0,   y:400, w:470, h:120},
-  {room:'South Balcony',   label:"מרפסת דרום",       x:470, y:400, w:290, h:120},
+  {room:"Daphna's Room",   label:'דפנה',            x:0,   y:0,   w:148, h:118, color:'#7c3aed'},
+  {room:"Danielle's Room", label:'דניאל',           x:148, y:0,   w:142, h:118, color:'#6366f1'},
+  {room:'Kids Bathroom',   label:'אמבטיה\nילדים',   x:290, y:0,   w:92,  h:118, color:'#0891b2'},
+  {room:'Guest Toilet',    label:'שירותי\nאורחים',  x:382, y:0,   w:63,  h:118, color:'#0e7490'},
+  {room:'Laundry Room',    label:'כביסה',            x:445, y:0,   w:75,  h:118, color:'#64748b'},
+  {room:'Entrance',        label:'כניסה',            x:520, y:0,   w:240, h:118, color:'#b45309'},
+  {room:'Master Bathroom', label:'אמבטיה\nראשי',    x:0,   y:118, w:148, h:152, color:'#0891b2'},
+  {room:'Hallway',         label:'מסדרון',           x:148, y:118, w:142, h:282, color:'#475569'},
+  {room:'Office',          label:'משרד',             x:290, y:118, w:230, h:152, color:'#059669'},
+  {room:'Kitchen',         label:'מטבח',             x:520, y:118, w:240, h:152, color:'#dc2626'},
+  {room:'Master Bedroom',  label:'חדר שינה\nראשי',  x:0,   y:270, w:290, h:130, color:'#1d4ed8'},
+  {room:'Living Room',     label:'סלון',             x:290, y:270, w:470, h:130, color:'#15803d'},
+  {room:'West Balcony',    label:'מרפסת מערב',       x:0,   y:400, w:470, h:120, color:'#0284c7'},
+  {room:'South Balcony',   label:'מרפסת דרום',       x:470, y:400, w:290, h:120, color:'#0369a1'},
 ]
 
-const ROOM_COLORS = {
-  "Daphna's Room":'#4338ca', "Danielle's Room":'#6d28d9',
-  'Kids Bathroom':'#0e7490', 'Guest Toilet':'#155e75',
-  'Laundry Room':'#374151', 'Entrance':'#92400e',
-  'Master Bathroom':'#065f71', 'Hallway':'#1e293b',
-  'Office':'#064e3b', 'Kitchen':'#78350f',
-  'Master Bedroom':'#1e3a5f', 'Living Room':'#14532d',
-  'West Balcony':'#1a2030', 'South Balcony':'#102010',
-}
+const LEGEND = [
+  { label:'רשת', color:'#0284c7' },
+  { label:'Apple', color:'#64748b' },
+  { label:'Home Assistant', color:'#0891b2' },
+  { label:'Bond (RF)', color:'#7c3aed' },
+  { label:'BroadLink (IR)', color:'#e11d48' },
+  { label:'Tuya', color:'#dc2626' },
+  { label:'BTicino', color:'#b45309' },
+  { label:'PoE', color:'#ea580c' },
+  { label:'WiFi', color:'#059669' },
+  { label:'NUKI / Matter', color:'#a21caf' },
+]
 
-const ACCENT_VARS = {
-  'c-net':'#00c9ff', 'c-apple':'#a8b8d0', 'c-poe':'#f97316',
-  'c-ha':'#41bdf5', 'c-tuya':'#ff6b2b', 'c-bond':'#c084fc',
-  'c-ir':'#f87171', 'c-bticino':'#fbbf24', 'c-wifi':'#4ade80',
-  'c-nuki':'#e879f9',
-}
-
-// ── Styles (injected once) ──────────────────────────────────────────────────────
-const STYLE_ID = 'smarthome-styles'
+// ── Styles ──────────────────────────────────────────────────────────────────────
+const STYLE_ID = 'smarthome-v3-styles'
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
-
-  .sh-wrap {
-    --bg: #070b14; --bg2: #0d1220; --bg3: #111827;
-    --border: rgba(255,255,255,0.07); --text: #e2e8f0; --dim: #64748b;
-    --net: #00c9ff;
-    font-family: 'Syne', sans-serif;
-    color: var(--text);
+  .sh {
+    --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: ${FONT};
+    background: linear-gradient(160deg, #f0f4ff 0%, #faf8ff 40%, #f0fffe 100%);
     min-height: 100vh;
-    background: var(--bg);
-    position: relative;
-    overflow-x: hidden;
+    color: #1e293b;
+  }
+  .sh-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 64px;
   }
 
-  /* Grid background */
-  .sh-wrap::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,201,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,201,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .sh-inner { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 0 24px 60px; }
-
-  /* Emil-style easing tokens */
-  .sh-wrap { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
-
-  /* ── Header ── */
-  .sh-header {
-    padding: 32px 0 24px;
-    display: flex; align-items: flex-end; justify-content: space-between;
-    border-bottom: 1px solid var(--border);
+  /* ── Hero banner ── */
+  .sh-hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 60%, #1a1a2e 100%);
+    border-radius: 20px;
+    padding: 32px 36px;
     margin-bottom: 28px;
-    animation: sh-fade-down 0.6s var(--ease-out) both;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    animation: sh-hero-in 0.7s var(--ease) both;
   }
-  @keyframes sh-fade-down { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-
-  .sh-logo-area { display: flex; align-items: center; gap: 16px; }
-  .sh-logo-badge {
-    background: linear-gradient(135deg, #00c9ff22, #00c9ff44);
-    border: 1px solid var(--net);
-    border-radius: 10px;
-    padding: 8px 16px;
-    font-family: 'Space Mono', monospace;
+  .sh-hero::before {
+    content: '';
+    position: absolute;
+    top: -60%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .sh-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40%; left: 10%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  @keyframes sh-hero-in {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sh-hero-text { position: relative; z-index: 1; }
+  .sh-hero-badge {
+    display: inline-block;
+    background: rgba(56,189,248,0.15);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 8px;
+    padding: 4px 14px;
     font-size: 11px;
-    color: var(--net);
+    font-weight: 700;
     letter-spacing: 2px;
-    animation: sh-badge-glow 3s ease-in-out infinite;
+    color: #38bdf8;
+    margin-bottom: 12px;
   }
-  @keyframes sh-badge-glow {
-    0%, 100% { box-shadow: 0 0 6px rgba(0,201,255,0.15); }
-    50% { box-shadow: 0 0 18px rgba(0,201,255,0.35); }
+  .sh-hero h1 {
+    font-size: clamp(24px, 3.5vw, 34px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0 0 6px;
   }
-  .sh-title { font-size: clamp(22px, 3vw, 36px); font-weight: 800; line-height: 1; letter-spacing: -1px; }
-  .sh-title span { color: var(--net); }
-  .sh-subtitle { font-size: 13px; color: var(--dim); margin-top: 4px; font-family: 'Space Mono', monospace; }
-  .sh-stats-row { display: flex; gap: 20px; }
+  .sh-hero h1 span { color: #38bdf8; }
+  .sh-hero-sub { font-size: 13px; color: #94a3b8; margin: 0; }
+  .sh-stats {
+    position: relative; z-index: 1;
+    display: flex; gap: 24px;
+  }
   .sh-stat { text-align: center; }
-  .sh-stat-num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--net); }
-  .sh-stat-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .sh-stat-num {
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sh-stat-label {
+    font-size: 11px; color: #94a3b8;
+    letter-spacing: 0.5px; margin-top: 2px;
+  }
+
+  /* ── Section titles ── */
+  .sh-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sh-section-title::before {
+    content: '';
+    width: 3px; height: 16px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #38bdf8, #818cf8);
+  }
 
   /* ── Topology ── */
-  .sh-topo-section {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    animation: sh-fade-up 0.5s 0.15s var(--ease-out) both;
+  .sh-topo {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 20px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    animation: sh-up 0.5s 0.1s var(--ease) both;
   }
-  @keyframes sh-fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-  .sh-topo-title {
-    font-size: 11px; color: var(--dim); letter-spacing: 2px;
-    text-transform: uppercase; margin-bottom: 16px;
-    font-family: 'Space Mono', monospace;
+  @keyframes sh-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .sh-topo-flow { display: flex; align-items: center; flex-wrap: wrap; }
+  .sh-topo-flow {
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 0;
+  }
   .sh-topo-node {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 12px 18px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    min-width: 110px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 14px 22px;
+    background: #f8fafc;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    min-width: 120px;
     text-align: center;
-    transition: all 0.3s var(--ease-out);
+    transition: all 0.3s var(--ease);
   }
-  .sh-topo-node:hover { border-color: var(--net); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,201,255,0.1); }
-  .sh-topo-node-icon { font-size: 22px; }
-  .sh-topo-node-name { font-size: 11px; font-weight: 700; color: var(--net); }
-  .sh-topo-node-sub { font-size: 10px; color: var(--dim); font-family: 'Space Mono', monospace; }
+  .sh-topo-node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    border-color: #38bdf8;
+  }
+  .sh-topo-icon { font-size: 24px; }
+  .sh-topo-name { font-size: 13px; font-weight: 700; color: #1e293b; }
+  .sh-topo-sub { font-size: 11px; color: #94a3b8; }
   .sh-topo-arrow {
-    padding: 0 16px; color: rgba(0,201,255,0.6); font-size: 26px;
-    display: flex; align-items: center; line-height: 1;
-    animation: sh-flow-pulse 1.5s linear infinite;
+    padding: 0 14px;
+    font-size: 20px;
+    color: #cbd5e1;
+    display: flex; align-items: center;
   }
-  @keyframes sh-flow-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
 
   /* ── Legend ── */
   .sh-legend {
-    display: flex; flex-wrap: wrap; gap: 10px;
-    margin-bottom: 24px; padding: 14px 18px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    animation: sh-fade-up 0.5s 0.25s var(--ease-out) both;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    animation: sh-up 0.5s 0.15s var(--ease) both;
   }
-  .sh-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
-  .sh-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .sh-legend-title { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-left: 8px; font-family: 'Space Mono', monospace; }
+  .sh-legend-label {
+    font-size: 12px; font-weight: 700; color: #64748b;
+    margin-left: 8px;
+  }
+  .sh-legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #475569;
+  }
+  .sh-legend-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
 
-  /* ── Room filter pills ── */
-  .sh-filter-bar {
-    display: flex; flex-wrap: wrap; gap: 8px;
-    margin-bottom: 28px; align-items: center;
-    animation: sh-fade-up 0.5s 0.3s var(--ease-out) both;
+  /* ── Filter pills ── */
+  .sh-filters {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 20px;
+    animation: sh-up 0.5s 0.2s var(--ease) both;
   }
-  .sh-filter-label { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-left: 8px; white-space: nowrap; }
-  .sh-room-pill {
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--dim);
+  .sh-filter-label {
+    font-size: 12px; font-weight: 700; color: #64748b;
+    margin-left: 8px;
+  }
+  .sh-pill {
+    padding: 6px 16px;
+    border-radius: 100px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    color: #64748b;
     font-size: 12px;
+    font-family: ${FONT};
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.25s var(--ease-out);
-    white-space: nowrap;
+    transition: all 0.25s var(--ease);
     user-select: none;
   }
-  .sh-room-pill:hover { border-color: var(--net); color: var(--net); }
-  .sh-room-pill:active { transform: scale(0.95); }
-  .sh-room-pill.active { background: var(--net); border-color: var(--net); color: #000; font-weight: 600; }
+  .sh-pill:hover { border-color: #818cf8; color: #4f46e5; background: #f5f3ff; }
+  .sh-pill:active { transform: scale(0.96); }
+  .sh-pill.active {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  }
 
-  /* ── Floor plan section ── */
-  .sh-rooms-section {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+  /* ── Floor plan ── */
+  .sh-floor {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
     padding: 20px 24px;
-    margin-bottom: 16px;
-    animation: sh-fade-up 0.5s 0.35s var(--ease-out) both;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    animation: sh-up 0.5s 0.25s var(--ease) both;
   }
 
-  /* ── Live dot ── */
-  .sh-live-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: var(--net);
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: sh-blink 1.2s ease-in-out infinite;
-    vertical-align: middle;
-  }
-  @keyframes sh-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-
-  /* ── System card grid ── */
+  /* ── Cards grid ── */
   .sh-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
   }
 
   /* ── System card ── */
-  .sh-sys-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+  .sh-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
     overflow: hidden;
-    transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), opacity 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
-    animation: sh-card-in 0.5s var(--ease-out) both;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    transition: all 0.35s var(--ease);
+    animation: sh-card-in 0.5s var(--ease) both;
   }
-  @keyframes sh-card-in { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  .sh-sys-card.hidden { opacity: 0.15; pointer-events: none; transform: scale(0.97); }
-  .sh-sys-card:hover { transform: translateY(-3px); }
-  .sh-sys-card.card-wide { grid-column: span 2; }
-  @media (max-width: 700px) { .sh-sys-card.card-wide { grid-column: span 1; } }
+  @keyframes sh-card-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .sh-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  }
+  .sh-card.hidden {
+    opacity: 0.12;
+    pointer-events: none;
+    transform: scale(0.97);
+  }
+  .sh-card.wide { grid-column: span 2; }
+  @media (max-width: 720px) { .sh-card.wide { grid-column: span 1; } }
 
-  .sh-sys-header {
-    padding: 14px 18px 12px;
-    display: flex; align-items: center; gap: 12px;
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
+  .sh-card-header {
+    padding: 16px 20px 14px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
   }
-  .sh-sys-header::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0.06;
-  }
-  .sh-sys-icon {
-    width: 36px; height: 36px;
-    border-radius: 9px;
+  .sh-card-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-    transition: transform 0.3s var(--ease-spring);
+    transition: transform 0.35s var(--spring);
   }
-  .sh-sys-card:hover .sh-sys-icon { transform: scale(1.1) rotate(-3deg); }
-  .sh-sys-title-area { position: relative; z-index: 1; flex: 1; }
-  .sh-sys-name { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
-  .sh-sys-desc { font-size: 10px; color: var(--dim); margin-top: 1px; font-family: 'Space Mono', monospace; }
-  .sh-sys-count {
-    position: relative; z-index: 1;
-    font-family: 'Space Mono', monospace;
+  .sh-card:hover .sh-card-icon { transform: scale(1.12) rotate(-4deg); }
+  .sh-card-info { flex: 1; min-width: 0; }
+  .sh-card-name {
+    font-size: 15px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sh-card-desc { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .sh-card-count {
+    font-size: 12px; font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: #f1f5f9;
+    color: #64748b;
+    flex-shrink: 0;
+  }
+
+  .sh-devices { padding: 8px 12px 14px; }
+  .sh-device {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: all 0.2s var(--ease);
+  }
+  .sh-device:hover { background: #f8fafc; transform: translateX(-2px); }
+  .sh-device.hl { background: #eff6ff; }
+  .sh-device.dim { opacity: 0.3; }
+  .sh-device-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+  }
+  .sh-device-name {
+    font-size: 13px; flex: 1;
+    color: #334155;
+  }
+  .sh-device-room {
     font-size: 11px;
     padding: 2px 8px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.05);
-    color: var(--dim);
-  }
-
-  .sh-device-list { padding: 10px 14px 14px; }
-  .sh-device-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 7px 8px;
-    border-radius: 8px;
-    cursor: default;
-    transition: background 0.2s var(--ease-out), transform 0.2s var(--ease-out);
-  }
-  .sh-device-item:hover { background: rgba(255,255,255,0.04); transform: translateX(-2px); }
-  .sh-device-item.highlighted { background: rgba(0,201,255,0.08); }
-  .sh-device-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    position: relative;
-  }
-  .sh-device-dot::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    opacity: 0;
-    animation: sh-pulse-ring 2s ease-out infinite;
-  }
-  @keyframes sh-pulse-ring { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2.2); opacity: 0; } }
-  .sh-device-name { font-size: 12px; flex: 1; }
-  .sh-device-room {
-    font-size: 10px;
-    padding: 1px 7px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.05);
-    color: var(--dim);
-    font-family: 'Space Mono', monospace;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #64748b;
     white-space: nowrap;
   }
 
   /* ── Footer ── */
   .sh-footer {
-    border-top: 1px solid var(--border);
     margin-top: 40px;
     padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.06);
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 11px;
-    color: var(--dim);
-    font-family: 'Space Mono', monospace;
+    font-size: 12px; color: #94a3b8;
   }
+  .sh-footer-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: #22c55e; border-radius: 50%;
+    margin-left: 6px;
+    animation: sh-blink 1.5s ease-in-out infinite;
+  }
+  @keyframes sh-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* ── Responsive header ── */
-  @media (max-width: 600px) {
-    .sh-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .sh-stats-row { align-self: flex-start; }
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .sh-hero { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .sh-stats { align-self: stretch; justify-content: space-around; }
     .sh-footer { flex-direction: column; gap: 8px; text-align: center; }
+    .sh-grid { grid-template-columns: 1fr; }
   }
 `
 
 // ── Components ──────────────────────────────────────────────────────────────────
 
-function LiveDot() {
-  return <span className="sh-live-dot" />
+function Hero({ totalDevices }) {
+  return (
+    <div className="sh-hero">
+      <div className="sh-hero-text">
+        <div className="sh-hero-badge">HOME 117</div>
+        <h1><span>Smart Home</span> Architecture</h1>
+        <p className="sh-hero-sub">מפת מערכות הבית החכם — גרסה אינטראקטיבית</p>
+      </div>
+      <div className="sh-stats">
+        <div className="sh-stat"><div className="sh-stat-num">{totalDevices}</div><div className="sh-stat-label">מכשירים</div></div>
+        <div className="sh-stat"><div className="sh-stat-num">10</div><div className="sh-stat-label">מערכות</div></div>
+        <div className="sh-stat"><div className="sh-stat-num">14</div><div className="sh-stat-label">חדרים</div></div>
+        <div className="sh-stat"><div className="sh-stat-num">1G</div><div className="sh-stat-label">סיב</div></div>
+      </div>
+    </div>
+  )
 }
 
 function Topology() {
   return (
-    <div className="sh-topo-section">
-      <div className="sh-topo-title"><LiveDot />Network Topology — Internet Flow</div>
+    <div className="sh-topo">
+      <div className="sh-section-title">Network Topology</div>
       <div className="sh-topo-flow">
         {TOPO_NODES.map((n, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
             {i > 0 && <div className="sh-topo-arrow">←</div>}
             <div className="sh-topo-node">
-              <div className="sh-topo-node-icon">{n.icon}</div>
-              <div className="sh-topo-node-name">{n.name}</div>
-              <div className="sh-topo-node-sub">{n.sub}</div>
+              <div className="sh-topo-icon">{n.icon}</div>
+              <div className="sh-topo-name">{n.name}</div>
+              <div className="sh-topo-sub">{n.sub}</div>
             </div>
           </div>
         ))}
@@ -503,44 +573,13 @@ function Topology() {
   )
 }
 
-function Legend() {
-  const items = [
-    { label: 'רשת', color: '#00c9ff' },
-    { label: 'Apple', color: '#a8b8d0' },
-    { label: 'Home Assistant', color: '#41bdf5' },
-    { label: 'Bond (RF)', color: '#c084fc' },
-    { label: 'BroadLink (IR)', color: '#f87171' },
-    { label: 'Tuya', color: '#ff6b2b' },
-    { label: 'BTicino', color: '#fbbf24' },
-    { label: 'PoE', color: '#f97316' },
-    { label: 'WiFi Devices', color: '#4ade80' },
-    { label: 'NUKI / Matter', color: '#e879f9' },
-  ]
-  return (
-    <div className="sh-legend">
-      <span className="sh-legend-title">מערכות:</span>
-      {items.map((it, i) => (
-        <div className="sh-legend-item" key={i}>
-          <div className="sh-legend-dot" style={{ background: it.color }} />
-          {it.label}
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function FilterBar({ activeRoom, onToggle, orderedRooms }) {
   return (
-    <div className="sh-filter-bar">
+    <div className="sh-filters">
       <span className="sh-filter-label">סנן לפי חדר:</span>
-      <div
-        className={`sh-room-pill${!activeRoom ? ' active' : ''}`}
-        onClick={() => onToggle('')}
-      >הכל</div>
+      <div className={`sh-pill${!activeRoom ? ' active' : ''}`} onClick={() => onToggle('')}>הכל</div>
       {orderedRooms.map(room => (
-        <div
-          key={room}
-          className={`sh-room-pill${activeRoom === room ? ' active' : ''}`}
+        <div key={room} className={`sh-pill${activeRoom === room ? ' active' : ''}`}
           onClick={() => onToggle(room)}
         >{ROOM_MAP[room] || room}</div>
       ))}
@@ -552,67 +591,65 @@ function FloorPlan({ activeRoom, onToggle, roomDevCount }) {
   const [hovered, setHovered] = useState(null)
 
   return (
-    <div className="sh-rooms-section">
-      <div className="sh-topo-title"><LiveDot />מפת הבית — לחץ על חדר לסינון</div>
-      <div style={{ width: '100%', overflowX: 'auto', padding: '4px 0 8px' }}>
-        <svg viewBox="0 0 760 520" style={{ width: '100%', maxWidth: 860, display: 'block', fontFamily: "'Syne', sans-serif" }}>
+    <div className="sh-floor">
+      <div className="sh-section-title">מפת הבית — לחצו על חדר לסינון</div>
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <svg viewBox="0 0 760 520" style={{ width: '100%', maxWidth: 860, display: 'block', fontFamily: FONT }}>
           <defs>
-            <pattern id="sh-grid" patternUnits="userSpaceOnUse" width="20" height="20">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(100,180,255,0.07)" strokeWidth="0.5" />
+            <pattern id="sh-grid2" patternUnits="userSpaceOnUse" width="20" height="20">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,102,241,0.06)" strokeWidth="0.5" />
             </pattern>
-            <filter id="sh-glow">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
           </defs>
-          <rect width="760" height="520" fill="#071628" />
-          <rect width="760" height="520" fill="url(#sh-grid)" />
-          <rect x="1" y="1" width="758" height="518" fill="none" stroke="rgba(126,184,212,0.3)" strokeWidth="1.5" rx="2" />
+          <rect width="760" height="520" fill="#f8fafc" rx="8" />
+          <rect width="760" height="520" fill="url(#sh-grid2)" rx="8" />
+          <rect x="1" y="1" width="758" height="518" fill="none" stroke="rgba(99,102,241,0.15)" strokeWidth="1.5" rx="8" />
 
           {FLOOR_ROOMS.map(r => {
             const isActive = activeRoom === r.room
             const isNone = !activeRoom
             const isHov = hovered === r.room && !isActive
-            const baseColor = ROOM_COLORS[r.room] || '#1e293b'
-            const fillOpacity = isNone ? 0.55 : isActive ? 0.9 : 0.2
-            const strokeColor = isActive ? '#00c9ff' : isHov ? 'rgba(0,201,255,0.7)' : 'rgba(160,210,235,0.55)'
-            const strokeW = isActive ? 2.5 : 1.5
+            const fillOpacity = isNone ? 0.12 : isActive ? 0.25 : 0.04
+            const strokeColor = isActive ? r.color : isHov ? r.color : 'rgba(148,163,184,0.35)'
+            const strokeW = isActive ? 2.5 : 1.2
+            const strokeOpacity = isActive ? 1 : isHov ? 0.6 : 1
             const cnt = roomDevCount[r.room] || 0
             const lines = r.label.split('\n')
             const lineH = 15
             const totalH = lines.length * lineH
             const lx = r.x + r.w / 2
             const ly = r.y + r.h / 2 - totalH / 2 + 11
-            const fontSize = r.w < 80 ? 8.5 : r.w < 120 ? 10 : 11.5
+            const fontSize = r.w < 80 ? 8.5 : r.w < 120 ? 10 : 12
 
             return (
-              <g
-                key={r.room}
-                style={{ cursor: 'pointer', transition: 'all 0.3s' }}
+              <g key={r.room} style={{ cursor: 'pointer' }}
                 onClick={() => onToggle(r.room)}
                 onMouseEnter={() => setHovered(r.room)}
                 onMouseLeave={() => setHovered(null)}
               >
                 <rect x={r.x} y={r.y} width={r.w} height={r.h}
-                  fill={baseColor} fillOpacity={isHov ? 0.75 : fillOpacity}
+                  fill={r.color} fillOpacity={isHov ? 0.18 : fillOpacity}
                   style={{ transition: 'fill-opacity 0.3s' }}
                 />
                 <rect x={r.x} y={r.y} width={r.w} height={r.h}
                   fill="none" stroke={strokeColor} strokeWidth={strokeW}
-                  style={{ transition: 'stroke 0.3s, stroke-width 0.3s' }}
+                  strokeOpacity={strokeOpacity}
+                  style={{ transition: 'all 0.3s' }}
                 />
-                <circle cx={r.x + r.w - 13} cy={r.y + 13} r="10"
-                  fill="rgba(0,0,0,0.5)" stroke="rgba(0,201,255,0.3)" strokeWidth="0.8"
+                {/* device count badge */}
+                <circle cx={r.x + r.w - 14} cy={r.y + 14} r="10"
+                  fill="#fff" stroke={r.color} strokeWidth="1" strokeOpacity="0.4"
                 />
-                <text x={r.x + r.w - 13} y={r.y + 16.5} textAnchor="middle"
-                  fontSize="8.5" fontWeight="700" fill="rgba(0,201,255,0.9)"
-                  pointerEvents="none"
+                <text x={r.x + r.w - 14} y={r.y + 17.5} textAnchor="middle"
+                  fontSize="9" fontWeight="700" fill={r.color} pointerEvents="none"
                 >{cnt}</text>
+                {/* room label */}
                 {lines.map((line, li) => (
                   <text key={li} x={lx} y={ly + li * lineH} textAnchor="middle"
                     fontSize={fontSize} fontWeight="700"
-                    fill="rgba(220,235,255,0.9)" pointerEvents="none"
-                    letterSpacing="0.3"
+                    fill={isActive ? r.color : '#475569'}
+                    fillOpacity={isNone ? 0.85 : isActive ? 1 : 0.35}
+                    pointerEvents="none"
+                    style={{ transition: 'fill 0.3s, fill-opacity 0.3s' }}
                   >{line}</text>
                 ))}
               </g>
@@ -625,55 +662,31 @@ function FloorPlan({ activeRoom, onToggle, roomDevCount }) {
 }
 
 function SystemCard({ sys, activeRoom, delay }) {
-  const accent = ACCENT_VARS[sys.cls] || '#00c9ff'
   const hasMatch = !activeRoom || sys.devices.some(d => d.room === activeRoom)
 
   return (
     <div
-      className={`sh-sys-card${sys.wide ? ' card-wide' : ''}${!hasMatch ? ' hidden' : ''}`}
-      style={{
-        '--accent': accent,
-        animationDelay: `${delay}ms`,
-        boxShadow: 'none',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.boxShadow = `0 4px 30px color-mix(in srgb, ${accent} 12%, transparent)`
-        e.currentTarget.style.borderColor = `color-mix(in srgb, ${accent} 30%, transparent)`
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.boxShadow = 'none'
-        e.currentTarget.style.borderColor = ''
-      }}
+      className={`sh-card${sys.wide ? ' wide' : ''}${!hasMatch ? ' hidden' : ''}`}
+      style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="sh-sys-header" style={{ '--hdr-accent': accent }}>
-        <div style={{ position: 'absolute', inset: 0, background: accent, opacity: 0.06 }} />
-        <div className="sh-sys-icon" style={{ background: `color-mix(in srgb, ${accent} 15%, transparent)` }}>
+      <div className="sh-card-header">
+        <div className="sh-card-icon" style={{ background: sys.accentLight }}>
           {sys.icon}
         </div>
-        <div className="sh-sys-title-area">
-          <div className="sh-sys-name" style={{ color: accent }}>{sys.name}</div>
-          <div className="sh-sys-desc">{sys.desc}</div>
+        <div className="sh-card-info">
+          <div className="sh-card-name" style={{ color: sys.accent }}>{sys.name}</div>
+          <div className="sh-card-desc">{sys.desc}</div>
         </div>
-        <div className="sh-sys-count">{sys.devices.length}</div>
+        <div className="sh-card-count">{sys.devices.length}</div>
       </div>
-      <div className="sh-device-list">
+      <div className="sh-devices">
         {sys.devices.map((d, i) => {
           const match = !activeRoom || d.room === activeRoom
           return (
-            <div
-              key={i}
-              className={`sh-device-item${activeRoom && match ? ' highlighted' : ''}`}
-              style={{ opacity: activeRoom && !match ? 0.3 : 1, transition: 'opacity 0.25s, background 0.2s' }}
+            <div key={i}
+              className={`sh-device${activeRoom && match ? ' hl' : ''}${activeRoom && !match ? ' dim' : ''}`}
             >
-              <div className="sh-device-dot" style={{
-                background: accent,
-              }}>
-                <span style={{
-                  position: 'absolute', inset: -3, borderRadius: '50%',
-                  border: `1px solid ${accent}`, opacity: 0,
-                  animation: 'sh-pulse-ring 2s ease-out infinite',
-                }} />
-              </div>
+              <div className="sh-device-dot" style={{ background: sys.accent }} />
               <div className="sh-device-name">{d.name}</div>
               <div className="sh-device-room">{ROOM_MAP[d.room] || d.room}</div>
             </div>
@@ -684,13 +697,12 @@ function SystemCard({ sys, activeRoom, delay }) {
   )
 }
 
-// ── Main component ──────────────────────────────────────────────────────────────
+// ── Main ────────────────────────────────────────────────────────────────────────
 export default function SmartHome({ session }) {
   const navigate = useNavigate()
-  const [activeRoom, setActiveRoom] = useState('')
   const styleInjected = useRef(false)
+  const [activeRoom, setActiveRoom] = useState('')
 
-  // Inject styles once
   useEffect(() => {
     if (styleInjected.current) return
     if (!document.getElementById(STYLE_ID)) {
@@ -700,76 +712,55 @@ export default function SmartHome({ session }) {
       document.head.appendChild(el)
     }
     styleInjected.current = true
-    return () => {
-      const el = document.getElementById(STYLE_ID)
-      if (el) el.remove()
-    }
+    return () => { const el = document.getElementById(STYLE_ID); if (el) el.remove() }
   }, [])
 
-  const totalDevices = useMemo(() => SYSTEMS.reduce((sum, s) => sum + s.devices.length, 0), [])
+  const totalDevices = useMemo(() => SYSTEMS.reduce((s, sys) => s + sys.devices.length, 0), [])
 
   const roomDevCount = useMemo(() => {
-    const counts = {}
-    SYSTEMS.forEach(sys => sys.devices.forEach(d => {
-      counts[d.room] = (counts[d.room] || 0) + 1
-    }))
-    return counts
+    const c = {}
+    SYSTEMS.forEach(sys => sys.devices.forEach(d => { c[d.room] = (c[d.room] || 0) + 1 }))
+    return c
   }, [])
 
   const orderedRooms = useMemo(() => {
-    const floorRoomKeys = FLOOR_ROOMS.map(r => r.room)
-    const allDataRooms = [...new Set(SYSTEMS.flatMap(s => s.devices.map(d => d.room)))]
-    return [
-      ...floorRoomKeys.filter(r => allDataRooms.includes(r)),
-      ...allDataRooms.filter(r => !floorRoomKeys.includes(r)),
-    ]
+    const floorKeys = FLOOR_ROOMS.map(r => r.room)
+    const allData = [...new Set(SYSTEMS.flatMap(s => s.devices.map(d => d.room)))]
+    return [...floorKeys.filter(r => allData.includes(r)), ...allData.filter(r => !floorKeys.includes(r))]
   }, [])
 
   const toggleRoom = (room) => setActiveRoom(prev => prev === room ? '' : room)
 
   return (
-    <div className="sh-wrap" dir="rtl">
-      <BaronsHeader session={session} title="בית חכם" subtitle="HOME117 Smart Home Architecture" />
+    <div className="sh" dir="rtl">
+      <BaronsHeader session={session} title="בית חכם" subtitle="HOME117 Smart Home" />
       <div className="sh-inner">
-        {/* Header */}
-        <header className="sh-header">
-          <div className="sh-logo-area">
-            <div className="sh-logo-badge">HOME117</div>
-            <div>
-              <h1 className="sh-title"><span>Smart Home</span> Architecture</h1>
-              <div className="sh-subtitle">SYSTEM MAP · v2.0 · INTERACTIVE</div>
-            </div>
-          </div>
-          <div className="sh-stats-row">
-            <div className="sh-stat"><div className="sh-stat-num">{totalDevices}</div><div className="sh-stat-label">מכשירים</div></div>
-            <div className="sh-stat"><div className="sh-stat-num">10</div><div className="sh-stat-label">מערכות</div></div>
-            <div className="sh-stat"><div className="sh-stat-num">14</div><div className="sh-stat-label">חדרים</div></div>
-            <div className="sh-stat"><div className="sh-stat-num">1G</div><div className="sh-stat-label">סיב</div></div>
-          </div>
-        </header>
-
-        {/* Network Topology */}
+        <Hero totalDevices={totalDevices} />
         <Topology />
 
         {/* Legend */}
-        <Legend />
-
-        {/* Room filter pills */}
-        <FilterBar activeRoom={activeRoom} onToggle={toggleRoom} orderedRooms={orderedRooms} />
-
-        {/* Interactive Floor Plan */}
-        <FloorPlan activeRoom={activeRoom} onToggle={toggleRoom} roomDevCount={roomDevCount} />
-
-        {/* Systems Grid */}
-        <div className="sh-grid">
-          {SYSTEMS.map((sys, i) => (
-            <SystemCard key={sys.id} sys={sys} activeRoom={activeRoom} delay={400 + i * 60} />
+        <div className="sh-legend">
+          <span className="sh-legend-label">מערכות:</span>
+          {LEGEND.map((it, i) => (
+            <div className="sh-legend-item" key={i}>
+              <div className="sh-legend-dot" style={{ background: it.color }} />
+              {it.label}
+            </div>
           ))}
         </div>
 
-        {/* Footer */}
+        <FilterBar activeRoom={activeRoom} onToggle={toggleRoom} orderedRooms={orderedRooms} />
+        <FloorPlan activeRoom={activeRoom} onToggle={toggleRoom} roomDevCount={roomDevCount} />
+
+        {/* Systems grid */}
+        <div className="sh-grid">
+          {SYSTEMS.map((sys, i) => (
+            <SystemCard key={sys.id} sys={sys} activeRoom={activeRoom} delay={350 + i * 50} />
+          ))}
+        </div>
+
         <footer className="sh-footer">
-          <div><LiveDot />HOME117 Smart Home · Architecture Map</div>
+          <div><span className="sh-footer-dot" />HOME117 Smart Home · Architecture Map</div>
           <div>Partner Fiber 1000/250 · tp-link Deco Mesh · Apple Home</div>
         </footer>
       </div>
