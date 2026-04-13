@@ -215,7 +215,16 @@ async function loadMenuConfig() {
   try {
     const {data,error} = await supabase.from('app_config').select('value').eq('key','menu_config').single()
     if (error||!data) return DEFAULT_MENU_CONFIG
-    return JSON.parse(data.value)
+    const saved = JSON.parse(data.value)
+    // Merge: add any new items from DEFAULT_MENU_CONFIG that aren't in saved config
+    const savedPaths = new Set(saved.flatMap(cat => (cat.items||[]).map(i => i.path)))
+    const newItems = DEFAULT_MENU_CONFIG.flatMap(cat => (cat.items||[]).filter(i => !savedPaths.has(i.path)))
+    if (newItems.length > 0) {
+      // Append new items to the last category (or first if only one)
+      const target = saved[saved.length - 1] || saved[0]
+      if (target) target.items = [...(target.items||[]), ...newItems]
+    }
+    return saved
   } catch { return DEFAULT_MENU_CONFIG }
 }
 async function saveMenuConfig(config) {
