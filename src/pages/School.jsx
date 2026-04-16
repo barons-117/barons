@@ -1005,7 +1005,7 @@ export default function School({ session }) {
     } else if (isParent) {
       supabase
         .from('school_progress')
-        .select('user_id, mission_id, score, completed, xp, answers, student_email')
+        .select('user_id, mission_id, score, completed, xp, answers, student_email, last_completed_at, attempts')
         .then(({ data }) => {
           const map = {}
           ;(data || []).forEach(r => {
@@ -1355,10 +1355,11 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
       completed,
       xp: earnedXP,
       attempts: newAttempts,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      last_completed_at: completed ? new Date().toISOString() : null,
     }
-    if (completed) row.last_completed_at = new Date().toISOString()
-    await supabase.from('school_progress').upsert(row, { onConflict: 'user_id,mission_id' })
+    await supabase.from('school_progress')
+      .upsert(row, { onConflict: 'user_id,mission_id', ignoreDuplicates: false })
   }
 
   // Called by interactive math questions (number_input, fill_blank, drag_match, fraction_compare)
@@ -2238,16 +2239,25 @@ Return JSON exactly:
                         const ep = (allProgress[email] || {})[m.id] || {}
                         const pct = ep.completed && totalQ > 0 ? Math.min(100, Math.round((ep.score / totalQ) * 100)) : null
                         const attempts = ep.attempts || 0
-                        const dateStr = ep.last_completed_at
-                          ? new Date(ep.last_completed_at).toLocaleDateString('he-IL', { day:'numeric', month:'short' })
-                          : null
+                        const dateStr = (() => {
+                          if (!ep.last_completed_at) return null
+                          const d = new Date(ep.last_completed_at)
+                          const now = new Date()
+                          const todayStr = now.toDateString()
+                          const yestStr = new Date(now - 86400000).toDateString()
+                          if (d.toDateString() === todayStr) return 'היום'
+                          if (d.toDateString() === yestStr) return 'אתמול'
+                          return d.toLocaleDateString('he-IL', { day:'numeric', month:'short' })
+                        })()
                         return (
                           <div key={email} style={{ textAlign:'center' }}>
                             {ep.completed ? (
                               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
                                 <Pill label={`${pct}%`} style={{ background:pct>=80?C.greenL:C.goldL, color:pct>=80?'#065f46':'#92400e' }} />
                                 {attempts > 1 && <span style={{ fontSize:10, color:C.purple, fontWeight:700 }}>🔄 {attempts}x</span>}
-                                {dateStr && <span style={{ fontSize:10, color:C.light }}>📅 {dateStr}</span>}
+                                {dateStr && <span style={{ fontSize:10, fontWeight: dateStr === 'היום' ? 800 : 600, color: dateStr === 'היום' ? C.green : dateStr === 'אתמול' ? C.gold : C.light }}>
+                                  {dateStr === 'היום' ? '✅ ' : dateStr === 'אתמול' ? '🕐 ' : '📅 '}{dateStr}
+                                </span>}
                               </div>
                             ) : (ep.answers||[]).length > 0
                                 ? <Pill label="▶" style={{ background:C.purpleL, color:'#5b21b6' }} />

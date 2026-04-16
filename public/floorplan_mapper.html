@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Floor Plan Mapper</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; font-family: Arial, sans-serif; color: #e2e8f0; }
+
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    flex-wrap: wrap;
+  }
+  #toolbar h2 { font-size: 14px; color: #94a3b8; font-weight: normal; }
+  .mode-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .mode-btn.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+  #room-name-input {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 13px;
+    width: 180px;
+  }
+  #add-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #10b981;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  #undo-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #fbbf24;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #export-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #0284c7;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: auto;
+  }
+
+  #canvas-wrap {
+    position: relative;
+    display: inline-block;
+    cursor: crosshair;
+  }
+  #canvas-wrap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  #draw-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  #hit-layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* rooms drawn */
+  .room-box {
+    position: absolute;
+    border: 2px solid rgba(99,102,241,0.9);
+    background: rgba(99,102,241,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .room-box span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    text-align: center;
+    white-space: pre-line;
+    line-height: 1.2;
+  }
+
+  /* drawing preview */
+  #preview-box {
+    position: absolute;
+    border: 2px dashed #fbbf24;
+    background: rgba(251,191,36,0.15);
+    pointer-events: none;
+    display: none;
+  }
+
+  /* dot marker */
+  .dot {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fbbf24;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  #status-bar {
+    padding: 8px 16px;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    font-size: 12px;
+    color: #64748b;
+    min-height: 36px;
+  }
+  #status-bar strong { color: #fbbf24; }
+
+  #output-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  #output-panel.show { display: flex; }
+  #output-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  #output-box h3 { margin-bottom: 12px; color: #38bdf8; }
+  #output-code {
+    font-family: monospace;
+    font-size: 12px;
+    color: #a5f3fc;
+    white-space: pre;
+    overflow-x: auto;
+    background: #0f172a;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #164e63;
+  }
+  #close-output {
+    margin-top: 12px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    background: #4f46e5;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #copy-btn {
+    margin-top: 12px;
+    margin-left: 8px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    background: #10b981;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h2>מצב:</h2>
+  <button class="mode-btn active" id="btn-draw" onclick="setMode('draw')">✏️ צייר חדר</button>
+  <input id="room-name-input" placeholder="שם החדר (למשל: Kitchen)" value="Kitchen" />
+  <button id="undo-btn" onclick="undoLast()">↩ בטל אחרון</button>
+  <button id="export-btn" onclick="showExport()">📋 ייצא קואורדינטות</button>
+</div>
+
+<div id="canvas-wrap">
+  <img src="Picture1.png" id="fp-img" alt="floor plan" />
+  <div id="hit-layer"></div>
+  <div id="preview-box"></div>
+</div>
+
+<div id="status-bar">
+  <strong>הוראות:</strong> לחץ על פינה אחת של החדר → גרור → שחרר. שם החדר נקבע בשדה למעלה.
+</div>
+
+<div id="output-panel">
+  <div id="output-box">
+    <h3>קואורדינטות — העתק ל-SmartHome.jsx</h3>
+    <div id="output-code"></div>
+    <button id="copy-btn" onclick="copyCode()">העתק</button>
+    <button id="close-output" onclick="document.getElementById('output-panel').classList.remove('show')">סגור</button>
+  </div>
+</div>
+
+<script>
+let mode = 'draw';
+let rooms = [];
+let drawing = false;
+let startX = 0, startY = 0;
+let imgW = 0, imgH = 0;
+
+const hitLayer = document.getElementById('hit-layer');
+const previewBox = document.getElementById('preview-box');
+const statusBar = document.getElementById('status-bar');
+const fpImg = document.getElementById('fp-img');
+const canvasWrap = document.getElementById('canvas-wrap');
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + m).classList.add('active');
+}
+
+function getRelPos(e) {
+  const rect = canvasWrap.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / rect.width,
+    y: (e.clientY - rect.top) / rect.height
+  };
+}
+
+hitLayer.addEventListener('mousedown', e => {
+  if (mode !== 'draw') return;
+  drawing = true;
+  const pos = getRelPos(e);
+  startX = pos.x;
+  startY = pos.y;
+  previewBox.style.display = 'block';
+  updatePreview(pos.x, pos.y);
+});
+
+hitLayer.addEventListener('mousemove', e => {
+  if (!drawing) return;
+  const pos = getRelPos(e);
+  updatePreview(pos.x, pos.y);
+  statusBar.innerHTML =
+    '<strong>מצייר...</strong> x1:' + pct(startX) + ' y1:' + pct(startY) +
+    ' → x2:' + pct(pos.x) + ' y2:' + pct(pos.y);
+});
+
+hitLayer.addEventListener('mouseup', e => {
+  if (!drawing) return;
+  drawing = false;
+  previewBox.style.display = 'none';
+  const pos = getRelPos(e);
+
+  const x = Math.min(startX, pos.x);
+  const y = Math.min(startY, pos.y);
+  const w = Math.abs(pos.x - startX);
+  const h = Math.abs(pos.y - startY);
+
+  if (w < 0.01 || h < 0.01) {
+    statusBar.innerHTML = '<strong>קטן מדי</strong> — נסה שוב';
+    return;
+  }
+
+  const name = document.getElementById('room-name-input').value.trim() || 'Room';
+  const room = { id: name, label: name, x, y, w, h };
+  rooms.push(room);
+  renderRooms();
+
+  statusBar.innerHTML =
+    '<strong>' + name + '</strong> נוסף — ' +
+    'x:' + pct(x) + ' y:' + pct(y) + ' w:' + pct(w) + ' h:' + pct(h);
+});
+
+// Touch support
+hitLayer.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  hitLayer.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+});
+hitLayer.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  hitLayer.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+});
+hitLayer.addEventListener('touchend', e => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  hitLayer.dispatchEvent(new MouseEvent('mouseup', { clientX: touch.clientX, clientY: touch.clientY }));
+});
+
+function updatePreview(curX, curY) {
+  const x = Math.min(startX, curX);
+  const y = Math.min(startY, curY);
+  const w = Math.abs(curX - startX);
+  const h = Math.abs(curY - startY);
+  previewBox.style.left   = (x * 100) + '%';
+  previewBox.style.top    = (y * 100) + '%';
+  previewBox.style.width  = (w * 100) + '%';
+  previewBox.style.height = (h * 100) + '%';
+}
+
+function renderRooms() {
+  // remove old room boxes
+  document.querySelectorAll('.room-box').forEach(el => el.remove());
+  rooms.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'room-box';
+    div.style.left   = (r.x * 100) + '%';
+    div.style.top    = (r.y * 100) + '%';
+    div.style.width  = (r.w * 100) + '%';
+    div.style.height = (r.h * 100) + '%';
+    const span = document.createElement('span');
+    span.textContent = r.label;
+    div.appendChild(span);
+    canvasWrap.appendChild(div);
+  });
+}
+
+function undoLast() {
+  if (rooms.length === 0) return;
+  rooms.pop();
+  renderRooms();
+  statusBar.innerHTML = '<strong>בוטל</strong> — אחרון הוסר';
+}
+
+function pct(v) { return (v * 100).toFixed(1) + '%'; }
+
+function showExport() {
+  let code = 'const FLOOR_ROOMS = [\n';
+  rooms.forEach(r => {
+    code += `  { room:'${r.id}', label:'${r.label}', x:${r.x.toFixed(4)}, y:${r.y.toFixed(4)}, w:${r.w.toFixed(4)}, h:${r.h.toFixed(4)} },\n`;
+  });
+  code += '];';
+  document.getElementById('output-code').textContent = code;
+  document.getElementById('output-panel').classList.add('show');
+}
+
+function copyCode() {
+  const text = document.getElementById('output-code').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copy-btn').textContent = '✓ הועתק!';
+    setTimeout(() => { document.getElementById('copy-btn').textContent = 'העתק'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
