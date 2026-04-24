@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const FONT = "'Open Sans Hebrew', 'Open Sans', Arial, sans-serif"
+
 // ─── Category background images ───────────────────────────────────────────────
 const CAT_IMGS = {
   fitness_large: '/cat_fitness_large.png',
