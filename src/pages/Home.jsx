@@ -2,7 +2,23 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-// Icons: white PNG, transparent bg, centered ─────────────────────────────────
+// ─── Category background images ───────────────────────────────────────────────
+const CAT_IMGS = {
+  fitness_large: '/cat_fitness_large.png',
+  shopping_large: '/cat_shopping_large.png',
+  vouchers_large: '/cat_vouchers_large.png',
+  realestate_small: '/cat_realestate_small.png',
+  travel_small: '/cat_travel_small.png',
+  marathon_small: '/cat_marathon_small.png',
+  recipes_small: '/cat_recipes_small.png',
+  family_tree_small: '/cat_family_tree_small.png',
+  baron_academy_small: '/cat_baron_academy_small.png',
+  smarthome_small: '/cat_smarthome_small.png',
+  dud_ali_small: '/cat_dud_ali_small.png',
+}
+
+
+// ─── Module icons (white PNG base64) ──────────────────────────────────────────
 const ICONS = {
   gym:      "data:image/png;base64,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",
   cards:    "data:image/png;base64,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",
@@ -18,91 +34,167 @@ const ICONS = {
   aliexpress: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxyZWN0IHg9IjEwIiB5PSIyMiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjM0IiByeD0iMyIgc3Ryb2tlLXdpZHRoPSIzLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz4KICAgIDxwYXRoIGQ9Ik0xMCAzNCBMNTQgMzQiIHN0cm9rZS13aWR0aD0iMyIvPgogICAgPHBhdGggZD0iTTI0IDIyIEwyNCAzNCIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgICA8cGF0aCBkPSJNNDAgMjIgTDQwIDM0IiBzdHJva2Utd2lkdGg9IjMiLz4KICAgIDxwYXRoIGQ9Ik0yMCAxNCBMMzIgOCBMNDQgMTQgTDQ0IDIyIEwyMCAyMiBaIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz4KICAgIDx0ZXh0IHg9IjMyIiB5PSI0OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1zaXplPSIxMSIgZmlsbD0id2hpdGUiIHN0cm9rZT0ibm9uZSI+QUU8L3RleHQ+CiAgPC9nPgo8L3N2Zz4=",
 }
 
-const LOGO = "/logo-circle.png"
-
 const ROUTE_ICON = {
   '/travels':'travels', '/recipes':'recipes', '/gym':'gym',
   '/vouchers':'vouchers', '/cards':'cards', '/assets':'assets',
-  '/family':'family', '/shopping':'shopping', '/marathon':'marathon', '/school':'school',
-  '/smarthome':'smarthome', '/aliexpress':'aliexpress',
+  '/family':'family', '/shopping':'shopping', '/marathon':'marathon',
+  '/school':'school', '/smarthome':'smarthome', '/aliexpress':'aliexpress',
 }
 
 const SUPER_ADMIN = 'erez@barons.co.il'
 const ALL_USERS   = ['erez@barons.co.il','roy@barons.co.il','user@barons.co.il','daphna@barons.co.il','danielle@barons.co.il']
-const PALETTE     = ['#e91e8c','#4355c9','#00bcd4','#f97316','#ef4444','#7c3aed','#8b5cf6','#1d4ed8','#16a34a','#0d9488','#eab308','#be123c']
 
 const DEFAULT_MENU_CONFIG = [
   { category:'שימושי', items:[
-    { label:'קניות',   sub:'רשימת קניות משפחתית', path:'/shopping', color:'#e91e8c', users:[...ALL_USERS] },
-    { label:'כושר',    sub:'מעקב אימונים',          path:'/gym',      color:'#4355c9', users:['erez@barons.co.il'] },
-    { label:'שוברים',  sub:'ניהול שוברים',           path:'/vouchers', color:'#f97316', users:['erez@barons.co.il','roy@barons.co.il'] },
+    { label:'קניות',   sub:'מעקב קניות ומשלמתית', path:'/shopping',  img:'shopping_large',  users:[...ALL_USERS] },
+    { label:'כושר',    sub:'מעקב אימונים',          path:'/gym',       img:'fitness_large',   users:['erez@barons.co.il'] },
+    { label:'שוברים',  sub:'ניהול שוברים',           path:'/vouchers',  img:'vouchers_large',  users:['erez@barons.co.il','roy@barons.co.il'] },
   ]},
   { category:'תפעול', items:[
-    { label:'נכסים',    sub:'ניהול נכסים ופרויקטים', path:'/assets',   color:'#7c3aed', users:['erez@barons.co.il','roy@barons.co.il'] },
-    { label:'נסיעות',   sub:'יומן הטיולים שלי',       path:'/travels',  color:'#1d4ed8', users:['erez@barons.co.il'] },
-    { label:'מרתון',    sub:'אימוני ריצה',             path:'/marathon', color:'#ef4444', users:['erez@barons.co.il','roy@barons.co.il'] },
-    { label:'מתכונים',  sub:'ספר המתכונים המשפחתי',   path:'/recipes',  color:'#16a34a', users:[...ALL_USERS] },
-    { label:'עץ משפחה', sub:'שושלת ברון לדורותיה',   path:'/family',   color:'#0d9488', users:[...ALL_USERS] },
-    { label:'School',    sub:'לימודים — דניאל ודפנה',  path:'/school',   color:'#8b5cf6', users:['erez@barons.co.il','roy@barons.co.il','danielle@barons.co.il','daphna@barons.co.il'] },
-    { label:'בית חכם',   sub:'שליטה בתאורת הבית',      path:'/smarthome', color:'#f5a623', users:['erez@barons.co.il','roy@barons.co.il'] },
+    { label:'נכסים',     sub:'ניהול נכסים ופרויקטים', path:'/assets',    img:'realestate_small',    users:['erez@barons.co.il','roy@barons.co.il'] },
+    { label:'נסיעות',    sub:'יומן הטיולים שלי',       path:'/travels',   img:'travel_small',        users:['erez@barons.co.il'] },
+    { label:'מרתון',     sub:'אימוני ריצה',             path:'/marathon',  img:'marathon_small',      users:['erez@barons.co.il','roy@barons.co.il'] },
+    { label:'מתכונים',   sub:'ספר המתכונים המשפחתי',   path:'/recipes',   img:'recipes_small',       users:[...ALL_USERS] },
+    { label:'עץ משפחה',  sub:'שושלת ברון לדורותיה',   path:'/family',    img:'family_tree_small',   users:[...ALL_USERS] },
+    { label:'School',     sub:'לימודים — דניאל ודפנה',  path:'/school',    img:'baron_academy_small', users:['erez@barons.co.il','roy@barons.co.il','danielle@barons.co.il','daphna@barons.co.il'] },
+    { label:'בית חכם',   sub:'שליטה בתאורת הבית',      path:'/smarthome', img:'smarthome_small',     users:['erez@barons.co.il','roy@barons.co.il'] },
+    { label:'דוד עלי',   sub:'קניות זה החיים',          path:'/aliexpress',img:'dud_ali_small',       users:['erez@barons.co.il'] },
   ]},
 ]
 
-const FONT = "'Open Sans Hebrew', sans-serif"
-const HANDWRITING = "'Gveret Levin AlefAlefAlef', cursive"
+// ─── Shimmer animation ────────────────────────────────────────────────────────
+const SHIMMER_STYLE = `
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
 
-function getUserName(e) {
-  if (e?.includes('erez')) return 'ארז'
-  if (e?.includes('roy'))  return 'רועי'
-  if (e?.startsWith('user@')) return 'אורח'
-  return e?.split('@')[0]
-}
-
-// ── Skeleton Loader ──────────────────────────────────────────────────────────
-function SkeletonLoader() {
-  const shimmer = {
-    background:'linear-gradient(90deg,#1e293b 25%,#334155 50%,#1e293b 75%)',
-    backgroundSize:'200% 100%',
-    animation:'home-shimmer 1.2s linear infinite',
+  @keyframes barons-shimmer {
+    0%   { transform: translateX(-120%); }
+    45%, 100% { transform: translateX(120%); }
   }
-  return (
-    <div style={{minHeight:'100dvh',background:'#0f172a',direction:'rtl',fontFamily:FONT,animation:'home-fade 0.3s var(--home-ease-out) both'}}>
-      <HomeStyles />
-      {/* Header skeleton */}
-      <div style={{padding:'32px 24px 36px',display:'flex',alignItems:'center',gap:16}}>
-        <div style={{...shimmer,width:74,height:74,borderRadius:'50%'}}/>
-        <div style={{flex:1}}>
-          <div style={{...shimmer,width:140,height:11,borderRadius:6,marginBottom:10,animationDelay:'0.08s'}}/>
-          <div style={{...shimmer,width:110,height:22,borderRadius:8,animationDelay:'0.14s'}}/>
-        </div>
-        <div style={{...shimmer,width:56,height:24,borderRadius:10,animationDelay:'0.2s'}}/>
-      </div>
-      {/* Divider */}
-      <div style={{height:1,margin:'0 24px 24px',background:'linear-gradient(to left, transparent, rgba(148,163,184,0.12) 30%, rgba(148,163,184,0.12) 70%, transparent)'}}/>
-      {/* Card skeletons */}
-      <div style={{padding:'0 20px'}}>
-        <div style={{...shimmer,width:90,height:10,borderRadius:4,marginBottom:14,animationDelay:'0.24s'}}/>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-          {[0,1,2,3].map(i=>(
-            <div key={i} style={{...shimmer,height:82,borderRadius:18,border:'1px solid rgba(255,255,255,0.06)',animationDelay:`${0.3+i*0.08}s`}}/>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+  @keyframes barons-float {
+    0%,100% { transform: translateY(0px) rotate(-3deg); }
+    50%     { transform: translateY(-8px) rotate(-3deg); }
+  }
+  @keyframes barons-fade-in {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
 
-// ── Envelope Icon (SVG) ──────────────────────────────────────────────────────
-function EnvelopeIcon() {
-  return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{margin:'0 auto 12px',display:'block'}}>
-      <rect x="2" y="4" width="20" height="16" rx="3" stroke="#3b82f6" strokeWidth="1.5" fill="none"/>
-      <path d="M2 7l10 7 10-7" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    </svg>
-  )
-}
+  .barons-card-wrap {
+    animation: barons-float 4s ease-in-out infinite;
+  }
+  .barons-banner-shimmer {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+  .barons-banner-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+      110deg,
+      transparent 25%,
+      rgba(255,255,255,0.18) 45%,
+      rgba(255,215,100,0.12) 50%,
+      rgba(255,255,255,0.18) 55%,
+      transparent 75%
+    );
+    animation: barons-shimmer 3.5s ease-in-out infinite;
+    border-radius: 16px;
+    pointer-events: none;
+  }
+  .barons-card-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.22) 48%, transparent 65%);
+    animation: barons-shimmer 2.8s ease-in-out infinite;
+    border-radius: 18px;
+  }
+  .barons-cat-card {
+    transition: transform 220ms cubic-bezier(0.23,1,0.32,1), box-shadow 220ms cubic-bezier(0.23,1,0.32,1);
+    cursor: pointer;
+  }
+  .barons-cat-card:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 0 14px 34px rgba(24,18,10,0.18) !important;
+  }
+  .barons-op-card {
+    transition: transform 180ms cubic-bezier(0.23,1,0.32,1), box-shadow 180ms cubic-bezier(0.23,1,0.32,1);
+    cursor: pointer;
+  }
+  .barons-op-card:hover {
+    transform: translateY(-3px) scale(1.012);
+    box-shadow: 0 10px 28px rgba(24,18,10,0.16) !important;
+  }
+  .barons-btn-anim {
+    transition: transform 160ms cubic-bezier(0.23,1,0.32,1);
+    cursor: pointer;
+  }
+  .barons-btn-anim:hover { transform: scale(1.08); }
+  .barons-btn-anim:active { transform: scale(0.95); }
 
-// ── Admin Editor ──────────────────────────────────────────────────────────────
+  .barons-section { animation: barons-fade-in 0.6s cubic-bezier(0.23,1,0.32,1) both; }
+  .barons-section:nth-child(2) { animation-delay: 0.1s; }
+  .barons-section:nth-child(3) { animation-delay: 0.2s; }
+  /* ── Editor modal ─────────────────────────────────────────────────────── */
+  .home-modal {
+    display:flex; flex-direction:column;
+    max-height:90vh; overflow:hidden;
+    box-shadow:0 24px 64px rgba(0,0,0,0.18);
+  }
+  @keyframes home-modal-in {
+    from { opacity:0; transform:scale(0.96) translateY(8px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .home-modal { animation: home-modal-in 0.22s cubic-bezier(0.23,1,0.32,1) both; }
+
+  .home-press {
+    transition: transform 0.16s cubic-bezier(0.23,1,0.32,1),
+                background-color 0.16s, color 0.16s, border-color 0.16s;
+  }
+  .home-press:active { transform: scale(0.97); }
+
+  .home-icon-btn {
+    width:32px; height:32px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .home-icon-btn:hover { background:#f1f5f9 !important; }
+
+  .home-row { border-radius:10px; transition:background 0.12s; }
+  .home-row:hover { background:#f8fafc; }
+
+  .home-mini-input {
+    font-family:'Heebo','Open Sans Hebrew',sans-serif;
+    direction:rtl; outline:none;
+  }
+  .home-mini-input:focus { border-color:#3b82f6 !important; }
+
+  .home-swatch {
+    cursor:pointer; border-radius:4px;
+    border:2px solid transparent;
+    transition:transform 0.12s, border-color 0.12s;
+  }
+  .home-swatch:hover { transform:scale(1.15); border-color:#94a3b8; }
+
+  .home-add-btn { cursor:pointer; border-radius:10px; }
+  .home-add-btn:hover { background:#f1f5f9 !important; }
+
+  .home-primary-btn {
+    color:white; border:none; border-radius:10px;
+    font-family:'Heebo',sans-serif; font-weight:600; cursor:pointer;
+  }
+  .home-primary-btn:hover { opacity:0.9; }
+
+  @media(max-width:600px) {
+    .home-modal { max-height:95vh; margin:4px !important; }
+  }
+
+`
+
 function MenuEditor({ menuConfig, onSave, onClose }) {
   const [config, setConfig]     = useState(JSON.parse(JSON.stringify(menuConfig)))
   const [saving, setSaving]     = useState(false)
@@ -125,8 +217,8 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
   }
 
   return (
-    <div style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.55)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16,animation:'home-backdrop 0.28s var(--home-ease-out) both'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="home-modal" style={{background:'#ffffff',borderRadius:20,width:'100%',maxWidth:560,maxHeight:'85vh',display:'flex',flexDirection:'column',overflow:'hidden',direction:'rtl',boxShadow:'0 32px 96px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1)',fontFamily:FONT,animation:'home-modal-in 0.28s var(--home-ease-drawer) both',willChange:'transform,opacity'}} onClick={()=>setPicker(null)}>
+    <div style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.55)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'0',zIndex:9999,WebkitBackdropFilter:'blur(16px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16,animation:'home-backdrop 0.28s var(--home-ease-out) both'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="home-modal" style={{background:'#ffffff',borderRadius:20,width:'100%',maxWidth:560,margin:'8px',maxHeight:'85vh',display:'flex',flexDirection:'column',overflow:'hidden',direction:'rtl',boxShadow:'0 32px 96px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1)',fontFamily:FONT,animation:'home-modal-in 0.28s var(--home-ease-drawer) both',willChange:'transform,opacity'}} onClick={()=>setPicker(null)}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 24px',borderBottom:'1px solid #f1f5f9',background:'#f8fafc'}}>
           <span style={{color:'#0f172a',fontWeight:700,fontSize:15,letterSpacing:'-0.01em'}}>עריכת תפריט</span>
           <button className="home-press home-icon-btn" style={{background:'none',border:'none',color:'#94a3b8',fontSize:18,cursor:'pointer',width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',transition:'background-color 0.15s var(--home-ease-out), color 0.15s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}} onClick={onClose}>✕</button>
@@ -208,14 +300,23 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
           <button className="home-press" style={{background:'#f1f5f9',border:'1px solid #e2e8f0',color:'#64748b',padding:'9px 16px',borderRadius:10,fontSize:12,cursor:'pointer',fontFamily:FONT,transition:'background-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}} onClick={onClose}>ביטול</button>
         </div>
       </div>
+      {showEditor && menuConfig && (
+        <MenuEditor
+          menuConfig={menuConfig}
+          onSave={async c => { await saveMenuConfig(c); setMenuConfig(c); setShowEditor(false) }}
+          onClose={() => setShowEditor(false)}
+        />
+      )}
     </div>
   )
 }
 
+
 async function loadMenuConfig() {
   try {
-    const {data,error} = await supabase.from('app_config').select('value').eq('key','menu_config').single()
-    if (error||!data) return DEFAULT_MENU_CONFIG
+    const {data,error} = await supabase.from('app_config').select('value').eq('key','menu_config').maybeSingle()
+    if (!data) return DEFAULT_MENU_CONFIG
+    if (error) return DEFAULT_MENU_CONFIG
     const saved = JSON.parse(data.value)
     // Merge: add any new items from DEFAULT_MENU_CONFIG that aren't in saved config
     const savedPaths = new Set(saved.flatMap(cat => (cat.items||[]).map(i => i.path)))
@@ -233,398 +334,356 @@ async function saveMenuConfig(config) {
   catch(e) { console.error(e) }
 }
 
-// ── Home ──────────────────────────────────────────────────────────────────────
-export default function Home({ session }) {
-  const [email,setEmail]               = useState(()=>localStorage.getItem('barons_email')||'')
-  const [password,setPassword]         = useState('')
-  const [remember,setRemember]         = useState(true)
-  const [error,setError]               = useState('')
-  const [loading,setLoading]           = useState(false)
-  const [menuConfig,setMenuConfig]     = useState(null)
-  const [showEditor,setShowEditor]     = useState(false)
-  const [resetMode,setResetMode]       = useState(false)
-  const [resetEmail,setResetEmail]     = useState('')
-  const [resetSent,setResetSent]       = useState(false)
-  const [resetLoading,setResetLoading] = useState(false)
-  const navigate = useNavigate()
 
-  useEffect(()=>{ if(session) loadMenuConfig().then(setMenuConfig) },[session])
+export default function Home() {
+  const navigate = useNavigate()
+  const [session, setSession]   = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [menuConfig, setMenuConfig] = useState(DEFAULT_MENU_CONFIG)
+  const [showEditor, setShowEditor] = useState(false)
+  const [email_input, setEmailInput] = useState(() => localStorage.getItem('barons_email') || '')
+  const [password, setPassword]     = useState('')
+  const [remember, setRemember]     = useState(true)
+  const [loginError, setLoginError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+  const [resetMode, setResetMode]   = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent]   = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+    loadMenuConfig().then(cfg => setMenuConfig(cfg))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    return () => subscription.unsubscribe()
+  }, [])
+
 
   async function handleLogin(e) {
-    e.preventDefault(); setLoading(true); setError('')
-    const {error} = await supabase.auth.signInWithPassword({email,password})
-    if(error) {setError('אימייל או סיסמה שגויים');setLoading(false)}
-    else { if(remember) localStorage.setItem('barons_email',email); else localStorage.removeItem('barons_email') }
+    e.preventDefault()
+    setLoginLoading(true); setLoginError('')
+    const { error } = await supabase.auth.signInWithPassword({ email: email_input, password })
+    if (error) { setLoginError('אימייל או סיסמה שגויים'); setLoginLoading(false) }
+    else { if (remember) localStorage.setItem('barons_email', email_input); else localStorage.removeItem('barons_email') }
   }
 
   async function handleReset(e) {
     e.preventDefault(); setResetLoading(true)
-    const {error} = await supabase.auth.resetPasswordForEmail(resetEmail,{redirectTo:window.location.origin+window.location.pathname})
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, { redirectTo: window.location.origin })
     setResetLoading(false)
-    if(error) setError('שגיאה בשליחת המייל'); else setResetSent(true)
+    if (error) setLoginError('שגיאה בשליחת המייל'); else setResetSent(true)
   }
 
-  // ── Dashboard (logged in) ────────────────────────────────────────────────
-  if(session) {
-    const email = session.user.email
-    const isAdmin = email===SUPER_ADMIN
-    const name = getUserName(email)
-    if(!menuConfig) return <SkeletonLoader />
-    const menu = menuConfig
-      .map(s=>({...s,items:s.items.filter(i=>i.users.includes(email))}))
-      .filter(s=>s.items.length>0)
+  const email     = session?.user?.email || ''
+  const NAME_MAP = {
+    'erez': 'ארז', 'roy': 'רועי', 'danielle': 'דניאל',
+    'daphna': 'דפנה', 'user': 'אורח'
+  }
+  const emailPrefix = email.split('@')[0]
+  const firstName = NAME_MAP[emailPrefix] || emailPrefix
+  const isSuperAdmin = email === SUPER_ADMIN
 
-    return (
-      <div style={{minHeight:'100dvh',background:'#0f172a',display:'flex',alignItems:'flex-start',justifyContent:'center',direction:'rtl',fontFamily:FONT,position:'relative',overflow:'hidden'}}>
-        <HomeStyles />
+  const visibleConfig = menuConfig.map(cat => ({
+    ...cat,
+    items: cat.items.filter(item => item.users.includes(email))
+  })).filter(cat => cat.items.length > 0)
 
-        {/* Mesh gradient background */}
-        <div style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none',overflow:'hidden'}}>
-          {/* Base gradient */}
-          <div style={{position:'absolute',inset:0,background:'linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'}}/>
-          {/* Floating blobs — very slow, custom easing */}
-          <div className="home-blob" style={{position:'absolute',top:'-10%',right:'-15%',width:'50vw',height:'50vw',maxWidth:460,maxHeight:460,borderRadius:'50%',background:'radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 70%)',animation:'home-blob-a 28s var(--home-ease-in-out) infinite',filter:'blur(44px)'}}/>
-          <div className="home-blob" style={{position:'absolute',bottom:'8%',left:'-12%',width:'45vw',height:'45vw',maxWidth:380,maxHeight:380,borderRadius:'50%',background:'radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%)',animation:'home-blob-b 34s var(--home-ease-in-out) infinite',filter:'blur(52px)'}}/>
-          <div className="home-blob" style={{position:'absolute',top:'40%',left:'30%',width:'30vw',height:'30vw',maxWidth:260,maxHeight:260,borderRadius:'50%',background:'radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)',animation:'home-blob-c 30s var(--home-ease-in-out) infinite',filter:'blur(60px)'}}/>
-          {/* Subtle noise texture overlay */}
-          <div style={{position:'absolute',inset:0,opacity:0.018,backgroundImage:'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',backgroundSize:'128px 128px',mixBlendMode:'overlay'}}/>
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
+      minHeight:'100vh', background:'#0f172a', fontFamily:"'Heebo',sans-serif" }}>
+      <div style={{ color:'#C6A96A', fontSize:14 }}>טוען...</div>
+    </div>
+  )
+
+  // ── Login screen ──────────────────────────────────────────────────────────
+  if (!session) return (
+    <div dir="rtl" style={{ minHeight:'100vh', background:'#0f172a',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      fontFamily:"'Heebo','Open Sans Hebrew',sans-serif" }}>
+      <style>{SHIMMER_STYLE}</style>
+      <div style={{ width:'100%', maxWidth:400, padding:'32px 24px', boxSizing:'border-box' }}>
+        <div style={{ textAlign:'center', marginBottom:32 }}>
+          <img src="/logo-circle.png" alt="BARONS" style={{ width:80, height:80, borderRadius:'50%' }} />
+          <div style={{ color:'#C6A96A', fontSize:11, fontWeight:700, letterSpacing:'3px',
+            textTransform:'uppercase', marginTop:12 }}>BARONS</div>
         </div>
-
-        <div style={{width:'100%',maxWidth:520,padding:'0 0 48px',boxSizing:'border-box',position:'relative',zIndex:1}}>
-
-          {/* ── Header ────────────────────────────────────────────────── */}
-          <div style={{position:'relative',zIndex:1,padding:'32px 24px 36px',display:'flex',alignItems:'center',gap:16}}>
-            {/* Logo */}
-            <div style={{position:'relative',flexShrink:0,animation:'home-logo-in 0.6s var(--home-ease-out) both'}}>
-              <svg width="82" height="82" viewBox="0 0 82 82" style={{position:'absolute',top:-4,left:-4}}>
-                <defs>
-                  <linearGradient id="goldRing" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24"/>
-                    <stop offset="100%" stopColor="#d97706"/>
-                  </linearGradient>
-                  <linearGradient id="goldShimmer" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#fef3c7" stopOpacity="0"/>
-                    <stop offset="50%" stopColor="#fef3c7" stopOpacity="0.9"/>
-                    <stop offset="100%" stopColor="#fef3c7" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-                <circle cx="41" cy="41" r="39" fill="none" stroke="url(#goldRing)" strokeWidth="2" opacity="0.7" style={{animation:'home-ring-pulse 4.5s var(--home-ease-in-out) infinite'}}/>
-                <circle cx="41" cy="41" r="35" fill="none" stroke="url(#goldRing)" strokeWidth="0.6" opacity="0.25"/>
-                <circle cx="41" cy="41" r="39" fill="none" stroke="url(#goldShimmer)" strokeWidth="1.8" strokeDasharray="40 205" style={{animation:'home-ring-shimmer 6s linear infinite',transformOrigin:'41px 41px'}}/>
-              </svg>
-              <div className="home-logo-float" style={{width:74,height:74,borderRadius:'50%',overflow:'hidden',border:'2px solid rgba(255,255,255,0.1)',boxShadow:'0 4px 20px rgba(0,0,0,0.3)',animation:'home-float 5s var(--home-ease-in-out) infinite',willChange:'transform'}}>
-                <img src={LOGO} alt="BARONS" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-              </div>
+        {!resetMode ? (
+          <form onSubmit={handleLogin} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div>
+              <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#94a3b8',
+                marginBottom:6, textAlign:'right' }}>אימייל</label>
+              <input type="email" value={email_input}
+                onChange={e => setEmailInput(e.target.value)}
+                placeholder="name@example.com"
+                required
+                style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)',
+                  background:'rgba(255,255,255,0.06)', color:'white', fontSize:14,
+                  fontFamily:"'Heebo',sans-serif", outline:'none', boxSizing:'border-box',
+                  direction:'ltr', textAlign:'left' }} />
             </div>
-            {/* Text */}
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontFamily:HANDWRITING,fontSize:13,color:'rgba(148,163,184,0.7)',marginBottom:6,letterSpacing:0.5,animation:'home-fade 0.6s 0.28s var(--home-ease-out) both',opacity:0}}>לנהל משפחה זה חתיכת עסק</div>
-              <div style={{fontSize:24,fontWeight:700,color:'#f1f5f9',lineHeight:1.15,letterSpacing:'-0.015em',animation:'home-fade-up 0.55s 0.08s var(--home-ease-out) both',opacity:0}}>שלום, {name}</div>
+            <div>
+              <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#94a3b8',
+                marginBottom:6, textAlign:'right' }}>סיסמה</label>
+              <input type="password" value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)',
+                  background:'rgba(255,255,255,0.06)', color:'white', fontSize:14,
+                  fontFamily:"'Heebo',sans-serif", outline:'none', boxSizing:'border-box',
+                  direction:'ltr', textAlign:'left' }} />
             </div>
-            <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0,alignItems:'flex-start'}}>
-              {isAdmin&&<button className="home-press home-ghost-btn" onClick={()=>setShowEditor(true)} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'#94a3b8',fontSize:11,cursor:'pointer',fontFamily:FONT,borderRadius:10,padding:'5px 12px',whiteSpace:'nowrap',transition:'background-color 0.22s var(--home-ease-out), color 0.22s var(--home-ease-out), border-color 0.22s var(--home-ease-out), transform 0.16s var(--home-ease-out)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',animation:'home-fade-up 0.5s 0.35s var(--home-ease-out) both',opacity:0}}>ערוך</button>}
-              <button className="home-press home-ghost-btn" onClick={()=>supabase.auth.signOut()} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'#94a3b8',fontSize:11,cursor:'pointer',fontFamily:FONT,borderRadius:10,padding:'5px 12px',whiteSpace:'nowrap',transition:'background-color 0.22s var(--home-ease-out), color 0.22s var(--home-ease-out), border-color 0.22s var(--home-ease-out), transform 0.16s var(--home-ease-out)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',animation:'home-fade-up 0.5s 0.42s var(--home-ease-out) both',opacity:0}}>התנתק</button>
-            </div>
+            {loginError && <div style={{ color:'#f87171', fontSize:13, textAlign:'center' }}>{loginError}</div>}
+            <button type="submit" disabled={loginLoading}
+              style={{ padding:'13px', borderRadius:10, border:'none',
+                background:'linear-gradient(135deg,#F5D88B,#B8872D)',
+                color:'#1a0a00', fontSize:15, fontWeight:700,
+                fontFamily:"'Heebo',sans-serif", cursor:'pointer',
+                opacity: loginLoading ? 0.7 : 1 }}>
+              {loginLoading ? 'מתחבר...' : 'התחבר'}
+            </button>
+            <button type="button" onClick={() => setResetMode(true)}
+              style={{ background:'none', border:'none', color:'#94a3b8',
+                fontSize:12, cursor:'pointer', fontFamily:"'Heebo',sans-serif" }}>
+              שכחת סיסמה?
+            </button>
+          </form>
+        ) : resetSent ? (
+          <div style={{ textAlign:'center', color:'#86efac', fontSize:14 }}>
+            נשלח מייל לאיפוס סיסמה ✓
+            <button onClick={() => { setResetMode(false); setResetSent(false) }}
+              style={{ display:'block', margin:'16px auto 0', background:'none', border:'none',
+                color:'#94a3b8', fontSize:12, cursor:'pointer' }}>חזרה</button>
           </div>
-
-          {/* Subtle separator */}
-          <div style={{height:1,margin:'0 24px 24px',background:'linear-gradient(to left, transparent, rgba(148,163,184,0.15) 30%, rgba(148,163,184,0.15) 70%, transparent)',animation:'home-fade 0.7s 0.4s var(--home-ease-out) both',opacity:0}}/>
-
-          {/* ── Menu sections ─────────────────────────────────────────── */}
-          {menu.map((section,si)=>{
-            const sectionDelay = 0.18 + si * 0.14
-            let flatIdx = 0
-            for (let k = 0; k < si; k++) flatIdx += menu[k].items.length
-            return (
-              <div key={section.category} style={{marginBottom:32,padding:'0 20px'}}>
-                {/* Category label with extending lines */}
-                <div className="home-section-label" style={{fontSize:10,fontWeight:700,color:'#64748b',letterSpacing:'3px',textTransform:'uppercase',marginBottom:14,fontFamily:FONT,display:'flex',alignItems:'center',gap:12,paddingRight:4,animation:`home-fade-up 0.5s ${sectionDelay}s var(--home-ease-out) both, home-label-pulse 5s ${sectionDelay+0.6}s var(--home-ease-in-out) infinite`,opacity:0}}>
-                  <span style={{display:'inline-block',width:20,height:1,background:'linear-gradient(to left,#475569,transparent)',flexShrink:0,transformOrigin:'right',animation:`home-line-in 0.55s ${sectionDelay+0.08}s var(--home-ease-out) both`}}/>
-                  <span style={{display:'inline-block'}}>{section.category}</span>
-                  <span style={{flex:1,height:1,background:'linear-gradient(to right,#475569 0%,transparent 60%)',transformOrigin:'left',animation:`home-line-in 0.55s ${sectionDelay+0.08}s var(--home-ease-out) both`}}/>
-                </div>
-
-                {/* Tiles grid */}
-                <div style={{display:'grid',gridTemplateColumns: section.items.length === 1 ? '1fr' : '1fr 1fr',gap:12}}>
-                  {section.items.map((item,ii)=>{
-                    const isLast = section.items.length%2===1 && ii===section.items.length-1
-                    const ikey = ROUTE_ICON[item.path]
-                    const tileColor = item.color || '#4355c9'
-                    const itemDelay = sectionDelay + 0.12 + (flatIdx + ii) * 0.06
-                    return (
-                      <button key={item.path} className="home-tile"
-                        style={{
-                          '--tile-color': tileColor,
-                          background:`linear-gradient(135deg, ${tileColor}22 0%, ${tileColor}0d 100%)`,
-                          borderColor:`${tileColor}33`,
-                          gridColumn:isLast?'1 / -1':undefined,
-                          maxWidth:isLast?'calc(50% - 6px)':undefined,
-                          animation:`home-tile-in 0.5s ${itemDelay}s var(--home-ease-out) both`,
-                          opacity:0,
-                        }}
-                        onClick={()=>navigate(item.path)}>
-                        {/* Accent bar with traveling shimmer */}
-                        <div className="home-tile-accent" style={{position:'absolute',top:0,right:0,width:3,height:'60%',borderRadius:'0 0 4px 4px',background:`linear-gradient(to bottom, ${tileColor}, transparent)`,opacity:0.65,overflow:'hidden'}}>
-                          <div className="home-tile-shimmer" style={{position:'absolute',inset:0,background:'linear-gradient(to bottom, transparent, rgba(255,255,255,0.6), transparent)',transform:'translateY(-100%)'}}/>
-                        </div>
-                        <div style={{textAlign:'right',flex:1,minWidth:0,position:'relative',zIndex:1}}>
-                          <div style={{fontSize:'clamp(14px,3.8vw,17px)',fontWeight:700,color:'#f1f5f9',lineHeight:1.25,letterSpacing:'-0.01em'}}>{item.label}</div>
-                          <div className="home-tile-sub" style={{fontSize:'clamp(10px,2.5vw,11px)',color:'#94a3b8',marginTop:3,lineHeight:1.35,animation:`home-fade 0.5s ${itemDelay+0.12}s var(--home-ease-out) both`,opacity:0}}>{item.sub}</div>
-                        </div>
-                        <div className="home-tile-icon" style={{width:'clamp(28px,6vw,44px)',height:'clamp(28px,6vw,44px)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,background:`${tileColor}22`,borderRadius:12,padding:4,transition:'transform 0.35s var(--home-ease-out)'}}>
-                          {ikey&&ICONS[ikey]&&<img src={ICONS[ikey]} alt={item.label} style={{width:'clamp(20px,4.5vw,32px)',height:'clamp(20px,4.5vw,32px)',objectFit:'contain',opacity:0.88}} />}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-
-        </div>
-        {showEditor&&menuConfig&&<MenuEditor menuConfig={menuConfig} onSave={async c=>{await saveMenuConfig(c);setMenuConfig(c);setShowEditor(false)}} onClose={()=>setShowEditor(false)} />}
+        ) : (
+          <form onSubmit={handleReset} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ color:'#94a3b8', fontSize:13, textAlign:'center', lineHeight:1.6 }}>
+              הכנס את כתובת המייל שלך ונשלח לך קישור לאיפוס הסיסמה
+            </div>
+            <input type="email" value={resetEmail}
+              onChange={e => setResetEmail(e.target.value)}
+              placeholder="name@example.com"
+              required
+              style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)',
+                background:'rgba(255,255,255,0.06)', color:'white', fontSize:14,
+                fontFamily:"'Heebo',sans-serif", outline:'none', boxSizing:'border-box',
+                direction:'ltr', textAlign:'left' }} />
+            {loginError && <div style={{ color:'#f87171', fontSize:13, textAlign:'center' }}>{loginError}</div>}
+            <button type="submit" disabled={resetLoading}
+              style={{ padding:'13px', borderRadius:10, border:'none',
+                background:'linear-gradient(135deg,#F5D88B,#B8872D)',
+                color:'#1a0a00', fontSize:15, fontWeight:700,
+                fontFamily:"'Heebo',sans-serif", cursor:'pointer' }}>
+              {resetLoading ? 'שולח...' : 'שלח קישור'}
+            </button>
+            <button type="button" onClick={() => setResetMode(false)}
+              style={{ background:'none', border:'none', color:'#94a3b8',
+                fontSize:12, cursor:'pointer', fontFamily:"'Heebo',sans-serif" }}>
+              חזרה
+            </button>
+          </form>
+        )}
       </div>
-    )
-  }
+    </div>
+  )
 
-  // ── Login screen (not logged in) ───────────────────────────────────────────
-  const fieldDelay = (i) => ({animation:`home-fade-up 0.5s ${0.28 + i*0.06}s var(--home-ease-out) both`,opacity:0})
+
+
+
   return (
-    <div style={{minHeight:'100dvh',background:'#0f172a',display:'flex',direction:'rtl',fontFamily:FONT,position:'relative',overflow:'hidden'}}>
-      <HomeStyles />
+    <div dir="rtl" style={{ minHeight:'100vh', background:'#FAF8F4',
+      fontFamily:"'Heebo','Open Sans Hebrew','Open Sans',sans-serif", overflowX:'hidden' }}>
+      <style>{SHIMMER_STYLE}</style>
 
-      {/* Background elements */}
-      <div style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none',overflow:'hidden'}}>
-        <div style={{position:'absolute',inset:0,background:'linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'}}/>
-        <div className="home-blob" style={{position:'absolute',top:'-10%',right:'-15%',width:'50vw',height:'50vw',maxWidth:520,maxHeight:520,borderRadius:'50%',background:'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)',animation:'home-blob-a 28s var(--home-ease-in-out) infinite',filter:'blur(60px)'}}/>
-        <div className="home-blob" style={{position:'absolute',bottom:'5%',left:'-10%',width:'45vw',height:'45vw',maxWidth:420,maxHeight:420,borderRadius:'50%',background:'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)',animation:'home-blob-b 34s var(--home-ease-in-out) infinite',filter:'blur(52px)'}}/>
-        <div style={{position:'absolute',inset:0,opacity:0.02,backgroundImage:'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',backgroundSize:'128px 128px',mixBlendMode:'overlay'}}/>
-      </div>
+      {/* ── HERO ── */}
+      <div style={{ background:'#FAF8F4', padding:'20px 24px 0', maxWidth:900, margin:'0 auto' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, alignItems:'center' }}>
 
-      {/* Split layout */}
-      <div className="login-layout" style={{display:'flex',width:'100%',minHeight:'100dvh',position:'relative',zIndex:1}}>
-
-        {/* Right side: Brand area */}
-        <div className="login-brand" style={{width:'45%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'48px 32px',position:'relative'}}>
-          <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg, rgba(59,130,246,0.04) 0%, transparent 100%)',pointerEvents:'none'}}/>
-          <div style={{position:'relative',animation:'home-logo-in 0.7s var(--home-ease-out) both'}}>
-            <div style={{position:'relative',width:120,height:120,margin:'0 auto 28px'}}>
-              <svg width="132" height="132" viewBox="0 0 132 132" style={{position:'absolute',top:-6,left:-6}}>
-                <defs>
-                  <linearGradient id="goldRingLogin" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24"/>
-                    <stop offset="100%" stopColor="#d97706"/>
-                  </linearGradient>
-                  <linearGradient id="goldShimmerLogin" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#fef3c7" stopOpacity="0"/>
-                    <stop offset="50%" stopColor="#fef3c7" stopOpacity="0.7"/>
-                    <stop offset="100%" stopColor="#fef3c7" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-                <circle cx="66" cy="66" r="63" fill="none" stroke="url(#goldRingLogin)" strokeWidth="2" opacity="0.55" style={{animation:'home-ring-pulse 4.5s var(--home-ease-in-out) infinite'}}/>
-                <circle cx="66" cy="66" r="58" fill="none" stroke="url(#goldRingLogin)" strokeWidth="0.5" opacity="0.2"/>
-                <circle cx="66" cy="66" r="63" fill="none" stroke="url(#goldShimmerLogin)" strokeWidth="1.6" strokeDasharray="60 335" style={{animation:'home-ring-shimmer 7s linear infinite',transformOrigin:'66px 66px'}}/>
-              </svg>
-              <img className="home-logo-float" src={LOGO} alt="BARONS" style={{width:120,height:120,borderRadius:'50%',display:'block',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 8px 32px rgba(0,0,0,0.3)',animation:'home-float 5s var(--home-ease-in-out) infinite',willChange:'transform'}} />
+          {/* Left: card */}
+          <div style={{ display:'flex', justifyContent:'center', alignItems:'center' }}>
+            <div className="barons-card-wrap" style={{ position:'relative', width:'100%', maxWidth:340 }}>
+              <div className="barons-card-shimmer" style={{ position:'relative', overflow:'hidden', borderRadius:18 }}>
+                <img
+                  src="/barons_card.png"
+                  alt="BARONS"
+                  style={{ width:'100%', borderRadius:18, display:'block',
+                    boxShadow:'0 20px 50px rgba(0,0,0,0.18)' }}
+                />
+              </div>
             </div>
-            <div style={{fontFamily:HANDWRITING,fontSize:15,color:'rgba(148,163,184,0.6)',textAlign:'center',letterSpacing:0.5,lineHeight:1.8,animation:'home-fade 0.6s 0.35s var(--home-ease-out) both',opacity:0}}>לנהל משפחה זה חתיכת עסק</div>
           </div>
-        </div>
 
-        {/* Left side: Form */}
-        <div className="login-form-panel" style={{width:'55%',display:'flex',alignItems:'center',justifyContent:'center',padding:'48px 32px'}}>
-          <div style={{width:'100%',maxWidth:380,animation:'home-fade-up 0.6s 0.15s var(--home-ease-out) both',opacity:0}}>
-            {/* Glass card */}
-            <div style={{background:'rgba(255,255,255,0.04)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:24,padding:'40px 36px',boxShadow:'0 16px 64px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05)'}}>
-              {resetMode ? (
-                resetSent ? (
-                  <div style={{textAlign:'center',animation:'home-pop 0.4s var(--home-ease-drawer) both'}}>
-                    <EnvelopeIcon />
-                    <div style={{color:'#f1f5f9',fontSize:16,fontWeight:700,marginBottom:8,letterSpacing:'-0.01em'}}>נשלח!</div>
-                    <div style={{color:'#94a3b8',fontSize:13,lineHeight:1.7,marginBottom:28}}>בדוק את תיבת המייל לקישור לאיפוס הסיסמה</div>
-                    <button className="home-press home-link" style={S.link} onClick={()=>{setResetMode(false);setResetSent(false);setError('')}}>חזור להתחברות</button>
+          {/* Right: logo + greeting + buttons */}
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:11, fontWeight:500, color:'#B8872D', letterSpacing:'2px',
+              textTransform:'uppercase', marginBottom:4 }}>
+              משפחה מנצחת הכל
+            </div>
+            <div style={{ fontSize:44, fontWeight:900, color:'#1A1A1A', lineHeight:1.1,
+              letterSpacing:'-0.02em', marginBottom:4 }}>
+              שלום, {firstName}
+            </div>
+
+
+            {/* Action buttons */}
+            <div style={{ display:'flex', gap:20, justifyContent:'flex-end' }}>
+              {/* Logout button */}
+              <div className="barons-btn-anim" onClick={handleLogout}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+                <div style={{
+                  width:40, height:40, borderRadius:'50%',
+                  background:'linear-gradient(135deg,#F5D88B,#B8872D)',
+                  boxShadow:'0 6px 16px rgba(184,135,45,0.35)',
+                  display:'flex', alignItems:'center', justifyContent:'center'
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize:10, fontWeight:600, color:'#B8872D' }}>התנתק</span>
+              </div>
+              {isSuperAdmin && (
+                <div className="barons-btn-anim" onClick={() => setShowEditor(true)}
+                  style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+                  <div style={{
+                    width:40, height:40, borderRadius:'50%',
+                    background:'linear-gradient(135deg,#F5D88B,#B8872D)',
+                    boxShadow:'0 6px 16px rgba(184,135,45,0.35)',
+                    display:'flex', alignItems:'center', justifyContent:'center'
+                  }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                   </div>
-                ) : (
-                  <form onSubmit={handleReset} style={{display:'flex',flexDirection:'column',gap:14}}>
-                    <div style={{color:'#94a3b8',fontSize:13,lineHeight:1.7,marginBottom:4,...fieldDelay(0)}}>הכנס אימייל ונשלח קישור לאיפוס סיסמה</div>
-                    <div style={fieldDelay(1)}>
-                      <label style={{display:'block',fontSize:11,fontWeight:600,color:'#64748b',marginBottom:6,letterSpacing:'0.5px'}}>אימייל</label>
-                      <input className="home-input" style={S.input} type="email" placeholder="name@example.com" value={resetEmail} onChange={e=>setResetEmail(e.target.value)} autoFocus required />
-                    </div>
-                    {error&&<p style={{color:'#f87171',fontSize:13,textAlign:'center',margin:0,animation:'home-shake 0.4s var(--home-ease-out) both'}}>{error}</p>}
-                    <button className="home-press home-primary-btn" type="submit" style={{...S.btn,...fieldDelay(2)}} disabled={resetLoading}>{resetLoading?'...':'שלח קישור איפוס'}</button>
-                    <button className="home-press home-link" type="button" style={{...S.link,...fieldDelay(3)}} onClick={()=>{setResetMode(false);setError('')}}>חזור להתחברות</button>
-                  </form>
-                )
-              ) : (
-                <form onSubmit={handleLogin} style={{display:'flex',flexDirection:'column',gap:16}}>
-                  <div style={{marginBottom:4,...fieldDelay(0)}}>
-                    <div style={{fontSize:20,fontWeight:700,color:'#f1f5f9',marginBottom:4,letterSpacing:'-0.015em'}}>התחברות</div>
-                    <div style={{fontSize:13,color:'#64748b'}}>הזינו את הפרטים כדי להיכנס</div>
-                  </div>
-                  <div style={fieldDelay(1)}>
-                    <label style={{display:'block',fontSize:11,fontWeight:600,color:'#64748b',marginBottom:6,letterSpacing:'0.5px'}}>אימייל</label>
-                    <input className="home-input" style={S.input} type="email" placeholder="name@example.com" value={email} onChange={e=>setEmail(e.target.value)} autoFocus required />
-                  </div>
-                  <div style={fieldDelay(2)}>
-                    <label style={{display:'block',fontSize:11,fontWeight:600,color:'#64748b',marginBottom:6,letterSpacing:'0.5px'}}>סיסמה</label>
-                    <input className="home-input" style={S.input} type="password" placeholder="********" value={password} onChange={e=>setPassword(e.target.value)} required />
-                  </div>
-                  <label className="home-check" style={{color:'#64748b',fontSize:13,display:'flex',alignItems:'center',cursor:'pointer',gap:8,...fieldDelay(3)}}>
-                    <input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)} style={{accentColor:'#3b82f6',width:16,height:16,cursor:'pointer',transition:'transform 0.16s var(--home-ease-out)'}} />זכור אותי
-                  </label>
-                  {error&&<p style={{color:'#f87171',fontSize:13,textAlign:'center',margin:0,animation:'home-shake 0.4s var(--home-ease-out) both'}}>{error}</p>}
-                  <button className="home-press home-primary-btn" type="submit" style={{...S.btn,...fieldDelay(4)}} disabled={loading}>{loading?'...':'כניסה'}</button>
-                  <button className="home-press home-link" type="button" style={{...S.link,...fieldDelay(5)}} onClick={()=>{setResetMode(true);setResetEmail(email);setError('')}}>שכחתי סיסמה</button>
-                </form>
+                  <span style={{ fontSize:10, fontWeight:600, color:'#B8872D' }}>עריכה</span>
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── GOLD LINE DIVIDER ── */}
+      <div style={{ maxWidth:900, margin:'8px auto 0', padding:'0 20px' }}>
+        <div style={{
+          height:1,
+          background:'linear-gradient(to left, transparent, #C6A96A, #F5D88B, #C6A96A, transparent)',
+          opacity:0.7,
+        }} />
+      </div>
+
+      {/* ── CATEGORIES ── */}
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'8px 20px 32px' }}>
+
+        {visibleConfig.map((cat, ci) => {
+          const isShimushi = cat.category === 'שימושי'
+
+          return (
+            <div key={ci} className="barons-section" style={{ marginBottom: isShimushi ? 28 : 0 }}>
+              {/* Category label */}
+              <div style={{ textAlign:'center', margin:'18px 0 14px', position:'relative' }}>
+                <span style={{ fontSize:11, fontWeight:700, color:'#B8872D', letterSpacing:'3px',
+                  textTransform:'uppercase', background:'#FAF8F4', padding:'0 12px', position:'relative', zIndex:1 }}>
+                  {cat.category}
+                </span>
+                <div style={{ position:'absolute', top:'50%', left:0, right:0, height:1,
+                  background:'linear-gradient(to left, transparent, #C6A96A55, transparent)' }} />
+              </div>
+
+              {/* שימושי: 3 large cards */}
+              {isShimushi && (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+                  {cat.items.map((item, ii) => (
+                    <div key={ii} className="barons-cat-card"
+                      onClick={() => navigate(item.path)}
+                      style={{
+                        borderRadius:20, overflow:'hidden', position:'relative',
+                        aspectRatio:'4/3',
+                        backgroundImage: `url(${CAT_IMGS[item.img] || ''})`,
+                        backgroundSize:'cover', backgroundPosition:'center',
+                        boxShadow:'0 6px 20px rgba(0,0,0,0.10)',
+                      }}>
+                      {/* overlay */}
+                      <div style={{ position:'absolute', inset:0,
+                        background:'linear-gradient(to bottom, rgba(0,0,0,0.01) 40%, rgba(0,0,0,0.45) 100%)' }} />
+                      {/* text */}
+                      <div style={{ position:'absolute', bottom:0, right:0, left:0,
+                        padding:'12px 14px', textAlign:'right' }}>
+                        <div style={{ fontSize:20, fontWeight:800, color:'white',
+                          textShadow:'0 1px 6px rgba(0,0,0,0.5)', lineHeight:1.1 }}>{item.label}</div>
+                        <div style={{ fontSize:11, fontWeight:400, color:'rgba(255,255,255,0.85)',
+                          marginTop:2 }}>{item.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* תפעול: 4-column grid of small cards */}
+              {!isShimushi && (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+                  {cat.items.map((item, ii) => (
+                    <div key={ii} className="barons-op-card"
+                      onClick={() => navigate(item.path)}
+                      style={{
+                        borderRadius:16, overflow:'hidden', position:'relative',
+                        aspectRatio:'1/1',
+                        backgroundImage: `url(${CAT_IMGS[item.img] || ''})`,
+                        backgroundSize:'cover', backgroundPosition:'center',
+                        boxShadow:'0 4px 14px rgba(0,0,0,0.09)',
+                      }}>
+                      {/* overlay */}
+                      <div style={{ position:'absolute', inset:0,
+                        background:'linear-gradient(to bottom, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.55) 100%)' }} />
+                      {/* text */}
+                      <div style={{ position:'absolute', bottom:0, right:0, left:0,
+                        padding:'8px 10px', textAlign:'right' }}>
+                        <div style={{ fontSize:13, fontWeight:800, color:'white',
+                          textShadow:'0 1px 4px rgba(0,0,0,0.6)', lineHeight:1.1 }}>{item.label}</div>
+                        <div style={{ fontSize:9, fontWeight:400, color:'rgba(255,255,255,0.85)',
+                          marginTop:1 }}>{item.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+
+        {/* ── PROMO BANNER ── */}
+        <div className="barons-banner-shimmer" style={{ marginTop:28, marginBottom:8 }}>
+          <img src="/banner_barons117.png"
+            alt="BARONS117"
+            style={{
+              width:'100%', display:'block', borderRadius:16,
+              aspectRatio:'1497/461', objectFit:'cover',
+            }} />
+        </div>
+        {/* Footer line */}
+        <div style={{ textAlign:'center', marginTop:32, fontSize:11,
+          color:'#bbb', fontWeight:300, letterSpacing:'1px' }}>
+          BARONS &nbsp;·&nbsp; המשפחה שלנו, הכלים שלנו
+        </div>
+      </div>
+      {showEditor && menuConfig && (
+        <MenuEditor
+          menuConfig={menuConfig}
+          onSave={async c => { await saveMenuConfig(c); setMenuConfig(c); setShowEditor(false) }}
+          onClose={() => setShowEditor(false)}
+        />
+      )}
     </div>
-  )
-}
-
-const S = {
-  input: {
-    width:'100%',boxSizing:'border-box',
-    background:'rgba(255,255,255,0.04)',
-    border:'1px solid rgba(255,255,255,0.1)',
-    borderRadius:12,padding:'13px 16px',fontSize:15,
-    color:'#f1f5f9',fontFamily:FONT,outline:'none',textAlign:'right',
-    transition:'border-color 0.22s var(--home-ease-out), box-shadow 0.22s var(--home-ease-out), background-color 0.22s var(--home-ease-out)',
-  },
-  btn: {
-    background:'linear-gradient(135deg,#3b82f6,#2563eb)',
-    backgroundSize:'200% 200%',
-    backgroundPosition:'0% 0%',
-    border:'none',color:'white',padding:14,borderRadius:12,
-    fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:FONT,marginTop:4,
-    boxShadow:'0 4px 20px rgba(59,130,246,0.25)',
-    transition:'transform 0.16s var(--home-ease-out), box-shadow 0.25s var(--home-ease-out), background-position 0.5s var(--home-ease-out), filter 0.25s var(--home-ease-out)',
-  },
-  link: {
-    background:'none',border:'none',color:'#64748b',fontSize:13,
-    cursor:'pointer',fontFamily:FONT,textAlign:'center',padding:'4px 0',
-    transition:'color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)',
-  },
-}
-
-// ── Centralized style / keyframe injector ────────────────────────────────────
-function HomeStyles() {
-  return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Open+Sans+Hebrew:wght@300;400;700;800&display=swap');
-      @import url('https://db.onlinewebfonts.com/c/2f01ce81ad5d2852012b2d6f46443bf6?family=Gveret+Levin+AlefAlefAlef');
-
-      :root{
-        --home-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-        --home-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-        --home-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-      }
-
-      /* ── Keyframes (namespace prefix home-) ─────────────────────────── */
-      @keyframes home-fade{from{opacity:0}to{opacity:1}}
-      @keyframes home-fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-      @keyframes home-pop{from{opacity:0;transform:scale(0.96) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
-      @keyframes home-backdrop{from{opacity:0;backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}to{opacity:1;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}}
-      @keyframes home-modal-in{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-      @keyframes home-logo-in{0%{opacity:0;transform:scale(0.9) rotate(-4deg)}60%{opacity:1;transform:scale(1.02) rotate(0.5deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
-      @keyframes home-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-      @keyframes home-ring-pulse{0%,100%{opacity:0.7}50%{opacity:0.35}}
-      @keyframes home-ring-shimmer{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-      @keyframes home-blob-a{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-22px,16px) scale(1.06)}}
-      @keyframes home-blob-b{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(18px,-22px) scale(1.08)}}
-      @keyframes home-blob-c{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-14px,-14px) scale(1.05)}}
-      @keyframes home-tile-in{from{opacity:0;transform:translateY(10px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-      @keyframes home-row-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-      @keyframes home-line-in{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
-      @keyframes home-label-pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
-      @keyframes home-tile-shimmer{0%{transform:translateY(-100%)}60%,100%{transform:translateY(200%)}}
-      @keyframes home-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-      @keyframes home-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-
-      /* ── Tactile press (every interactive element) ───────────────────── */
-      .home-press{transition-property:transform,background-color,color,border-color,box-shadow,filter;transition-duration:0.16s;transition-timing-function:var(--home-ease-out)}
-      .home-press:active{transform:scale(0.97)}
-
-      /* ── Tiles ──────────────────────────────────────────────────────── */
-      .home-tile{
-        position:relative;
-        display:flex;align-items:center;justify-content:space-between;
-        border-radius:18px;overflow:hidden;min-height:82px;
-        border:1px solid rgba(255,255,255,0.08);
-        padding:14px 16px;cursor:pointer;
-        box-shadow:0 2px 12px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06);
-        transition:transform 0.35s var(--home-ease-out), box-shadow 0.35s var(--home-ease-out), border-color 0.35s var(--home-ease-out);
-        width:100%;box-sizing:border-box;gap:10px;
-        backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-        font-family:${JSON.stringify(FONT).slice(1,-1)};
-      }
-      .home-tile:active{transform:scale(0.96);transition-duration:0.12s}
-      .home-tile-icon{will-change:auto}
-      .home-tile-shimmer{transition:transform 0.6s var(--home-ease-out)}
-
-      @media (hover: hover) and (pointer: fine){
-        .home-tile:hover{
-          transform:translateY(-3px);
-          border-color:color-mix(in srgb, var(--tile-color) 55%, rgba(255,255,255,0.08));
-          box-shadow:
-            0 12px 32px rgba(0,0,0,0.38),
-            0 0 0 1px color-mix(in srgb, var(--tile-color) 25%, transparent),
-            0 0 40px -8px color-mix(in srgb, var(--tile-color) 40%, transparent),
-            inset 0 1px 0 rgba(255,255,255,0.12);
-        }
-        .home-tile:hover .home-tile-icon{
-          transform:scale(1.08) rotate(-2deg);
-        }
-        .home-tile:hover .home-tile-shimmer{
-          animation:home-tile-shimmer 1.3s var(--home-ease-out) forwards;
-        }
-        .home-ghost-btn:hover{background:rgba(255,255,255,0.1)!important;color:#e2e8f0!important;border-color:rgba(255,255,255,0.2)!important;transform:translateY(-1px)}
-        .home-link:hover{color:#93c5fd!important}
-        .home-icon-btn:hover{background:#f1f5f9!important;color:#334155!important}
-        .home-primary-btn:hover{filter:brightness(1.08);box-shadow:0 6px 28px rgba(59,130,246,0.4)!important;background-position:100% 100%!important}
-        .home-swatch:hover{transform:scale(1.15);box-shadow:0 0 0 3px rgba(99,102,241,0.25)}
-        .home-add-btn:hover{border-color:#93c5fd!important;background:#eff6ff!important}
-        .home-row:hover{border-color:#cbd5e1!important;background:#f1f5f9!important}
-      }
-
-      /* ── Inputs ──────────────────────────────────────────────────────── */
-      .home-input:focus{
-        border-color:#3b82f6!important;
-        background:rgba(59,130,246,0.05)!important;
-        box-shadow:0 0 0 4px rgba(59,130,246,0.15)!important;
-      }
-      .home-mini-input:focus{
-        border-color:#3b82f6!important;
-        box-shadow:0 0 0 3px rgba(59,130,246,0.12)!important;
-      }
-
-      /* ── Checkbox tactile ─────────────────────────────────────────────── */
-      .home-check input:active{transform:scale(0.9)}
-
-      /* ── Responsive login ─────────────────────────────────────────────── */
-      @media(max-width:640px){
-        .login-layout{flex-direction:column!important}
-        .login-brand{min-height:220px!important;width:100%!important}
-        .login-form-panel{width:100%!important;flex:1!important}
-      }
-
-      /* ── Reduced motion ───────────────────────────────────────────────── */
-      @media (prefers-reduced-motion: reduce){
-        *, *::before, *::after{
-          animation-duration:0.01ms!important;
-          animation-iteration-count:1!important;
-          transition-duration:0.01ms!important;
-          scroll-behavior:auto!important;
-        }
-        .home-tile:hover{transform:none}
-        .home-logo-float{animation:none!important}
-        .home-blob{animation:none!important}
-      }
-    `}</style>
   )
 }

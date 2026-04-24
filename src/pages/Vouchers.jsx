@@ -31,11 +31,11 @@ const CARD_COLORS = {
   'אל על':             '#1e3a8a',
   'קרפור':              '#1d4ed8',
   'כרטיס מתנה':         '#7c3aed',
-  'זיכוי':              '#475569',
+  'זיכוי':              '#a39b8e',
   'ואוצ׳ר':             '#4f46e5',
   'כרטיסי פיס':        '#7c3aed',
   'מקדונלדס':           '#b45309',
-  'אחר':                '#334155',
+  'אחר':                '#4a4640',
 }
 
 const TYPE_LOGO = {
@@ -56,20 +56,20 @@ const TYPE_LOGO = {
 
 // ── Badge colors (adjusted for dark backgrounds) ──────────────────────────────
 const TYPE_COLORS = {
-  'ChefZone':           { bg: 'rgba(20,184,166,0.18)', text: '#5eead4', border: 'rgba(94,234,212,0.35)' },
-  'נופשונית':           { bg: 'rgba(56,189,248,0.15)', text: '#7dd3fc', border: 'rgba(125,211,252,0.3)' },
-  'נופשונית פלוס':      { bg: 'rgba(167,139,250,0.15)', text: '#c4b5fd', border: 'rgba(196,181,253,0.3)' },
-  'BUYME CHEF':         { bg: 'rgba(167,139,250,0.15)', text: '#c4b5fd', border: 'rgba(196,181,253,0.3)' },
-  'BUYME ALL':          { bg: 'rgba(129,140,248,0.15)', text: '#a5b4fc', border: 'rgba(165,180,252,0.3)' },
-  'ישראכרט Gift Card':  { bg: 'rgba(34,211,238,0.15)', text: '#67e8f9', border: 'rgba(103,232,249,0.3)' },
-  'אל על':              { bg: 'rgba(96,165,250,0.15)', text: '#93c5fd', border: 'rgba(147,197,253,0.3)' },
-  'קרפור':              { bg: 'rgba(96,165,250,0.15)', text: '#93c5fd', border: 'rgba(147,197,253,0.3)' },
-  'כרטיס מתנה':         { bg: 'rgba(167,139,250,0.15)', text: '#c4b5fd', border: 'rgba(196,181,253,0.3)' },
-  'זיכוי':              { bg: 'rgba(148,163,184,0.15)', text: '#cbd5e1', border: 'rgba(203,213,225,0.3)' },
-  'ואוצ׳ר':             { bg: 'rgba(129,140,248,0.15)', text: '#a5b4fc', border: 'rgba(165,180,252,0.3)' },
-  'כרטיסי פיס':        { bg: 'rgba(167,139,250,0.15)', text: '#c4b5fd', border: 'rgba(196,181,253,0.3)' },
-  'מקדונלדס':           { bg: 'rgba(251,191,36,0.15)', text: '#fcd34d', border: 'rgba(252,211,77,0.3)' },
-  'אחר':                { bg: 'rgba(148,163,184,0.12)', text: '#94a3b8', border: 'rgba(148,163,184,0.25)' },
+  'ChefZone':           { bg: 'rgba(46,122,122,0.12)', text: '#2e7a7a', border: 'rgba(46,122,122,0.3)' },
+  'נופשונית':           { bg: 'rgba(58,107,130,0.12)', text: '#3a6b82', border: 'rgba(58,107,130,0.3)' },
+  'נופשונית פלוס':      { bg: 'rgba(95,107,58,0.12)', text: '#5f6b3a', border: 'rgba(95,107,58,0.3)' },
+  'BUYME CHEF':         { bg: 'rgba(201,79,109,0.12)', text: '#c94f6d', border: 'rgba(201,79,109,0.3)' },
+  'BUYME ALL':          { bg: 'rgba(107,61,102,0.12)', text: '#6b3d66', border: 'rgba(107,61,102,0.3)' },
+  'ישראכרט Gift Card':  { bg: 'rgba(58,107,130,0.12)', text: '#3a6b82', border: 'rgba(58,107,130,0.3)' },
+  'אל על':              { bg: 'rgba(58,107,130,0.12)', text: '#3a6b82', border: 'rgba(58,107,130,0.3)' },
+  'קרפור':              { bg: 'rgba(201,79,109,0.12)', text: '#c94f6d', border: 'rgba(201,79,109,0.3)' },
+  'כרטיס מתנה':         { bg: 'rgba(232,123,58,0.14)', text: '#e87b3a', border: 'rgba(232,123,58,0.3)' },
+  'זיכוי':              { bg: 'rgba(138,131,122,0.12)', text: '#4a4640', border: 'rgba(138,131,122,0.3)' },
+  'ואוצ׳ר':             { bg: 'rgba(107,61,102,0.12)', text: '#6b3d66', border: 'rgba(107,61,102,0.3)' },
+  'כרטיסי פיס':        { bg: 'rgba(184,138,46,0.14)', text: '#b88a2e', border: 'rgba(184,138,46,0.3)' },
+  'מקדונלדס':           { bg: 'rgba(201,79,109,0.12)', text: '#c94f6d', border: 'rgba(201,79,109,0.3)' },
+  'אחר':                { bg: 'rgba(138,131,122,0.1)', text: '#8a837a', border: 'rgba(138,131,122,0.25)' },
 }
 
 const VOUCHER_TYPES = [
@@ -237,7 +237,7 @@ if (typeof document !== 'undefined' && !document.getElementById(KEYFRAMES_ID)) {
 const SPRING = 'cubic-bezier(0.23,1,0.32,1)'
 
 const expiryStatus = (dateStr) => {
-  if (!dateStr) return { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: 'ללא תוקף', urgent: false }
+  if (!dateStr) return { color: '#8a837a', bg: 'rgba(138,131,122,0.1)', label: 'ללא תוקף', urgent: false }
   const days = Math.ceil((new Date(dateStr) - new Date()) / 86_400_000)
   if (days < 0)   return { color: '#f87171', bg: 'rgba(248,113,113,0.12)', label: `פג תוקף לפני ${-days} ימים`, urgent: true }
   if (days === 0) return { color: '#f87171', bg: 'rgba(248,113,113,0.12)', label: 'פג תוקף היום!', urgent: true }
@@ -270,22 +270,23 @@ const arrToStores = (a) => a.join(', ')
 
 const F = "'Open Sans','Open Sans Hebrew',Arial,sans-serif"
 
+// v2 paper theme — light cream
 const GLASS = {
-  card:  { background: 'rgba(30,41,59,0.55)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' },
-  modal: { background: 'rgba(30,41,59,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)' },
-  input: { background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' },
-  meta:  { background: 'rgba(15,23,42,0.45)', border: '1px solid rgba(255,255,255,0.06)' },
+  card:  { background: '#ffffff', border: '1px solid rgba(27,26,23,0.08)' },
+  modal: { background: '#faf6f0', border: '1px solid rgba(27,26,23,0.1)' },
+  input: { background: '#ffffff', border: '1px solid rgba(27,26,23,0.16)' },
+  meta:  { background: '#ece4d6', border: '1px solid rgba(27,26,23,0.08)' },
 }
 
 const css = {
-  page:       { minHeight: '100vh', background: '#0f172a', fontFamily: F, direction: 'rtl', position: 'relative', overflow: 'hidden' },
-  primaryBtn: { background: 'rgba(59,130,246,0.5)', color: '#fff', border: '1px solid rgba(96,165,250,0.4)', borderRadius: 10, padding: '8px 18px', fontFamily: F, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}`, backdropFilter: 'blur(8px)' },
-  outlineBtn: { background: 'rgba(255,255,255,0.06)', color: '#93c5fd', border: '1px solid rgba(147,197,253,0.25)', borderRadius: 10, padding: '6px 14px', fontFamily: F, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}` },
-  ghostBtn:   { background: 'rgba(255,255,255,0.04)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 10, padding: '6px 14px', fontFamily: F, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}` },
-  input:      { width: '100%', padding: '9px 12px', fontSize: 14, fontFamily: F, ...GLASS.input, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: '#e2e8f0', transition: `border-color 0.3s ${SPRING}, box-shadow 0.3s ${SPRING}` },
-  label:      { display: 'block', fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' },
-  overlay:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', animation: 'vch-overlayIn 0.25s ease-out' },
-  modal:      { ...GLASS.modal, borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 560, height: '90vh', display: 'flex', flexDirection: 'column', fontFamily: F, direction: 'rtl', paddingBottom: 'env(safe-area-inset-bottom)', animation: `vch-modalIn 0.4s ${SPRING}`, boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' },
+  page:       { minHeight: '100vh', background: '#f5efe6', fontFamily: F, direction: 'rtl', position: 'relative', overflow: 'hidden', color: '#1b1a17' },
+  primaryBtn: { background: '#1b1a17', color: '#fff', border: '1px solid #1b1a17', borderRadius: 10, padding: '8px 18px', fontFamily: F, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: `all 0.2s ${SPRING}` },
+  outlineBtn: { background: 'rgba(27,26,23,0.06)', color: '#4a4640', border: '1px solid rgba(27,26,23,0.12)', borderRadius: 10, padding: '6px 14px', fontFamily: F, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: `all 0.2s ${SPRING}` },
+  ghostBtn:   { background: 'transparent', color: '#8a837a', border: '1px solid rgba(27,26,23,0.1)', borderRadius: 10, padding: '6px 14px', fontFamily: F, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: `all 0.2s ${SPRING}` },
+  input:      { width: '100%', padding: '9px 12px', fontSize: 14, fontFamily: F, ...GLASS.input, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: '#1b1a17', transition: `border-color 0.3s ${SPRING}, box-shadow 0.3s ${SPRING}` },
+  label:      { display: 'block', fontSize: 11, fontWeight: 800, color: '#8a837a', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' },
+  overlay:    { position: 'fixed', inset: 0, background: 'rgba(27,26,23,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000, animation: 'vch-overlayIn 0.25s ease-out' },
+  modal:      { ...GLASS.modal, borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 560, height: '90vh', display: 'flex', flexDirection: 'column', fontFamily: F, direction: 'rtl', paddingBottom: 'env(safe-area-inset-bottom)', animation: `vch-modalIn 0.4s ${SPRING}`, boxShadow: '0 -8px 40px rgba(27,26,23,0.18)' },
 }
 
 // ── TypeBadge ──────────────────────────────────────────────────────────────────
@@ -297,7 +298,6 @@ function TypeBadge({ type, small }) {
       background: c.bg, color: c.text, border: `1px solid ${c.border}`,
       borderRadius: 20, padding: small ? '2px 8px' : '3px 10px',
       fontSize: small ? 11 : 12, fontWeight: 700, whiteSpace: 'nowrap',
-      backdropFilter: 'blur(8px)',
     }}>
       {type || 'אחר'}
     </span>
@@ -319,18 +319,18 @@ function SkeletonCard({ delay = 0 }) {
     }}>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)',
+        background: 'linear-gradient(90deg, transparent 0%, rgba(27,26,23,0.04) 50%, transparent 100%)',
         backgroundSize: '200% 100%',
         animation: 'vch-shimmer 1.5s infinite',
       }} />
       <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ width: 140, height: 16, background: 'rgba(255,255,255,0.08)', borderRadius: 8, marginBottom: 8 }} />
+          <div style={{ width: 140, height: 16, background: 'rgba(27,26,23,0.08)', borderRadius: 8, marginBottom: 8 }} />
           <div style={{ width: 100, height: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 6 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 70, height: 24, background: 'rgba(255,255,255,0.08)', borderRadius: 8 }} />
-          <div style={{ width: 52, height: 52, background: 'rgba(255,255,255,0.06)', borderRadius: 11 }} />
+          <div style={{ width: 70, height: 24, background: 'rgba(27,26,23,0.08)', borderRadius: 8 }} />
+          <div style={{ width: 52, height: 52, background: 'rgba(27,26,23,0.05)', borderRadius: 11 }} />
         </div>
       </div>
     </div>
@@ -352,17 +352,17 @@ function AnimatedBackground() {
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
       <div style={{
         position: 'absolute', top: '10%', right: '-10%', width: 400, height: 400,
-        borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+        borderRadius: '50%', background: 'radial-gradient(circle, rgba(184,138,46,0.14) 0%, transparent 70%)',
         animation: 'vch-float1 20s ease-in-out infinite', filter: 'blur(60px)',
       }} />
       <div style={{
         position: 'absolute', bottom: '20%', left: '-5%', width: 350, height: 350,
-        borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.1) 0%, transparent 70%)',
+        borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,79,109,0.1) 0%, transparent 70%)',
         animation: 'vch-float2 25s ease-in-out infinite', filter: 'blur(60px)',
       }} />
       <div style={{
         position: 'absolute', top: '50%', left: '50%', width: 300, height: 300,
-        borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)',
+        borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,122,122,0.1) 0%, transparent 70%)',
         animation: 'vch-float3 22s ease-in-out infinite', filter: 'blur(60px)',
       }} />
     </div>
@@ -377,11 +377,11 @@ function EmptyState({ message }) {
       textAlign: 'center', padding: '60px 20px',
       animation: `vch-fadeUp 0.5s ${SPRING}`,
     }}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(148,163,184,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 16 }}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(138,131,122,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 16 }}>
         <rect x="2" y="5" width="20" height="14" rx="2" />
         <line x1="2" y1="10" x2="22" y2="10" />
       </svg>
-      <div style={{ color: '#64748b', fontSize: 15, fontWeight: 500 }}>{message}</div>
+      <div style={{ color: '#8a837a', fontSize: 15, fontWeight: 500 }}>{message}</div>
     </div>
   )
 }
@@ -391,7 +391,7 @@ function EmptyState({ message }) {
 const fmtMoneyCard = (n) => (n == null || n === '') ? null : `₪${Number(n).toLocaleString('he-IL')}`
 
 const expiryInfo = (dateStr) => {
-  if (!dateStr) return { color: '#64748b', urgent: false }
+  if (!dateStr) return { color: '#8a837a', urgent: false }
   const days = Math.ceil((new Date(dateStr) - new Date()) / 86_400_000)
   if (days < 0)   return { color: '#f87171', urgent: true }
   if (days <= 30)  return { color: '#f87171', urgent: true }
@@ -410,17 +410,17 @@ const maskNumber = (num) => {
 
 const cssCard = {
   primaryBtn: {
-    background: 'rgba(59,130,246,0.5)', color: '#fff', border: '1px solid rgba(96,165,250,0.4)',
+    background: 'rgba(184,138,46,0.35)', color: '#fff', border: '1px solid rgba(184,138,46,0.4)',
     borderRadius: 10, padding: '8px 16px', fontFamily: 'inherit',
     fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}`,
   },
   outlineBtn: {
-    background: 'rgba(255,255,255,0.06)', color: '#93c5fd', border: '1px solid rgba(147,197,253,0.25)',
+    background: 'rgba(27,26,23,0.05)', color: '#b88a2e', border: '1px solid rgba(184,138,46,0.3)',
     borderRadius: 10, padding: '6px 12px', fontFamily: 'inherit',
     fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}`,
   },
   ghostBtn: {
-    background: 'rgba(255,255,255,0.04)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.15)',
+    background: 'rgba(27,26,23,0.04)', color: '#8a837a', border: '1px solid rgba(27,26,23,0.1)',
     borderRadius: 10, padding: '6px 12px', fontFamily: 'inherit',
     fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: `all 0.3s ${SPRING}`,
   },
@@ -428,17 +428,17 @@ const cssCard = {
     width: '100%', padding: '8px 12px', fontSize: 14,
     fontFamily: 'inherit', ...GLASS.input,
     borderRadius: 10, outline: 'none', boxSizing: 'border-box',
-    color: '#e2e8f0', transition: `border-color 0.3s ${SPRING}`,
+    color: '#1b1a17', transition: `border-color 0.3s ${SPRING}`,
   },
   label: {
     display: 'block', fontSize: 13, fontWeight: 600,
-    color: '#94a3b8', marginBottom: 4,
+    color: '#8a837a', marginBottom: 4,
   },
   fieldGroup: { marginBottom: 14 },
   overlay: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    zIndex: 1000, padding: 16, backdropFilter: 'blur(6px)',
+    zIndex: 1000, padding: 16,
     animation: 'vch-overlayIn 0.25s ease-out',
   },
   modal: {
@@ -472,7 +472,7 @@ function brandTheme(name) {
   if (n.includes('max') || n.includes('מקס')) return { from: '#e63946', to: '#7a1a22', glow: 'rgba(230,57,70,0.5)', label: 'MAX' }
   if (n.includes('isracard') || n.includes('ישרא')) return { from: '#0e7490', to: '#0a4d63', glow: 'rgba(14,116,144,0.5)', label: 'ISRACARD' }
   if (n.includes('cal') || n.includes('כאל')) return { from: '#7c3aed', to: '#3b1d7a', glow: 'rgba(124,58,237,0.5)', label: 'CAL' }
-  return { from: '#3b82f6', to: '#1d4ed8', glow: 'rgba(59,130,246,0.5)', label: '' }
+  return { from: '#b88a2e', to: '#1d4ed8', glow: 'rgba(184,138,46,0.35)', label: '' }
 }
 
 function fmtCardNumber(num) {
@@ -565,7 +565,7 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
           position: 'absolute', inset: 0, pointerEvents: 'none',
           background: `
             radial-gradient(ellipse 80% 60% at 80% 0%, rgba(255,255,255,0.18), transparent 60%),
-            radial-gradient(ellipse 60% 50% at 20% 100%, rgba(255,255,255,0.08), transparent 60%)
+            radial-gradient(ellipse 60% 50% at 20% 100%, rgba(27,26,23,0.08), transparent 60%)
           `,
         }} />
         {/* Subtle noise */}
@@ -679,24 +679,24 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
             className="cd-press"
             style={{
               ...GLASS.meta, borderRadius: 12, padding: '12px 14px', marginBottom: 12,
-              border: '1px solid rgba(96,165,250,0.18)',
-              background: 'rgba(15,23,42,0.55)',
+              border: '1px solid rgba(27,26,23,0.3)',
+              background: '#1b1a17',
               cursor: c.card_number ? 'pointer' : 'default',
               transition: `border-color 0.2s ${SPRING}, background 0.2s ${SPRING}`,
             }}
             title="לחץ להעתקה"
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <span style={{ fontSize: 10, color: '#c9bfae', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 מספר כרטיס {copied && <span style={{ color: '#34d399', marginRight: 6 }}>✓ הועתק</span>}
               </span>
               <button
                 onClick={e => { e.stopPropagation(); setRevealed(r => !r) }}
                 className="cd-press"
                 style={{
-                  background: 'rgba(96,165,250,0.12)',
-                  border: '1px solid rgba(96,165,250,0.25)',
-                  color: '#93c5fd',
+                  background: 'rgba(184,138,46,0.1)',
+                  border: '1px solid rgba(184,138,46,0.3)',
+                  color: '#b88a2e',
                   borderRadius: 8, padding: '3px 10px',
                   fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   fontFamily: F,
@@ -705,8 +705,8 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
                 }}
               >
                 {revealed
-                  ? <><Icons.eyeOff size={11} color="#93c5fd" /> הסתר</>
-                  : <><Icons.eye size={11} color="#93c5fd" /> הצג</>}
+                  ? <><Icons.eyeOff size={11} color="#b88a2e" /> הסתר</>
+                  : <><Icons.eye size={11} color="#b88a2e" /> הצג</>}
               </button>
             </div>
             <code style={{
@@ -714,11 +714,11 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
               fontFamily: "'JetBrains Mono','Space Mono','SF Mono',Consolas,monospace",
               fontSize: 22,
               fontWeight: 800,
-              color: '#f1f5f9',
+              color: '#f5efe6',
               letterSpacing: '0.08em',
               lineHeight: 1.2,
               wordBreak: 'break-all',
-              textShadow: '0 0 14px rgba(96,165,250,0.15)',
+              textShadow: '0 0 14px rgba(184,138,46,0.35)',
               userSelect: 'all',
               direction: 'ltr',
             }}>
@@ -730,10 +730,10 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: c.stores || c.notes ? 12 : 0 }}>
             {c.cvv && (
               <div style={{ flex: 1, ...GLASS.meta, borderRadius: 10, padding: '9px 12px' }}>
-                <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>CVV</div>
+                <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>CVV</div>
                 <code style={{
                   fontFamily: "'JetBrains Mono','Space Mono',monospace",
-                  fontSize: 16, fontWeight: 800, color: '#f1f5f9', letterSpacing: '0.08em',
+                  fontSize: 16, fontWeight: 800, color: '#1b1a17', letterSpacing: '0.08em',
                   userSelect: 'all',
                 }}>
                   {revealed ? c.cvv : '•••'}
@@ -742,36 +742,36 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
             )}
             {c.expiry_date && (
               <div style={{ flex: 1, ...GLASS.meta, borderRadius: 10, padding: '9px 12px' }}>
-                <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>תוקף</div>
+                <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>תוקף</div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: exp.color }}>{fmtDate(c.expiry_date)}</div>
               </div>
             )}
             {fmtMoneyCard(c.balance) && (
               <div style={{ flex: 1, ...GLASS.meta, borderRadius: 10, padding: '9px 12px' }}>
-                <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>יתרה</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#60a5fa' }}>{fmtMoneyCard(c.balance)}</div>
+                <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>יתרה</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#b88a2e' }}>{fmtMoneyCard(c.balance)}</div>
               </div>
             )}
           </div>
 
           {c.stores && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                <Icons.pin size={11} color="#64748b" /> חנויות / שימוש
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#8a837a', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <Icons.pin size={11} color="#8a837a" /> חנויות / שימוש
               </div>
-              <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>{c.stores}</div>
+              <div style={{ fontSize: 13, color: '#4a4640', lineHeight: 1.6 }}>{c.stores}</div>
             </div>
           )}
 
           {c.notes && (
-            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'flex-start', gap: 6, fontStyle: 'italic' }}>
-              <Icons.note size={11} color="#64748b" style={{ marginTop: 2, flexShrink: 0 }} />
+            <div style={{ fontSize: 12, color: '#8a837a', marginBottom: 10, display: 'flex', alignItems: 'flex-start', gap: 6, fontStyle: 'italic' }}>
+              <Icons.note size={11} color="#8a837a" style={{ marginTop: 2, flexShrink: 0 }} />
               {c.notes}
             </div>
           )}
 
           {(c.added_by || c.received_by) && (
-            <div style={{ fontSize: 11, color: '#475569', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: '#a39b8e', marginBottom: 12 }}>
               {c.added_by && <>הוסיף: {USER_NAMES[c.added_by] || c.added_by}</>}
               {c.added_by && c.received_by && ' · '}
               {c.received_by && <>שייך ל: {c.received_by}</>}
@@ -783,9 +783,9 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
               onClick={e => { e.stopPropagation(); onEdit() }}
               className="cd-press"
               style={{
-                background: 'rgba(59,130,246,0.12)',
-                border: '1px solid rgba(96,165,250,0.25)',
-                color: '#93c5fd',
+                background: 'rgba(184,138,46,0.1)',
+                border: '1px solid rgba(184,138,46,0.3)',
+                color: '#b88a2e',
                 borderRadius: 9, padding: '7px 14px',
                 fontSize: 12, fontWeight: 700, fontFamily: F,
                 cursor: 'pointer',
@@ -793,7 +793,7 @@ function CardItem({ c, expanded, onToggle, onEdit, onDelete, index }) {
                 transition: `background 0.2s ${SPRING}, border-color 0.2s ${SPRING}`,
               }}
             >
-              <Icons.edit size={12} color="#93c5fd" /> עריכה
+              <Icons.edit size={12} color="#b88a2e" /> עריכה
             </button>
             <button
               onClick={e => {
@@ -846,8 +846,8 @@ function CardModal({ title, initial, onClose, onSave }) {
     <div style={cssCard.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={cssCard.modal}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#e2e8f0' }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#475569', lineHeight: 1 }}>×</button>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1b1a17' }}>{title}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#a39b8e', lineHeight: 1 }}>×</button>
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -855,8 +855,8 @@ function CardModal({ title, initial, onClose, onSave }) {
             <input style={cssCard.input} autoFocus value={form.name}
               onChange={e => set('name', e.target.value)}
               placeholder="מקס / כאל / ויזה / אמריקן אקספרס..."
-              onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
           </Field>
 
           <Field label="חנויות / לאיזה שימוש">
@@ -865,8 +865,8 @@ function CardModal({ title, initial, onClose, onSave }) {
               value={form.stores}
               onChange={e => set('stores', e.target.value)}
               placeholder="פוקס, H&M, כל הקניות בחו״ל..."
-              onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
           </Field>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -874,15 +874,15 @@ function CardModal({ title, initial, onClose, onSave }) {
               <input style={cssCard.input} value={form.card_number}
                 onChange={e => set('card_number', e.target.value)}
                 placeholder="1234 5678 9012 3456"
-                onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
             </Field>
             <Field label="CVV">
               <input style={cssCard.input} value={form.cvv}
                 onChange={e => set('cvv', e.target.value)}
                 placeholder="123" maxLength={4}
-                onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
             </Field>
           </div>
 
@@ -895,8 +895,8 @@ function CardModal({ title, initial, onClose, onSave }) {
               <input type="number" style={cssCard.input} value={form.balance}
                 onChange={e => set('balance', e.target.value)}
                 placeholder="500" min="0"
-                onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
             </Field>
           </div>
 
@@ -904,8 +904,8 @@ function CardModal({ title, initial, onClose, onSave }) {
             <input style={cssCard.input} value={form.notes}
               onChange={e => set('notes', e.target.value)}
               placeholder="אופציונלי"
-              onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
           </Field>
 
           <Field label="שייך ל (אופציונלי)">
@@ -917,7 +917,7 @@ function CardModal({ title, initial, onClose, onSave }) {
           </Field>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid rgba(27,26,23,0.05)' }}>
           <button onClick={onClose} style={cssCard.ghostBtn}>ביטול</button>
           <button onClick={handle} style={cssCard.primaryBtn} disabled={saving}>
             {saving ? 'שומר...' : 'שמור כרטיס'}
@@ -968,7 +968,7 @@ function CardsTab({ session, showAdd: showAddProp, setShowAdd: setShowAddProp })
         {/* Search */}
         <div style={{ position: 'relative', marginBottom: 16 }}>
           <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-            <Icons.search size={16} color="#475569" />
+            <Icons.search size={16} color="#a39b8e" />
           </span>
           <input
             style={{
@@ -977,8 +977,8 @@ function CardsTab({ session, showAdd: showAddProp, setShowAdd: setShowAddProp })
             placeholder="חפש לפי שם, חנות..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            onFocus={e => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(59,130,246,0.15)' }}
-            onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
+            onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(184,138,46,0.15)' }}
+            onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }}
           />
         </div>
 
@@ -1057,17 +1057,17 @@ function StoreChips({ stores, type, editable, onChange }) {
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
         {arr.length === 0 && !editable && (
-          <span style={{ fontSize: 13, color: '#475569', fontStyle: 'italic' }}>לא הוגדרו חנויות</span>
+          <span style={{ fontSize: 13, color: '#a39b8e', fontStyle: 'italic' }}>לא הוגדרו חנויות</span>
         )}
         {arr.map((s, i) => (
           <span key={i} style={{
-            background: 'rgba(255,255,255,0.06)', color: '#cbd5e1', borderRadius: 20,
+            background: 'rgba(27,26,23,0.05)', color: '#4a4640', borderRadius: 20,
             padding: '4px 10px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 5,
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid rgba(27,26,23,0.08)',
           }}>
             {s}
             {editable && (
-              <button onClick={() => remove(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
+              <button onClick={() => remove(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a837a', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
             )}
           </span>
         ))}
@@ -1080,24 +1080,24 @@ function StoreChips({ stores, type, editable, onChange }) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add(input))}
-            onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+            onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'}
           />
           <button onClick={() => add(input)} style={{ ...css.outlineBtn, padding: '7px 12px' }}>+ הוסף</button>
           {TYPE_STORES[type] && (
             <button onClick={fillDefaults} style={{ ...css.ghostBtn, padding: '7px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icons.sparkle size={12} color="#94a3b8" /> מלא אוטומטית
+              <Icons.sparkle size={12} color="#8a837a" /> מלא אוטומטית
             </button>
           )}
-          {link && <a href={link} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#60a5fa', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-            <Icons.link size={11} color="#60a5fa" /> אתר רשמי
+          {link && <a href={link} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#b88a2e', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <Icons.link size={11} color="#b88a2e" /> אתר רשמי
           </a>}
         </div>
       )}
       {!editable && link && (
         <a href={link} target="_blank" rel="noreferrer"
-          style={{ fontSize: 12, color: '#60a5fa', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
-          <Icons.link size={11} color="#60a5fa" /> רשימה מלאה באתר הרשמי
+          style={{ fontSize: 12, color: '#b88a2e', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
+          <Icons.link size={11} color="#b88a2e" /> רשימה מלאה באתר הרשמי
         </a>
       )}
     </div>
@@ -1132,14 +1132,14 @@ function ImageUpload({ url, onChange }) {
       <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
         <img src={url} alt="סריקת שובר"
           onClick={() => window.open(url, '_blank')}
-          style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', display: 'block', objectFit: 'contain', cursor: 'zoom-in' }} />
+          style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 12, border: '1px solid rgba(27,26,23,0.08)', display: 'block', objectFit: 'contain', cursor: 'zoom-in' }} />
         <div style={{ position: 'absolute', top: 6, left: 6, display: 'flex', gap: 5 }}>
           <button onClick={() => ref.current?.click()}
-            style={{ background: 'rgba(30,41,59,0.85)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: F, backdropFilter: 'blur(8px)' }}>
+            style={{ background: '#ffffff', color: '#1b1a17', border: '1px solid rgba(27,26,23,0.1)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: F, }}>
             החלף
           </button>
           <button onClick={() => onChange('')}
-            style={{ background: 'rgba(220,38,38,0.6)', color: '#fecaca', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: F, backdropFilter: 'blur(8px)' }}>
+            style={{ background: 'rgba(220,38,38,0.6)', color: '#fecaca', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: F, }}>
             הסר
           </button>
         </div>
@@ -1152,34 +1152,88 @@ function ImageUpload({ url, onChange }) {
     <label
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: 10, border: '2px dashed rgba(148,163,184,0.25)', borderRadius: 14, padding: '28px 16px',
-        cursor: uploading ? 'wait' : 'pointer', color: '#64748b',
-        background: 'rgba(15,23,42,0.4)',
+        gap: 10, border: '2px dashed rgba(138,131,122,0.25)', borderRadius: 14, padding: '28px 16px',
+        cursor: uploading ? 'wait' : 'pointer', color: '#8a837a',
+        background: '#ece4d6',
         transition: `all 0.3s ${SPRING}`,
       }}
-      onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'rgba(96,165,250,0.5)'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)' }}
-      onDragLeave={e => { e.currentTarget.style.borderColor = 'rgba(148,163,184,0.25)'; e.currentTarget.style.background = 'rgba(15,23,42,0.4)' }}
+      onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'rgba(184,138,46,0.5)'; e.currentTarget.style.background = 'rgba(184,138,46,0.08)' }}
+      onDragLeave={e => { e.currentTarget.style.borderColor = 'rgba(138,131,122,0.25)'; e.currentTarget.style.background = '#ece4d6' }}
       onDrop={e => { e.preventDefault(); handle(e.dataTransfer.files[0]) }}
     >
       <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handle(e.target.files[0])} />
       {uploading
-        ? <div style={{ width: 32, height: 32, border: '3px solid rgba(96,165,250,0.3)', borderTopColor: '#60a5fa', borderRadius: '50%', animation: 'vch-float1 1s linear infinite' }} />
-        : <Icons.upload size={28} color="#475569" />
+        ? <div style={{ width: 32, height: 32, border: '3px solid rgba(184,138,46,0.3)', borderTopColor: '#b88a2e', borderRadius: '50%', animation: 'vch-float1 1s linear infinite' }} />
+        : <Icons.upload size={28} color="#a39b8e" />
       }
-      <span style={{ fontSize: 13, textAlign: 'center', lineHeight: 1.6, color: '#64748b' }}>
+      <span style={{ fontSize: 13, textAlign: 'center', lineHeight: 1.6, color: '#8a837a' }}>
         {uploading ? 'מעלה תמונה...' : 'גרור תמונה לכאן\nאו לחץ לצירוף / צילום שובר'}
       </span>
     </label>
   )
 }
 
-// ── VoucherCard — colored card with logo ───────────────────────────────────────
+// ── Half-ring dial showing remaining % of original ─────────────────────────────
+
+function BalanceDial({ pct, color, size = 72 }) {
+  // Half-ring (semi-circle arc) matching v2 HTML spec
+  const clamped = Math.max(0, Math.min(100, pct ?? 100))
+  const w = size
+  const h = Math.round(size * 0.66)
+  const r = (w - 10) / 2
+  const cx = w / 2
+  const cy = h - 4
+  const circ = Math.PI * r
+  const offset = circ * (1 - clamped / 100)
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block', overflow: 'visible' }}>
+      <path
+        d={`M 5 ${cy} A ${r} ${r} 0 0 1 ${w - 5} ${cy}`}
+        fill="none"
+        stroke="rgba(27,26,23,0.08)"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d={`M 5 ${cy} A ${r} ${r} 0 0 1 ${w - 5} ${cy}`}
+        fill="none"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        style={{ transition: `stroke-dashoffset 0.8s ${SPRING}` }}
+      />
+    </svg>
+  )
+}
+
+// ── VoucherCard — perforated ticket with stub + logo + dial ────────────────────
+
+// Warm brand palette for the stub (matches v2 HTML --accent-* tokens)
+const V2_BRAND = {
+  'ChefZone':          '#2e7a7a',
+  'BUYME ALL':         '#6b3d66',
+  'BUYME CHEF':        '#c94f6d',
+  'ישראכרט Gift Card': '#3a6b82',
+  'נופשונית':          '#3a6b82',
+  'נופשונית פלוס':     '#5f6b3a',
+  'אל על':             '#3a6b82',
+  'קרפור':             '#c94f6d',
+  'כרטיס מתנה':        '#e87b3a',
+  'זיכוי':             '#8a837a',
+  'ואוצ׳ר':            '#6b3d66',
+  'כרטיסי פיס':       '#b88a2e',
+  'מקדונלדס':          '#c94f6d',
+  'אחר':               '#8a837a',
+}
 
 function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onArchive, onUnarchive, tab, index }) {
-  const cardColor = CARD_COLORS[v.type] || CARD_COLORS['אחר']
+  const brand     = V2_BRAND[v.type] || V2_BRAND['אחר']
   const logoKey   = TYPE_LOGO[v.type]
   const logoSrc   = logoKey ? VOUCHER_LOGOS[logoKey] : null
   const cur       = v.currency || 'ILS'
+  const cardColor = brand
   const remaining = Number(v.remaining_amount) || 0
   const original  = Number(v.original_amount)  || 0
   const hasOrig   = v.original_amount != null && original > 0
@@ -1210,94 +1264,149 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
         }} />
       )}
 
-      {/* Colored header card */}
+      {/* Perforated ticket — light paper body + brand-colored stub on right */}
       <div
         onClick={onToggle}
         style={{
-          background: `linear-gradient(135deg, ${cardColor}, ${cardColor}dd)`,
-          borderRadius: expanded ? '14px 14px 0 0' : 14,
-          minHeight: 84,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
+          background: '#ffffff',
+          borderRadius: 14,
+          minHeight: 108,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1px 96px',
           cursor: 'pointer',
-          boxShadow: urgencyColor
-            ? `0 4px 24px ${urgencyColor}55, 0 2px 8px rgba(0,0,0,0.3), inset 0 0 0 ${isCritical ? '2px' : '1.5px'} ${urgencyColor}cc`
-            : `0 4px 20px ${cardColor}44, 0 2px 8px rgba(0,0,0,0.2)`,
-          transition: `filter 0.2s ${SPRING}, transform 0.2s ${SPRING}`,
+          boxShadow: isCritical
+            ? `0 0 0 1.5px #c94a3b, 0 6px 18px rgba(201,74,59,0.18)`
+            : '0 1px 2px rgba(27,26,23,0.04), 0 6px 16px rgba(27,26,23,0.06)',
+          transition: `transform 0.2s ${SPRING}, box-shadow 0.2s ${SPRING}`,
           position: 'relative',
           overflow: 'hidden',
         }}
-        onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; e.currentTarget.style.transform = 'scale(1.01)' }}
-        onMouseLeave={e => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'scale(1)' }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}
       >
-        {/* Subtle inner glow */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%)',
-          pointerEvents: 'none',
-        }} />
-
-        <div style={{ flex: 1, minWidth: 0, paddingLeft: 12, position: 'relative' }}>
-          <div style={{
-            fontSize: 18, fontWeight: 800, color: '#fff',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            lineHeight: 1.15, marginBottom: 4,
-            textShadow: '0 1px 3px rgba(0,0,0,0.2)',
-          }}>
-            {v.name}
-          </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            {v.received_by && <span>{v.received_by}</span>}
-            {v.received_by && v.expiry_date && <span style={{ opacity: 0.5 }}>·</span>}
-            {urgencyColor ? (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                background: 'rgba(0,0,0,0.35)',
-                border: `1px solid ${urgencyColor}`,
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: 12,
-                padding: '3px 9px',
-                borderRadius: 12,
-                boxShadow: `0 0 12px ${urgencyColor}88`,
-              }}>
-                {daysLeft < 0 ? `פג לפני ${-daysLeft}י` : daysLeft === 0 ? 'פג היום!' : `${daysLeft} ימים`}
-              </span>
-            ) : v.expiry_date ? (
-              <span>עד {fmtDate(v.expiry_date)}</span>
-            ) : (
-              <span>ללא תוקף</span>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, position: 'relative' }}>
-          <div style={{ textAlign: 'left' }}>
-            {hasOrig && (
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginBottom: 1 }}>
-                מתוך {fmtMoney(original, cur)}
-              </div>
-            )}
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#fff', lineHeight: 1.1, textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-              {fmtMoney(remaining, cur)}
+        {/* ── MAIN BODY — left (white paper) ───────────────────────────── */}
+        <div style={{ padding: '14px 16px 14px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, position: 'relative' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 17, fontWeight: 700, color: '#1b1a17',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              lineHeight: 1.15, marginBottom: 5, letterSpacing: '-0.01em',
+            }}>
+              {v.name}
+            </div>
+            <div style={{ fontSize: 12, color: '#8a837a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              {v.received_by && <span style={{ color: '#4a4640', fontWeight: 600 }}>{v.received_by}</span>}
+              {v.received_by && v.expiry_date && <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#8a837a', display: 'inline-block' }} />}
+              {urgencyColor ? (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: isCritical ? 'rgba(201,74,59,0.12)' : 'rgba(193,136,54,0.14)',
+                  color: isCritical ? '#c94a3b' : '#c18836',
+                  fontWeight: 800, fontSize: 11,
+                  padding: '3px 9px', borderRadius: 999,
+                }}>
+                  {daysLeft < 0 ? `פג לפני ${-daysLeft}י` : daysLeft === 0 ? 'פג היום!' : `${daysLeft} ימים`}
+                </span>
+              ) : v.expiry_date ? (
+                <span>עד {fmtDate(v.expiry_date)}</span>
+              ) : (
+                <span>ללא תוקף</span>
+              )}
             </div>
           </div>
 
+          {/* Bottom: amount + dial */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, marginTop: 8 }}>
+            <div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#1b1a17', lineHeight: 1, letterSpacing: '-0.02em', fontFeatureSettings: '"tnum"' }}>
+                {fmtMoney(remaining, cur)}
+              </div>
+              {hasOrig && (
+                <div style={{ fontSize: 10, color: '#8a837a', marginTop: 4, fontWeight: 600 }}>
+                  מתוך <b style={{ color: '#4a4640', fontWeight: 800 }}>{fmtMoney(original, cur)}</b> · <b style={{ color: '#4a4640', fontWeight: 800 }}>{pct}%</b>
+                </div>
+              )}
+            </div>
+            {hasOrig && (
+              <div style={{ position: 'relative' }}>
+                <BalanceDial pct={pct} color={brand} size={64} />
+              </div>
+            )}
+          </div>
+
+          {/* Caret */}
           <div style={{
-            width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0,
-            background: 'rgba(255,255,255,0.15)',
+            position: 'absolute', left: 10, bottom: 8,
+            width: 22, height: 22, borderRadius: '50%',
+            background: expanded ? 'rgba(27,26,23,0.1)' : 'rgba(27,26,23,0.06)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.1)',
+            transition: `transform 0.25s ${SPRING}, background 0.2s ${SPRING}`,
+            transform: expanded ? 'rotate(180deg)' : 'rotate(0)',
+          }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5l3 3 3-3" stroke="#4a4640" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
+
+        {/* ── PERFORATION LINE between body and stub ──────────────────── */}
+        <div style={{ position: 'relative', width: 1 }}>
+          <div style={{
+            position: 'absolute', top: 0, bottom: 0, left: 0,
+            borderLeft: '2px dashed rgba(27,26,23,0.16)',
+          }} />
+          {/* top notch */}
+          <div style={{
+            position: 'absolute', top: -9, left: -9,
+            width: 18, height: 18, borderRadius: '50%',
+            background: '#f5efe6',
+            boxShadow: 'inset 0 0 0 1px rgba(27,26,23,0.08)',
+          }} />
+          {/* bottom notch */}
+          <div style={{
+            position: 'absolute', bottom: -9, left: -9,
+            width: 18, height: 18, borderRadius: '50%',
+            background: '#f5efe6',
+            boxShadow: 'inset 0 0 0 1px rgba(27,26,23,0.08)',
+          }} />
+        </div>
+
+        {/* ── STUB (brand color, far right in RTL) ────────────────────── */}
+        <div style={{
+          background: brand,
+          color: '#fff',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 8, padding: '12px 8px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* diagonal pattern */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'repeating-linear-gradient(135deg, rgba(27,26,23,0.05) 0 8px, transparent 8px 16px)',
+            pointerEvents: 'none',
+          }} />
+          <div style={{
+            width: 52, height: 52, borderRadius: 11,
+            background: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.04)',
+            position: 'relative', zIndex: 1,
+            padding: 6,
           }}>
             {logoSrc
-              ? <img src={logoSrc} alt={v.type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: 2 }}>
-                  {(v.type || '').slice(0, 4)}
-                </span>
-            }
+              ? <img src={logoSrc} alt={v.type} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 800, fontSize: 14, color: brand, letterSpacing: '0.02em' }}>
+                  {(v.type || 'שובר').slice(0, 4)}
+                </span>}
+          </div>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
+            position: 'relative', zIndex: 1,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            maxWidth: 78, textAlign: 'center',
+          }}>
+            {v.type || 'שובר'}
           </div>
         </div>
       </div>
@@ -1321,8 +1430,8 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
                 borderRadius: 12,
                 padding: '12px 16px',
                 cursor: 'pointer',
-                border: '1px solid rgba(96,165,250,0.18)',
-                background: 'rgba(15,23,42,0.55)',
+                border: '1px solid rgba(27,26,23,0.3)',
+                background: '#1b1a17',
                 position: 'relative',
                 transition: `background 0.2s ${SPRING}, border-color 0.2s ${SPRING}`,
               }}
@@ -1330,19 +1439,19 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
               onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(v.voucher_number) }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>מספר שובר</span>
-                {v.cvv && <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>CVV: <code style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 800 }}>{v.cvv}</code></span>}
+                <span style={{ fontSize: 10, color: '#c9bfae', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>מספר שובר</span>
+                {v.cvv && <span style={{ fontSize: 10, color: '#c9bfae', fontWeight: 700 }}>CVV: <code style={{ color: '#f5efe6', fontSize: 14, fontWeight: 800, letterSpacing: '0.08em', userSelect: 'all' }}>{v.cvv}</code></span>}
               </div>
               <code style={{
                 display: 'block',
                 fontFamily: "'JetBrains Mono','Space Mono','SF Mono',Consolas,monospace",
                 fontSize: 26,
                 fontWeight: 800,
-                color: '#f1f5f9',
+                color: '#f5efe6',
                 letterSpacing: '0.08em',
                 lineHeight: 1.2,
                 wordBreak: 'break-all',
-                textShadow: '0 0 16px rgba(96,165,250,0.15)',
+                textShadow: '0 0 16px rgba(184,138,46,0.35)',
                 userSelect: 'all',
               }}>{v.voucher_number}</code>
             </div>
@@ -1353,14 +1462,14 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
             <div style={{ display: 'flex', gap: 8, padding: '12px 14px 0' }}>
               {v.expiry_date && (
                 <div style={{ flex: 1, ...GLASS.meta, borderRadius: 10, padding: '9px 12px' }}>
-                  <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>תוקף</div>
+                  <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>תוקף</div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: exp.color }}>{fmtDate(v.expiry_date)}</div>
                 </div>
               )}
               {v.added_by && (
                 <div style={{ flex: 1, ...GLASS.meta, borderRadius: 10, padding: '9px 12px' }}>
-                  <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>הוסיף</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>{USER_NAMES[v.added_by] || v.added_by}</div>
+                  <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>הוסיף</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#4a4640' }}>{USER_NAMES[v.added_by] || v.added_by}</div>
                 </div>
               )}
             </div>
@@ -1369,7 +1478,7 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
           {/* Progress bar with glow */}
           {hasOrig && (
             <div style={{ padding: '10px 14px 0' }}>
-              <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, height: 5, overflow: 'hidden' }}>
+              <div style={{ background: 'rgba(27,26,23,0.05)', borderRadius: 6, height: 5, overflow: 'hidden' }}>
                 <div style={{
                   width: `${Math.max(0, Math.min(100, pct ?? 100))}%`,
                   height: '100%',
@@ -1379,7 +1488,7 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
                   boxShadow: `0 0 8px ${cardColor}66`,
                 }} />
               </div>
-              <div style={{ fontSize: 9, color: '#475569', marginTop: 3, textAlign: 'left' }}>
+              <div style={{ fontSize: 9, color: '#a39b8e', marginTop: 3, textAlign: 'left' }}>
                 נותר {pct}% מהסכום המקורי
               </div>
             </div>
@@ -1388,9 +1497,9 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
           {/* Type badge + flags */}
           <div style={{ padding: '10px 14px 0', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <TypeBadge type={v.type} small />
-            {v.is_physical      && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', color: '#94a3b8', borderRadius: 10, padding: '2px 7px', border: '1px solid rgba(255,255,255,0.06)' }}>פיזי</span>}
-            {v.has_physical_card && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', color: '#94a3b8', borderRadius: 10, padding: '2px 7px', border: '1px solid rgba(255,255,255,0.06)' }}>כרטיס פיזי</span>}
-            {v.scan_url && <span title="יש סריקה"><Icons.camera size={13} color="#64748b" /></span>}
+            {v.is_physical      && <span style={{ fontSize: 11, background: 'rgba(27,26,23,0.05)', color: '#8a837a', borderRadius: 10, padding: '2px 7px', border: '1px solid rgba(27,26,23,0.05)' }}>פיזי</span>}
+            {v.has_physical_card && <span style={{ fontSize: 11, background: 'rgba(27,26,23,0.05)', color: '#8a837a', borderRadius: 10, padding: '2px 7px', border: '1px solid rgba(27,26,23,0.05)' }}>כרטיס פיזי</span>}
+            {v.scan_url && <span title="יש סריקה"><Icons.camera size={13} color="#8a837a" /></span>}
           </div>
 
           {/* Scan image */}
@@ -1398,7 +1507,7 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
             <div style={{ padding: '10px 14px 0' }}>
               <a href={v.scan_url} target="_blank" rel="noreferrer">
                 <img src={v.scan_url} alt="סריקת שובר"
-                  style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', display: 'block', objectFit: 'contain', cursor: 'zoom-in' }} />
+                  style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 10, border: '1px solid rgba(27,26,23,0.08)', display: 'block', objectFit: 'contain', cursor: 'zoom-in' }} />
               </a>
             </div>
           )}
@@ -1406,28 +1515,28 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
           {/* Stores */}
           {v.stores && (
             <div style={{ padding: '10px 14px 0' }}>
-              <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>חנויות</div>
+              <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>חנויות</div>
               <StoreChips stores={v.stores} type={v.type} editable={false} />
             </div>
           )}
 
           {/* Notes */}
           {v.notes && (
-            <div style={{ padding: '8px 14px 0', fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-              <Icons.note size={12} color="#64748b" style={{ marginTop: 2, flexShrink: 0 }} /> {v.notes}
+            <div style={{ padding: '8px 14px 0', fontSize: 12, color: '#8a837a', display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+              <Icons.note size={12} color="#8a837a" style={{ marginTop: 2, flexShrink: 0 }} /> {v.notes}
             </div>
           )}
 
           {/* Redemption log */}
           <div style={{ padding: '12px 14px 0' }}>
-            <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>היסטוריית מימושים</div>
+            <div style={{ fontSize: 9, color: '#8a837a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>היסטוריית מימושים</div>
             {!redemptions ? (
-              <div style={{ fontSize: 13, color: '#475569' }}>
-                <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(96,165,250,0.3)', borderTopColor: '#60a5fa', borderRadius: '50%', animation: 'vch-float1 1s linear infinite', verticalAlign: 'middle', marginLeft: 6 }} />
+              <div style={{ fontSize: 13, color: '#a39b8e' }}>
+                <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(184,138,46,0.3)', borderTopColor: '#b88a2e', borderRadius: '50%', animation: 'vch-float1 1s linear infinite', verticalAlign: 'middle', marginLeft: 6 }} />
                 טוען...
               </div>
             ) : redemptions.length === 0 ? (
-              <div style={{ fontSize: 13, color: '#475569', fontStyle: 'italic' }}>טרם בוצע מימוש</div>
+              <div style={{ fontSize: 13, color: '#a39b8e', fontStyle: 'italic' }}>טרם בוצע מימוש</div>
             ) : redemptions.map(r => (
               <div key={r.id} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
@@ -1435,13 +1544,13 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
               }}>
                 <div>
                   <div style={{ fontWeight: 800, color: '#f87171', fontSize: 15 }}>-{fmtMoney(r.amount, cur)}</div>
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
-                    {r.store && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icons.pin size={9} color="#64748b" /> {r.store} · </span>}
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icons.user size={9} color="#64748b" /> {r.redeemed_by}</span>
+                  <div style={{ fontSize: 11, color: '#8a837a', marginTop: 1 }}>
+                    {r.store && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icons.pin size={9} color="#8a837a" /> {r.store} · </span>}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icons.user size={9} color="#8a837a" /> {r.redeemed_by}</span>
                     {r.notes && <span> · {r.notes}</span>}
                   </div>
                 </div>
-                <div style={{ fontSize: 10, color: '#475569', textAlign: 'left', flexShrink: 0 }}>{fmtDateTime(r.redeemed_at)}</div>
+                <div style={{ fontSize: 10, color: '#a39b8e', textAlign: 'left', flexShrink: 0 }}>{fmtDateTime(r.redeemed_at)}</div>
               </div>
             ))}
           </div>
@@ -1461,18 +1570,18 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
                 <button
                   onClick={e => { e.stopPropagation(); onEdit() }}
                   style={{ ...css.outlineBtn, display: 'inline-flex', alignItems: 'center', gap: 5 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(27,26,23,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(27,26,23,0.05)'}
                 >
-                  <Icons.edit size={13} color="#93c5fd" /> עריכה
+                  <Icons.edit size={13} color="#b88a2e" /> עריכה
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onArchive() }}
                   style={{ ...css.ghostBtn, display: 'inline-flex', alignItems: 'center', gap: 5 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(27,26,23,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(27,26,23,0.04)'}
                 >
-                  <Icons.archive size={13} color="#94a3b8" /> ארכיון
+                  <Icons.archive size={13} color="#8a837a" /> ארכיון
                 </button>
               </>
             ) : (
@@ -1480,18 +1589,18 @@ function VoucherCard({ v, expanded, redemptions, onToggle, onRedeem, onEdit, onA
                 <button
                   onClick={e => { e.stopPropagation(); onEdit() }}
                   style={{ ...css.outlineBtn, display: 'inline-flex', alignItems: 'center', gap: 5 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(27,26,23,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(27,26,23,0.05)'}
                 >
-                  <Icons.edit size={13} color="#93c5fd" /> עריכה
+                  <Icons.edit size={13} color="#b88a2e" /> עריכה
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onUnarchive() }}
                   style={{ ...css.outlineBtn, display: 'inline-flex', alignItems: 'center', gap: 5 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(27,26,23,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(27,26,23,0.05)'}
                 >
-                  <Icons.refresh size={13} color="#93c5fd" /> שחזר
+                  <Icons.refresh size={13} color="#b88a2e" /> שחזר
                 </button>
               </>
             )}
@@ -1542,10 +1651,10 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
           <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 2 }} />
         </div>
         <div style={{ padding: '10px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#e2e8f0' }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#475569', lineHeight: 1, padding: 0 }}>×</button>
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1b1a17' }}>{title}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#a39b8e', lineHeight: 1, padding: 0 }}>×</button>
         </div>
-        <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 0 }}>
+        <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid rgba(27,26,23,0.05)', gap: 0 }}>
           {[
             { key: 'info',   label: 'פרטים' },
             { key: 'stores', label: `חנויות${storeCount ? ` (${storeCount})` : ''}` },
@@ -1554,8 +1663,8 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
             <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
               padding: '8px 18px', background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: F, fontSize: 13, fontWeight: 600,
-              color: activeTab === t.key ? '#60a5fa' : '#64748b',
-              borderBottom: activeTab === t.key ? '2px solid #60a5fa' : '2px solid transparent',
+              color: activeTab === t.key ? '#b88a2e' : '#8a837a',
+              borderBottom: activeTab === t.key ? '2px solid #b88a2e' : '2px solid transparent',
               marginBottom: -1,
               transition: `all 0.2s ${SPRING}`,
             }}>
@@ -1571,8 +1680,8 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
               <label style={css.label}>שם השובר *</label>
               <input style={css.input} autoFocus value={form.name}
                 onChange={e => set('name', e.target.value)} placeholder="פוקס – ₪200 מתנה"
-                onFocus={e => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.boxShadow = '0 0 16px rgba(59,130,246,0.12)' }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }} />
+                onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 16px rgba(184,138,46,0.1)' }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }} />
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -1585,9 +1694,9 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
                     <button key={t} onClick={() => handleTypeChange(t)} style={{
                       padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
                       fontFamily: F, fontSize: 12, fontWeight: 600,
-                      background: sel ? c.bg : 'rgba(255,255,255,0.04)',
-                      color: sel ? c.text : '#64748b',
-                      border: `2px solid ${sel ? c.border : 'rgba(255,255,255,0.08)'}`,
+                      background: sel ? c.bg : 'rgba(27,26,23,0.04)',
+                      color: sel ? c.text : '#8a837a',
+                      border: `2px solid ${sel ? c.border : 'rgba(27,26,23,0.08)'}`,
                       transition: `all 0.2s ${SPRING}`,
                     }}>
                       {t}
@@ -1610,16 +1719,16 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
                   <input type="number" style={css.input} value={form.original_amount}
                     onChange={e => { set('original_amount', e.target.value); if (!initial && !form.remaining_amount) set('remaining_amount', e.target.value) }}
                     placeholder="200" min="0"
-                    onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                    onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
                 </div>
               </div>
               <div>
                 <label style={css.label}>יתרה נוכחית</label>
                 <input type="number" style={css.input} value={form.remaining_amount}
                   onChange={e => set('remaining_amount', e.target.value)} placeholder="200" min="0"
-                  onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                  onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
               </div>
             </div>
 
@@ -1628,15 +1737,15 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
                 <label style={css.label}>מספר שובר</label>
                 <input style={css.input} value={form.voucher_number}
                   onChange={e => set('voucher_number', e.target.value)} placeholder="1234-5678"
-                  onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                  onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
               </div>
               <div>
                 <label style={css.label}>CVV</label>
                 <input style={css.input} value={form.cvv}
                   onChange={e => set('cvv', e.target.value)} placeholder="123" maxLength={6}
-                  onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                  onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
               </div>
             </div>
 
@@ -1659,15 +1768,15 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
               <textarea style={{ ...css.input, resize: 'vertical', minHeight: 56, lineHeight: 1.6 }}
                 value={form.notes} onChange={e => set('notes', e.target.value)}
                 placeholder="שובר מתנה מדנה ליומולדת..."
-                onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
             </div>
 
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               {[['is_physical', 'שובר פיזי'], ['has_physical_card', 'יש כרטיס מתנה פיזי']].map(([k, l]) => (
-                <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 14, cursor: 'pointer', color: '#cbd5e1' }}>
+                <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 14, cursor: 'pointer', color: '#4a4640' }}>
                   <input type="checkbox" checked={!!form[k]} onChange={e => set(k, e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#3b82f6' }} />
+                    style={{ width: 16, height: 16, accentColor: '#b88a2e' }} />
                   {l}
                 </label>
               ))}
@@ -1675,7 +1784,7 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
           </>}
 
           {activeTab === 'stores' && <>
-            <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(59,130,246,0.08)', borderRadius: 10, fontSize: 13, color: '#93c5fd', lineHeight: 1.6, border: '1px solid rgba(96,165,250,0.15)' }}>
+            <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(184,138,46,0.08)', borderRadius: 10, fontSize: 13, color: '#b88a2e', lineHeight: 1.6, border: '1px solid rgba(184,138,46,0.2)' }}>
               לחץ <strong>מלא אוטומטית</strong> לטעינת רשימת הרשתות המכבדות את <strong>{form.type}</strong>.
               ניתן להוסיף ולהסיר ידנית.
             </div>
@@ -1683,14 +1792,14 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
           </>}
 
           {activeTab === 'image' && <>
-            <div style={{ marginBottom: 14, fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>
+            <div style={{ marginBottom: 14, fontSize: 13, color: '#8a837a', lineHeight: 1.6 }}>
               צרף צילום של השובר הפיזי. ניתן לגרור קובץ, לבחור תמונה, או לצלם ישירות מהנייד.
             </div>
             <ImageUpload url={form.scan_url} onChange={v => set('scan_url', v)} />
           </>}
         </div>
 
-        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(27,26,23,0.05)', display: 'flex', justifyContent: 'space-between' }}>
           <button onClick={onClose} style={css.ghostBtn}>ביטול</button>
           <button onClick={handleSave} style={css.primaryBtn} disabled={saving}>
             {saving ? 'שומר...' : 'שמור שובר'}
@@ -1728,10 +1837,10 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
           <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 2 }} />
         </div>
         <div style={{ padding: '10px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icons.card size={18} color="#60a5fa" /> מימוש שובר
+          <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1b1a17', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icons.card size={18} color="#b88a2e" /> מימוש שובר
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#475569', lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#a39b8e', lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 20px' }}>
@@ -1740,7 +1849,7 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <div>
-              <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 15, marginBottom: 4 }}>{voucher.name}</div>
+              <div style={{ fontWeight: 700, color: '#1b1a17', fontSize: 15, marginBottom: 4 }}>{voucher.name}</div>
               <TypeBadge type={voucher.type} small />
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: cardColor, textShadow: `0 0 12px ${cardColor}44` }}>{fmtMoney(voucher.remaining_amount, voucher.currency)}</div>
@@ -1751,8 +1860,8 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
             <input type="number" style={{ ...css.input, fontSize: 20, fontWeight: 700, textAlign: 'center' }} autoFocus
               value={form.amount} onChange={e => set('amount', e.target.value)}
               placeholder="0" min="0.01" step="0.01"
-              onFocus={e => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(59,130,246,0.15)' }}
-              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }} />
+              onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(184,138,46,0.15)' }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }} />
           </div>
 
           <div style={{ marginBottom: 14 }}>
@@ -1762,9 +1871,9 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
                 {stores.slice(0, 14).map((s, i) => (
                   <button key={i} onClick={() => set('store', s)} style={{
                     padding: '4px 10px', borderRadius: 20, cursor: 'pointer', fontFamily: F, fontSize: 12,
-                    background: form.store === s ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.06)',
-                    color: form.store === s ? '#93c5fd' : '#94a3b8',
-                    border: `1px solid ${form.store === s ? 'rgba(147,197,253,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                    background: form.store === s ? 'rgba(184,138,46,0.18)' : 'rgba(27,26,23,0.05)',
+                    color: form.store === s ? '#b88a2e' : '#8a837a',
+                    border: `1px solid ${form.store === s ? 'rgba(184,138,46,0.3)' : 'rgba(27,26,23,0.08)'}`,
                     transition: `all 0.15s ${SPRING}`,
                   }}>
                     {s}
@@ -1774,25 +1883,25 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
             )}
             <input style={css.input} value={form.store}
               onChange={e => set('store', e.target.value)} placeholder="שם המקום"
-              onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
           </div>
 
           <div style={{ marginBottom: 14 }}>
             <label style={css.label}>הערה</label>
             <input style={css.input} value={form.notes}
               onChange={e => set('notes', e.target.value)} placeholder="אופציונלי"
-              onFocus={e => e.target.style.borderColor = 'rgba(96,165,250,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              onFocus={e => e.target.style.borderColor = 'rgba(184,138,46,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(27,26,23,0.1)'} />
           </div>
 
-          <div style={{ fontSize: 12, color: '#475569' }}>
-            ממש ע״י <strong style={{ color: '#94a3b8' }}>{userName}</strong> ·{' '}
+          <div style={{ fontSize: 12, color: '#a39b8e' }}>
+            ממש ע״י <strong style={{ color: '#8a837a' }}>{userName}</strong> ·{' '}
             {new Date().toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
 
-        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(27,26,23,0.05)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={css.ghostBtn}>ביטול</button>
           <button onClick={handle} style={{ ...css.primaryBtn, background: `${cardColor}88`, borderColor: `${cardColor}66` }} disabled={saving}>
             {saving ? 'שומר...' : 'אשר מימוש'}
@@ -1921,39 +2030,55 @@ export default function Vouchers({ session }) {
           {/* Search */}
           {tab !== 'cards' && <div style={{ position: 'relative', marginBottom: 12 }}>
             <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-              <Icons.search size={16} color="#475569" />
+              <Icons.search size={16} color="#a39b8e" />
             </span>
             <input style={{ ...css.input, paddingRight: 36, fontSize: 15, borderRadius: 12 }}
               placeholder="חפש לפי שם, חנות, סוג, מי קיבל..."
               value={search} onChange={e => setSearch(e.target.value)}
-              onFocus={e => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(59,130,246,0.15)' }}
-              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }} />
+              onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(184,138,46,0.15)' }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }} />
           </div>}
 
-          {/* Stats bar - dark glass */}
+          {/* Stats bar - dual-currency summary */}
           {tab === 'active' && !loading && vouchers.length > 0 && (
             <div style={{
-              ...GLASS.card, borderRadius: 14, padding: '12px 16px', marginBottom: 12,
-              display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13, alignItems: 'center',
+              ...GLASS.card, borderRadius: 16, padding: '16px 20px', marginBottom: 14,
               animation: `vch-fadeUp 0.4s ${SPRING}`,
             }}>
-              <span style={{ color: '#64748b' }}>{vouchers.length} שוברים</span>
-              <span style={{ fontWeight: 700, color: '#60a5fa', fontSize: 16, textShadow: '0 0 12px rgba(96,165,250,0.3)' }}>
-                יתרה: {fmtMoney(totalILS, 'ILS')}
-                {totalUSD > 0 && <span> · {fmtMoney(totalUSD, 'USD')}</span>}
-                {totalEUR > 0 && <span> · {fmtMoney(totalEUR, 'EUR')}</span>}
-              </span>
-              {urgentCount > 0 && (
-                <span style={{
-                  color: '#f87171', fontWeight: 700,
-                  background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.2)',
-                  padding: '3px 10px', borderRadius: 8,
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  animation: 'vch-pulse 2s ease-in-out infinite',
-                }}>
-                  <Icons.alert size={13} color="#f87171" /> {urgentCount} פגים בקרוב
-                </span>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: 28, fontWeight: 800, color: '#b88a2e', textShadow: '0 0 16px rgba(184,138,46,0.3)', lineHeight: 1 }}>
+                    {fmtMoney(totalILS, 'ILS')}
+                  </span>
+                </div>
+                {(totalUSD > 0 || totalEUR > 0) && (
+                  <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.12)' }} />
+                )}
+                {totalUSD > 0 && (
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#b88a2e', lineHeight: 1 }}>
+                    {fmtMoney(totalUSD, 'USD')}
+                  </span>
+                )}
+                {totalEUR > 0 && (
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#b88a2e', lineHeight: 1 }}>
+                    {fmtMoney(totalEUR, 'EUR')}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap', fontSize: 12, color: '#8a837a' }}>
+                <span><strong style={{ color: '#4a4640', fontWeight: 700 }}>{vouchers.length}</strong> שוברים פעילים</span>
+                {urgentCount > 0 && (
+                  <span style={{
+                    color: '#f87171', fontWeight: 700,
+                    background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.2)',
+                    padding: '2px 10px', borderRadius: 8,
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    animation: 'vch-pulse 2s ease-in-out infinite',
+                  }}>
+                    <Icons.alert size={12} color="#f87171" /> {urgentCount} פגים בקרוב
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
@@ -1977,16 +2102,16 @@ export default function Vouchers({ session }) {
                     style={{
                       flex: 1,
                       padding: '8px 12px',
-                      background: active ? 'rgba(96,165,250,0.18)' : 'transparent',
-                      border: active ? '1px solid rgba(96,165,250,0.4)' : '1px solid transparent',
-                      color: active ? '#93c5fd' : '#94a3b8',
+                      background: active ? 'rgba(27,26,23,0.3)' : 'transparent',
+                      border: active ? '1px solid rgba(184,138,46,0.4)' : '1px solid transparent',
+                      color: active ? '#b88a2e' : '#8a837a',
                       borderRadius: 9,
                       fontSize: 12,
                       fontWeight: 700,
                       fontFamily: F,
                       cursor: 'pointer',
                       transition: `background 0.18s ${SPRING}, color 0.18s ${SPRING}, border-color 0.18s ${SPRING}`,
-                      boxShadow: active ? '0 0 16px rgba(96,165,250,0.18)' : 'none',
+                      boxShadow: active ? '0 0 16px rgba(27,26,23,0.3)' : 'none',
                     }}
                   >
                     {opt.label}
@@ -2019,7 +2144,7 @@ export default function Vouchers({ session }) {
                     <span style={{ fontSize: 12, fontWeight: 800, color: '#fca5a5', letterSpacing: '0.04em' }}>
                       פגים בקרוב
                     </span>
-                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+                    <span style={{ fontSize: 11, color: '#8a837a', fontWeight: 500 }}>
                       ({expiringSoon.length})
                     </span>
                   </div>
@@ -2046,13 +2171,13 @@ export default function Vouchers({ session }) {
                     }}>
                       <div style={{
                         width: 3, height: 16, borderRadius: 2,
-                        background: '#60a5fa',
-                        boxShadow: '0 0 10px rgba(96,165,250,0.4)',
+                        background: '#b88a2e',
+                        boxShadow: '0 0 10px rgba(184,138,46,0.4)',
                       }} />
-                      <span style={{ fontSize: 12, fontWeight: 800, color: '#93c5fd', letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#b88a2e', letterSpacing: '0.04em' }}>
                         כל השוברים
                       </span>
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+                      <span style={{ fontSize: 11, color: '#8a837a', fontWeight: 500 }}>
                         ({restList.length})
                       </span>
                     </div>
@@ -2086,10 +2211,10 @@ export default function Vouchers({ session }) {
                       background: groupColor,
                       boxShadow: `0 0 10px ${groupColor}88`,
                     }} />
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0', letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: '#1b1a17', letterSpacing: '0.04em' }}>
                       {typeName}
                     </span>
-                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+                    <span style={{ fontSize: 11, color: '#8a837a', fontWeight: 500 }}>
                       ({group.length})
                     </span>
                   </div>

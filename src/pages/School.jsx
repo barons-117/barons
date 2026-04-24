@@ -1187,6 +1187,101 @@ export default function School({ session }) {
   )
 }
 
+// ─── Word Card — vocabulary lesson card ──────────────────────────────────────
+function WordCard({ q, onNext }) {
+  const [revealed, setRevealed] = useState(false)
+
+  return (
+    <div style={{ direction:'ltr', textAlign:'left' }}>
+      {/* Big word */}
+      <div style={{
+        textAlign:'center', padding:'28px 20px 20px',
+        background:'linear-gradient(135deg,#4f46e5,#7c3aed)',
+        borderRadius:16, marginTop:12, marginBottom:16,
+        boxShadow:'0 8px 32px rgba(79,70,229,0.3)',
+        animation:'bounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1)',
+      }}>
+        <div style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', marginBottom:8 }}>
+          Word of the Day
+        </div>
+        <div style={{ fontSize:48, fontWeight:900, color:'#ffffff', letterSpacing:-1, lineHeight:1.1 }}>
+          {q.word}
+        </div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,0.75)', marginTop:8, fontStyle:'italic' }}>
+          {q.part_of_speech}
+        </div>
+      </div>
+
+      {/* Hebrew meaning */}
+      <div style={{
+        background:'rgba(255,255,255,0.9)', borderRadius:14, padding:'14px 18px',
+        marginBottom:12, border:`1.5px solid ${C.border}`,
+        display:'flex', alignItems:'center', gap:12,
+      }}>
+        <span style={{ fontSize:24 }}>🇮🇱</span>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:1 }}>בעברית</div>
+          <div style={{ fontSize:18, fontWeight:800, color:C.navy, direction:'rtl' }}>{q.meaning_he}</div>
+        </div>
+      </div>
+
+      {/* English meaning */}
+      <div style={{
+        background:'rgba(255,255,255,0.9)', borderRadius:14, padding:'14px 18px',
+        marginBottom:12, border:`1.5px solid ${C.border}`,
+        display:'flex', alignItems:'center', gap:12,
+      }}>
+        <span style={{ fontSize:24 }}>🇬🇧</span>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:1 }}>In English</div>
+          <div style={{ fontSize:15, fontWeight:700, color:C.navy }}>{q.meaning_en}</div>
+        </div>
+      </div>
+
+      {/* Example sentence */}
+      <div style={{
+        background:'linear-gradient(135deg,#fffbeb,#fef3c7)', borderRadius:14, padding:'14px 18px',
+        marginBottom:12, border:`1.5px solid rgba(245,158,11,0.3)`,
+      }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'#92400e', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>📖 Example</div>
+        <div style={{ fontSize:15, color:C.navy, lineHeight:1.6 }}
+          dangerouslySetInnerHTML={{ __html: q.example }} />
+      </div>
+
+      {/* Fun tip */}
+      {q.tip && (
+        <div style={{
+          background:'rgba(99,102,241,0.06)', borderRadius:14, padding:'12px 16px',
+          marginBottom:16, border:`1.5px solid rgba(99,102,241,0.15)`,
+          cursor: revealed ? 'default' : 'pointer',
+          transition:'all 0.2s',
+        }} onClick={() => !revealed && setRevealed(true)}>
+          {revealed ? (
+            <>
+              <div style={{ fontSize:11, fontWeight:700, color:C.purple, textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>💡 Memory Tip</div>
+              <div style={{ fontSize:14, color:C.navy, lineHeight:1.6 }}>{q.tip}</div>
+            </>
+          ) : (
+            <div style={{ fontSize:14, fontWeight:700, color:C.purple, textAlign:'center' }}>
+              💡 Tap for a memory tip!
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Got it button */}
+      <button className="ba-btn-primary" onClick={onNext} style={{
+        width:'100%', padding:'15px', fontSize:16, fontWeight:800,
+        fontFamily:FONT, cursor:'pointer', borderRadius:14, border:'none',
+        background:'linear-gradient(135deg,#10b981,#34d399)',
+        boxShadow:'0 6px 20px rgba(16,185,129,0.35)',
+      }}>
+        Got it! ✅
+      </button>
+    </div>
+  )
+}
+
 // ─── Celebration Modal with confetti ─────────────────────────────────────────
 function CelebrationModal({ pct, earned, isMath, missionTitle, onContinue }) {
   const isGreat  = pct >= 80
@@ -1565,11 +1660,15 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
             borderRadius:20, padding:'18px 22px', marginBottom:16,
             boxShadow:'0 4px 16px rgba(245,158,11,0.12)',
             borderRight:`5px solid ${C.gold}`, direction:'rtl',
-            border:`1px solid rgba(245,158,11,0.2)`, borderRightWidth:5,
+            direction: isMath ? 'rtl' : 'ltr',
+            border:`1px solid rgba(245,158,11,0.2)`, borderRightWidth: isMath ? 5 : 0, borderLeftWidth: isMath ? 0 : 5,
             animation:'slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1)',
           }}>
             <div style={{ fontSize:11, fontWeight:800, textTransform:'uppercase', letterSpacing:1, color:'#92400e', marginBottom:6 }}>📖 קראי בעיון</div>
-            <div style={{ fontSize:15, lineHeight:1.8, color:C.navy, fontWeight:600 }}>{q.story}</div>
+            <div style={{ fontSize:15, lineHeight:1.8, color:C.navy, fontWeight:600 }}
+              dangerouslySetInnerHTML={{ __html: q.story }}
+              onClick={e => { if (e.target.dataset.hint) showHint(e.target.dataset.hint, e) }}
+            />
           </div>
         )}
 
@@ -1578,9 +1677,10 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
           <div style={{
             background:C.card, backdropFilter:'blur(12px)',
             borderRadius:20, padding:'22px 26px',
-            boxShadow:C.shadow, direction:'rtl',
+            boxShadow:C.shadow, direction: isMath ? 'rtl' : 'ltr',
             border:`1px solid ${C.border}`,
             animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+            textAlign: isMath ? 'right' : 'left',
           }}>
             <div style={{
               fontSize:11, fontWeight:800, textTransform:'uppercase', letterSpacing:1.5,
@@ -1591,7 +1691,10 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
               שאלה {currentQ + 1} מתוך {questions.length}
             </div>
             <div style={{ fontWeight:700, fontSize:16, color:C.navy, marginBottom:14, lineHeight:1.6, marginTop:6 }}>
-              {q.type === 'fill_blank' ? null : q.text}
+              {q.type === 'fill_blank' ? null :
+                <span dangerouslySetInnerHTML={{ __html: q.text }}
+                  onClick={e => { if (e.target.dataset.hint) showHint(e.target.dataset.hint, e) }} />
+              }
             </div>
 
             {/* Hint (Hebrew) shown after first wrong on MC */}
@@ -1606,7 +1709,7 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
             )}
 
             {/* ── Math hint button (only if hint_full exists and not yet answered) ── */}
-            {isMath && q.hint_full && !answered && !interactiveAnswered && (
+            {isMath && q.hint_full && !answered && !interactiveAnswered && q.type !== 'word_card' && (
               <div style={{ marginBottom:14 }}>
                 {!hintUsed && !hintVisible && (
                   <button className="ba-btn-hint"
@@ -1675,11 +1778,12 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
                     <button key={i} disabled={isDisabled} onClick={() => handleMC(i)}
                       className={!isDisabled ? 'ba-btn-answer' : ''}
                       style={{
-                        width:'100%', textAlign:'right', padding:'13px 18px',
+                        width:'100%', textAlign: isMath ? 'right' : 'left', padding:'13px 18px',
                         border:`2px solid ${border}`, borderRadius:14,
                         background:bg, fontSize:14, fontFamily:FONT,
                         cursor: isDisabled ? 'default' : 'pointer', color, fontWeight:600,
-                        display:'flex', alignItems:'center', gap:12, direction:'rtl',
+                        display:'flex', alignItems:'center', gap:12,
+                        direction: isMath ? 'rtl' : 'ltr',
                         boxShadow: !isDisabled ? '0 2px 8px rgba(99,102,241,0.06)' : 'none',
                       }}>
                       <span style={{
@@ -1772,14 +1876,25 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
             )}
 
             {/* Next button — for non-interactive types, or fallback for any unknown type */}
-            {(answered === 'done' && !isInteractiveMath) && (
-              <button onClick={() => handleNext()} style={{ width:'100%', marginTop:16, padding:'14px', background:C.navy, color:C.white, border:'none', borderRadius:12, fontSize:15, fontWeight:800, fontFamily:FONT, cursor:'pointer' }}>
-                {currentQ + 1 >= questions.length ? 'סיום משימה 🎉' : 'שאלה הבאה →'}
+            {/* ── Word Card — vocabulary lesson card ── */}
+            {q.type === 'word_card' && (
+              <WordCard q={q} onNext={() => {
+                // word_card gives full points automatically
+                const newAnswers = [...answers, { q: currentQ, correct: true, points: 1 }]
+                setAnswers(newAnswers)
+                setAnswered('done')
+                setTimeout(() => handleNext(score + 1, newAnswers), 100)
+              }} />
+            )}
+
+            {(answered === 'done' && !isInteractiveMath && q.type !== 'word_card') && (
+              <button className="ba-btn-primary" onClick={() => handleNext()} style={{ width:'100%', marginTop:16, padding:'14px', fontSize:15, fontWeight:800, fontFamily:FONT, cursor:'pointer', borderRadius:14 }}>
+                {currentQ + 1 >= questions.length ? 'סיום משימה 🎉' : 'Next question →'}
               </button>
             )}
 
             {/* Safety fallback: unknown type with no render */}
-            {!['mc','story_mc','open','place_value','number_input','fill_blank','drag_match','fraction_compare'].includes(q.type) && !interactiveAnswered && (
+            {!['mc','story_mc','open','place_value','number_input','fill_blank','drag_match','fraction_compare','word_card'].includes(q.type) && !interactiveAnswered && (
               <div style={{ marginTop:12, padding:'12px', background:C.redL, borderRadius:12, fontSize:13, color:C.red, fontWeight:700 }}>
                 ⚠️ סוג שאלה לא מוכר: {q.type}
                 <button onClick={() => handleNext()} style={{ marginRight:12, padding:'6px 14px', background:C.red, color:C.white, border:'none', borderRadius:8, fontSize:13, fontWeight:700, fontFamily:FONT, cursor:'pointer' }}>
@@ -1910,6 +2025,7 @@ function SchoolParentDashboard({ session, missions, allProgress, onBack, onMissi
   const [mathGenMsg,     setMathGenMsg]     = useState('')
   const [mathGenerating, setMathGenerating] = useState(false)
   const [confirmDelete,  setConfirmDelete]  = useState(null)
+  const [confirmReset,   setConfirmReset]   = useState(null) // {missionId, email}
   const [showArchive,    setShowArchive]    = useState(false)
   const [archived,       setArchived]       = useState([])
   const navigate = useNavigate()
@@ -2090,6 +2206,25 @@ Return JSON exactly:
   }
 
 
+  async function resetProgress(missionId, email) {
+    await supabase.from('school_progress')
+      .update({ answers: [], completed: false, last_completed_at: null, score: 0 })
+      .eq('mission_id', missionId)
+      .eq('student_email', email)
+    setConfirmReset(null)
+    // Refresh allProgress
+    const { data } = await supabase
+      .from('school_progress')
+      .select('user_id, mission_id, score, completed, xp, answers, student_email, last_completed_at, attempts')
+    const map = {}
+    ;(data || []).forEach(r => {
+      const e = r.student_email || r.user_id
+      if (!map[e]) map[e] = {}
+      map[e][r.mission_id] = r
+    })
+    setAllProgress(map)
+  }
+
   async function doDelete(missionId) {
     console.log('doDelete called:', missionId)
     const { data, error } = await supabase.from('school_missions').delete().eq('id', missionId).select()
@@ -2258,6 +2393,30 @@ Return JSON exactly:
                                 {dateStr && <span style={{ fontSize:10, fontWeight: dateStr === 'היום' ? 800 : 600, color: dateStr === 'היום' ? C.green : dateStr === 'אתמול' ? C.gold : C.light }}>
                                   {dateStr === 'היום' ? '✅ ' : dateStr === 'אתמול' ? '🕐 ' : '📅 '}{dateStr}
                                 </span>}
+                                {/* Reset button */}
+                                {confirmReset?.missionId === m.id && confirmReset?.email === email ? (
+                                  <div style={{ display:'flex', gap:3, marginTop:2 }}>
+                                    <button onClick={() => resetProgress(m.id, email)}
+                                      style={{ padding:'2px 6px', fontSize:10, fontWeight:800, fontFamily:FONT,
+                                        background:C.orange, color:C.white, border:'none', borderRadius:5, cursor:'pointer' }}>
+                                      כן
+                                    </button>
+                                    <button onClick={() => setConfirmReset(null)}
+                                      style={{ padding:'2px 6px', fontSize:10, fontWeight:700, fontFamily:FONT,
+                                        background:C.border, color:C.mid, border:'none', borderRadius:5, cursor:'pointer' }}>
+                                      לא
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => setConfirmReset({ missionId: m.id, email })}
+                                    title="אפס תשובות"
+                                    style={{ padding:'2px 7px', fontSize:10, fontWeight:700, fontFamily:FONT,
+                                      background:'rgba(249,115,22,0.08)', color:C.orange,
+                                      border:`1px solid rgba(249,115,22,0.25)`,
+                                      borderRadius:6, cursor:'pointer', marginTop:2 }}>
+                                    ↩️ אפס
+                                  </button>
+                                )}
                               </div>
                             ) : (ep.answers||[]).length > 0
                                 ? <Pill label="▶" style={{ background:C.purpleL, color:'#5b21b6' }} />

@@ -10,6 +10,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Google Analytics GA4 — BARONS -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DLFH9B6GWW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DLFH9B6GWW', {
+        page_path: window.location.hash.replace('#', '') || '/'
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
