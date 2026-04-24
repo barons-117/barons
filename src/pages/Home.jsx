@@ -197,6 +197,7 @@ const SHIMMER_STYLE = `
 
 `
 
+// ── Admin Editor ──────────────────────────────────────────────────────────────
 function MenuEditor({ menuConfig, onSave, onClose }) {
   const [config, setConfig]     = useState(JSON.parse(JSON.stringify(menuConfig)))
   const [saving, setSaving]     = useState(false)
@@ -219,8 +220,8 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
   }
 
   return (
-    <div style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.55)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'0',zIndex:9999,WebkitBackdropFilter:'blur(16px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16,animation:'home-backdrop 0.28s var(--home-ease-out) both'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="home-modal" style={{background:'#ffffff',borderRadius:20,width:'100%',maxWidth:560,margin:'8px',maxHeight:'85vh',display:'flex',flexDirection:'column',overflow:'hidden',direction:'rtl',boxShadow:'0 32px 96px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1)',fontFamily:FONT,animation:'home-modal-in 0.28s var(--home-ease-drawer) both',willChange:'transform,opacity'}} onClick={()=>setPicker(null)}>
+    <div style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.55)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16,animation:'home-backdrop 0.28s var(--home-ease-out) both'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="home-modal" style={{background:'#ffffff',borderRadius:20,width:'100%',maxWidth:560,maxHeight:'85vh',display:'flex',flexDirection:'column',overflow:'hidden',direction:'rtl',boxShadow:'0 32px 96px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1)',fontFamily:FONT,animation:'home-modal-in 0.28s var(--home-ease-drawer) both',willChange:'transform,opacity'}} onClick={()=>setPicker(null)}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 24px',borderBottom:'1px solid #f1f5f9',background:'#f8fafc'}}>
           <span style={{color:'#0f172a',fontWeight:700,fontSize:15,letterSpacing:'-0.01em'}}>עריכת תפריט</span>
           <button className="home-press home-icon-btn" style={{background:'none',border:'none',color:'#94a3b8',fontSize:18,cursor:'pointer',width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',transition:'background-color 0.15s var(--home-ease-out), color 0.15s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}} onClick={onClose}>✕</button>
@@ -302,6 +303,7 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
           <button className="home-press" style={{background:'#f1f5f9',border:'1px solid #e2e8f0',color:'#64748b',padding:'9px 16px',borderRadius:10,fontSize:12,cursor:'pointer',fontFamily:FONT,transition:'background-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}} onClick={onClose}>ביטול</button>
         </div>
       </div>
+    </div>
   )
 }
 
