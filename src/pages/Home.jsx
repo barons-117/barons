@@ -302,14 +302,6 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
           <button className="home-press" style={{background:'#f1f5f9',border:'1px solid #e2e8f0',color:'#64748b',padding:'9px 16px',borderRadius:10,fontSize:12,cursor:'pointer',fontFamily:FONT,transition:'background-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}} onClick={onClose}>ביטול</button>
         </div>
       </div>
-      {showEditor && menuConfig && (
-        <MenuEditor
-          menuConfig={menuConfig}
-          onSave={async c => { await saveMenuConfig(c); setMenuConfig(c); setShowEditor(false) }}
-          onClose={() => setShowEditor(false)}
-        />
-      )}
-    </div>
   )
 }
 
