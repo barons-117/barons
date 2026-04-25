@@ -176,7 +176,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   @media (max-width: 640px) {
     .barons-hero-bg {
       background-image: url('/mobile_bg.png');
-      aspect-ratio: 800 / 500;
+      aspect-ratio: 800 / 400;
     }
     .barons-hero-greeting {
       font-size: 28px !important;
