@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 
 // ─── Default name fallback (mirrors NAME_MAP from Home.jsx) ───────────
 const NAME_MAP = {
@@ -17,6 +18,55 @@ const FONT = "'Open Sans Hebrew', 'Open Sans', Arial, sans-serif"
 const PIN_LENGTH = 6
 const PIN_MAX_ATTEMPTS = 5
 const PIN_LOCKOUT_MINUTES = 15
+
+// ─── Edge Function endpoint ───────────────────────────────────────────
+const EDGE_FN_URL = `${import.meta.env.VITE_SUPABASE_URL || 'https://cwewsfuswiiliritikvh.supabase.co'}/functions/v1/webauthn`
+
+// ─── Device detection (auto-suggest device name) ─────────────────────
+function detectDeviceName() {
+  const ua = navigator.userAgent
+  let device = 'מכשיר'
+  let browser = 'דפדפן'
+
+  // Device family
+  if (/iPhone/i.test(ua)) device = 'iPhone'
+  else if (/iPad/i.test(ua)) device = 'iPad'
+  else if (/Android/i.test(ua)) {
+    device = /Mobile/i.test(ua) ? 'Android' : 'Android Tablet'
+  }
+  else if (/Macintosh/i.test(ua)) device = 'Mac'
+  else if (/Windows/i.test(ua)) device = 'Windows'
+  else if (/Linux/i.test(ua)) device = 'Linux'
+
+  // Browser
+  if (/Edg\//i.test(ua)) browser = 'Edge'
+  else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = 'Chrome'
+  else if (/Firefox\//i.test(ua)) browser = 'Firefox'
+  else if (/Safari\//i.test(ua) && !/Chrome|Edg/i.test(ua)) browser = 'Safari'
+
+  return `${device} (${browser})`
+}
+
+// ─── Format date in Hebrew style ──────────────────────────────────────
+function formatHebrewDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString('he-IL', { day:'numeric', month:'numeric', year:'2-digit' })
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return ''
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHr = Math.floor(diffMin / 60)
+  const diffDay = Math.floor(diffHr / 24)
+  if (diffMin < 1) return 'הרגע'
+  if (diffMin < 60) return `לפני ${diffMin} דק'`
+  if (diffHr < 24) return `לפני ${diffHr} שעות`
+  if (diffDay === 1) return 'אתמול'
+  if (diffDay < 7) return `לפני ${diffDay} ימים`
+  return formatHebrewDate(iso)
+}
 
 // ─── PIN crypto helpers (Web Crypto API, no external deps) ──────────
 function bytesToHex(bytes) {
@@ -201,6 +251,16 @@ export default function Profile() {
   const [savingPin, setSavingPin] = useState(false)
   const [pinMsg, setPinMsg] = useState('')
 
+  // Passkeys state
+  const [passkeys, setPasskeys] = useState([])
+  const [passkeysLoading, setPasskeysLoading] = useState(false)
+  const [webauthnSupported] = useState(() => browserSupportsWebAuthn())
+  const [showAddPasskey, setShowAddPasskey] = useState(false)
+  const [newPasskeyName, setNewPasskeyName] = useState('')
+  const [registeringPasskey, setRegisteringPasskey] = useState(false)
+  const [passkeyMsg, setPasskeyMsg] = useState('')
+  const [removingPasskeyId, setRemovingPasskeyId] = useState(null)
+
   // ─── Load user + profile ──────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
@@ -223,10 +283,31 @@ export default function Profile() {
       setOriginalName(current)
       setHasPin(!!profile?.pin_hash)
       setLoading(false)
+
+      // Load passkeys (separate, doesn't block initial render)
+      loadPasskeys(u.id)
     }
     load()
     return () => { cancelled = true }
   }, [navigate])
+
+  // ─── Load passkeys for current user ───────────────────────────────
+  async function loadPasskeys(userId) {
+    setPasskeysLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('user_passkeys')
+        .select('id, credential_id, device_name, created_at, last_used_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setPasskeys(data || [])
+    } catch (e) {
+      console.error('loadPasskeys error:', e)
+    } finally {
+      setPasskeysLoading(false)
+    }
+  }
 
   // ─── Save display name ────────────────────────────────────────────
   async function saveName() {
@@ -432,6 +513,109 @@ export default function Profile() {
     if (pinMode === 'set') return handlePinSet()
     if (pinMode === 'change') return handlePinChange()
     if (pinMode === 'remove') return handlePinRemove()
+  }
+
+  // ─── Passkey: open add dialog (auto-suggest name) ───────────────
+  function openAddPasskey() {
+    setNewPasskeyName(detectDeviceName())
+    setShowAddPasskey(true)
+    setPasskeyMsg('')
+  }
+
+  function closeAddPasskey() {
+    setShowAddPasskey(false)
+    setNewPasskeyName('')
+    setPasskeyMsg('')
+    setRegisteringPasskey(false)
+  }
+
+  // ─── Passkey: get auth header for Edge Function calls ────────────
+  async function getAuthHeader() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) throw new Error('לא מחובר')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    }
+  }
+
+  // ─── Passkey: register new device ────────────────────────────────
+  async function registerPasskey() {
+    if (!newPasskeyName.trim()) {
+      setPasskeyMsg('יש להזין שם למכשיר')
+      return
+    }
+    setPasskeyMsg('')
+    setRegisteringPasskey(true)
+
+    try {
+      const headers = await getAuthHeader()
+
+      // Step 1: Get registration options from Edge Function
+      const optsRes = await fetch(`${EDGE_FN_URL}?action=register-options`, {
+        method: 'POST',
+        headers,
+      })
+      const optsBody = await optsRes.json()
+      if (!optsRes.ok) {
+        throw new Error(optsBody.error || optsBody.detail || 'שגיאה בקבלת אפשרויות הרישום')
+      }
+
+      // Step 2: Trigger native Face ID / Touch ID prompt
+      let attResp
+      try {
+        attResp = await startRegistration({ optionsJSON: optsBody.options })
+      } catch (e) {
+        if (e?.name === 'InvalidStateError') {
+          throw new Error('המכשיר הזה כבר רשום')
+        } else if (e?.name === 'NotAllowedError') {
+          throw new Error('הפעולה בוטלה')
+        } else {
+          throw new Error(e?.message || 'שגיאה בזיהוי הביומטרי')
+        }
+      }
+
+      // Step 3: Send signed response back to Edge Function for verification
+      const verifyRes = await fetch(`${EDGE_FN_URL}?action=register-verify`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          response: attResp,
+          device_name: newPasskeyName.trim(),
+        }),
+      })
+      const verifyBody = await verifyRes.json()
+      if (!verifyRes.ok || !verifyBody.verified) {
+        throw new Error(verifyBody.error || verifyBody.detail || 'אימות נכשל')
+      }
+
+      // Success - reload passkeys list
+      setPasskeyMsg('המכשיר נוסף בהצלחה')
+      await loadPasskeys(user.id)
+      setTimeout(() => closeAddPasskey(), 1400)
+    } catch (e) {
+      setPasskeyMsg('שגיאה: ' + (e.message || ''))
+      setRegisteringPasskey(false)
+    }
+  }
+
+  // ─── Passkey: remove a device ────────────────────────────────────
+  async function removePasskey(passkeyId, deviceName) {
+    if (!confirm(`להסיר את "${deviceName}"?`)) return
+    setRemovingPasskeyId(passkeyId)
+    try {
+      const { error } = await supabase
+        .from('user_passkeys')
+        .delete()
+        .eq('id', passkeyId)
+        .eq('user_id', user.id)
+      if (error) throw error
+      await loadPasskeys(user.id)
+    } catch (e) {
+      alert('שגיאה במחיקה: ' + (e.message || ''))
+    } finally {
+      setRemovingPasskeyId(null)
+    }
   }
 
   if (loading) {
@@ -830,18 +1014,204 @@ export default function Profile() {
           )}
         </section>
 
-        {/* ── Placeholder for future sections (Passkeys) ── */}
+        {/* ── Section 4: Passkeys (Biometric) ─────────────────── */}
         <section className="profile-section profile-card-padding" style={{
-          background:'rgba(184,135,45,0.06)', borderRadius:20, padding:'20px 32px',
-          border:'1px dashed rgba(184,135,45,0.3)',
+          background:'#FFFFFF', borderRadius:20, padding:'28px 32px', marginBottom:20,
+          border:'1px solid rgba(0,0,0,0.06)', boxShadow:'0 4px 14px rgba(0,0,0,0.04)',
           animationDelay:'0.24s',
         }}>
-          <div style={{ fontSize:13, color:'#B8872D', fontWeight:600, marginBottom:4 }}>
-            🔐 בקרוב
+          <h2 className="profile-section-title" style={{ fontSize:18, fontWeight:700, color:'#1A1A1A', margin:'0 0 8px',
+            letterSpacing:'-0.01em' }}>
+            כניסה ביומטרית
+          </h2>
+          <div style={{ fontSize:13, color:'#71717A', marginBottom:18 }}>
+            הוסף מכשיר עם Face ID / Touch ID לאימות מהיר ומאובטח
           </div>
-          <div style={{ fontSize:13, color:'#71717A' }}>
-            כניסה ביומטרית (Face ID / Touch ID) ועמודים מוגנים
-          </div>
+
+          {/* Browser doesn't support WebAuthn */}
+          {!webauthnSupported && (
+            <div style={{
+              padding:'14px 16px', borderRadius:12,
+              background:'rgba(220,38,38,0.06)', border:'1px solid rgba(220,38,38,0.2)',
+              fontSize:13, color:'#dc2626',
+            }}>
+              הדפדפן הזה לא תומך בכניסה ביומטרית. נסה ב-Safari, Chrome, או Edge עדכני.
+            </div>
+          )}
+
+          {webauthnSupported && (
+            <>
+              {/* Loading state */}
+              {passkeysLoading && passkeys.length === 0 && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, color:'#71717A', fontSize:13, padding:'8px 0' }}>
+                  <span className="profile-spinner" style={{ borderColor:'#71717A', borderTopColor:'transparent' }} />
+                  טוען מכשירים...
+                </div>
+              )}
+
+              {/* Devices list */}
+              {!passkeysLoading && passkeys.length > 0 && (
+                <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
+                  {passkeys.map(pk => (
+                    <div key={pk.id} style={{
+                      display:'flex', alignItems:'center', gap:12,
+                      padding:'12px 16px', borderRadius:12,
+                      background:'#FAF8F4',
+                      border:'1px solid rgba(0,0,0,0.06)',
+                    }}>
+                      <div style={{
+                        width:36, height:36, borderRadius:10,
+                        background:'rgba(184,135,45,0.12)',
+                        display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B8872D"
+                          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                          <line x1="8" y1="21" x2="16" y2="21"/>
+                          <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:14, fontWeight:600, color:'#1A1A1A',
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {pk.device_name || 'מכשיר ללא שם'}
+                        </div>
+                        <div style={{ fontSize:11, color:'#71717A', marginTop:2 }}>
+                          נוסף {formatHebrewDate(pk.created_at)}
+                          {pk.last_used_at && ` · שימוש אחרון ${formatRelativeTime(pk.last_used_at)}`}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removePasskey(pk.id, pk.device_name)}
+                        disabled={removingPasskeyId === pk.id}
+                        style={{
+                          padding:'6px 12px', borderRadius:8,
+                          border:'1px solid rgba(220,38,38,0.2)',
+                          background:'transparent', color:'#dc2626',
+                          fontSize:12, fontWeight:600, fontFamily:FONT,
+                          cursor:'pointer', flexShrink:0,
+                          transition:'background 180ms',
+                        }}
+                        onMouseEnter={e => e.target.style.background = 'rgba(220,38,38,0.06)'}
+                        onMouseLeave={e => e.target.style.background = 'transparent'}>
+                        {removingPasskeyId === pk.id ? '...' : 'הסר'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!passkeysLoading && passkeys.length === 0 && (
+                <div style={{ fontSize:13, color:'#71717A', marginBottom:16, padding:'8px 0' }}>
+                  אין עדיין מכשירים מאומתים
+                </div>
+              )}
+
+              {/* Add device — idle state */}
+              {!showAddPasskey && (
+                <button
+                  className="profile-btn-primary"
+                  onClick={openAddPasskey}
+                  style={{
+                    padding:'10px 20px', borderRadius:10, border:'none',
+                    background:'#1A1A1A', color:'#FFFFFF',
+                    fontSize:14, fontWeight:600, fontFamily:FONT,
+                    cursor:'pointer',
+                    display:'inline-flex', alignItems:'center', gap:8,
+                  }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  הוסף את המכשיר הזה
+                </button>
+              )}
+
+              {/* Add device — form */}
+              {showAddPasskey && (
+                <div style={{
+                  padding:'18px', borderRadius:12,
+                  background:'rgba(184,135,45,0.04)',
+                  border:'1px solid rgba(184,135,45,0.2)',
+                  display:'flex', flexDirection:'column', gap:12,
+                }}>
+                  <div>
+                    <label style={{ display:'block', fontSize:12, fontWeight:600,
+                      color:'#71717A', marginBottom:6 }}>
+                      שם המכשיר
+                    </label>
+                    <input
+                      className="profile-input"
+                      type="text"
+                      value={newPasskeyName}
+                      onChange={e => setNewPasskeyName(e.target.value)}
+                      placeholder="למשל: iPhone של ארז"
+                      autoFocus
+                      disabled={registeringPasskey}
+                      style={{
+                        width:'100%', boxSizing:'border-box',
+                        padding:'10px 14px', borderRadius:10,
+                        border:'1px solid rgba(0,0,0,0.12)',
+                        fontSize:15, fontFamily:FONT, color:'#1A1A1A',
+                        background:'#FFFFFF', outline:'none',
+                        textAlign:'right',
+                        transition:'border-color 180ms, box-shadow 180ms',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ fontSize:12, color:'#71717A', display:'flex', alignItems:'flex-start', gap:6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:2 }}>
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="16" x2="12" y2="12"/>
+                      <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <span>אחרי שתלחץ "המשך", המכשיר יבקש ממך לאשר באמצעות Face ID או Touch ID</span>
+                  </div>
+
+                  {passkeyMsg && (
+                    <div style={{ fontSize:12,
+                      color: passkeyMsg.includes('בהצלחה') ? '#10b981' : '#dc2626',
+                      fontWeight:500 }}>
+                      {passkeyMsg}
+                    </div>
+                  )}
+
+                  <div style={{ display:'flex', gap:10 }}>
+                    <button
+                      className="profile-btn-primary"
+                      onClick={registerPasskey}
+                      disabled={registeringPasskey || !newPasskeyName.trim()}
+                      style={{
+                        padding:'10px 20px', borderRadius:10, border:'none',
+                        background:'#1A1A1A', color:'#FFFFFF',
+                        fontSize:14, fontWeight:600, fontFamily:FONT,
+                        cursor:'pointer', minWidth:100,
+                        display:'inline-flex', alignItems:'center', justifyContent:'center', gap:6,
+                      }}>
+                      {registeringPasskey ? <span className="profile-spinner" /> : 'המשך'}
+                    </button>
+                    <button
+                      className="profile-btn-ghost"
+                      onClick={closeAddPasskey}
+                      disabled={registeringPasskey}
+                      style={{
+                        padding:'10px 18px', borderRadius:10,
+                        border:'1px solid rgba(0,0,0,0.12)',
+                        background:'transparent', color:'#71717A',
+                        fontSize:14, fontWeight:600, fontFamily:FONT,
+                        cursor:'pointer',
+                      }}>
+                      ביטול
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </section>
 
       </div>
