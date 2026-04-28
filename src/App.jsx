@@ -22,6 +22,8 @@ import AliExpressOrders from './pages/AliExpressOrders'
 import Countries from './pages/Countries'
 import CountryDetail from './pages/CountryDetail'
 import Profile from './pages/Profile'
+import RequireBiometric from './components/RequireBiometric'
+import { clearAllUnlocks } from './lib/biometricLock'
 
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
@@ -160,7 +162,13 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session); setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // On sign-out, clear all biometric unlock state for the previous user
+      if (event === 'SIGNED_OUT' && session?.user?.id) {
+        clearAllUnlocks(session.user.id)
+      }
+      setSession(newSession)
+    })
     return () => subscription.unsubscribe()
   }, [])
 
@@ -177,13 +185,13 @@ export default function App() {
 
       <Routes>
         <Route path="/"                element={<Home session={session} />} />
-        <Route path="/travels"         element={G('/travels',     <Travels        session={session} />)} />
-        <Route path="/travels/:id"     element={G('/travels',     <TripDetail     session={session} />)} />
-        <Route path="/assets"          element={G('/assets',      <Assets         session={session} />)} />
-        <Route path="/assets/:id"      element={G('/assets',      <AssetDetail    session={session} />)} />
+        <Route path="/travels"         element={G('/travels',     <RequireBiometric route="/travels"><Travels        session={session} /></RequireBiometric>)} />
+        <Route path="/travels/:id"     element={G('/travels',     <RequireBiometric route="/travels"><TripDetail     session={session} /></RequireBiometric>)} />
+        <Route path="/assets"          element={G('/assets',      <RequireBiometric route="/assets"><Assets         session={session} /></RequireBiometric>)} />
+        <Route path="/assets/:id"      element={G('/assets',      <RequireBiometric route="/assets"><AssetDetail    session={session} /></RequireBiometric>)} />
         <Route path="/search"          element={G('/search',      <Search         session={session} />)} />
         <Route path="/stats"           element={G('/stats',       <Stats          session={session} />)} />
-        <Route path="/vouchers"        element={G('/vouchers',    <Vouchers       session={session} />)} />
+        <Route path="/vouchers"        element={G('/vouchers',    <RequireBiometric route="/vouchers"><Vouchers       session={session} /></RequireBiometric>)} />
         <Route path="/recipes"         element={G('/recipes',     <Recipes        session={session} />)} />
         <Route path="/recipes/:id"     element={G('/recipes',     <RecipeDetail   session={session} />)} />
         <Route path="/marathon"        element={G('/marathon',    <Marathon       session={session} />)} />
