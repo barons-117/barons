@@ -17,6 +17,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.3.0",
     "@supabase/supabase-js": "^2.49.4",
     "dotenv": "^17.4.0",
     "firebase": "^12.11.0",
