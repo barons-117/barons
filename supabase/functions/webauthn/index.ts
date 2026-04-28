@@ -416,15 +416,53 @@ async function handleAuthenticateVerify(
 
   // If this is a passwordless login (no JWT), generate a Supabase session token
   if (!user) {
-    // Use admin API to create a session for this user
-    const { data: sessionData, error: sessionError } = await serviceClient.auth.admin.generateLink({
+    // Get the email of the user this passkey belongs to
+    const { data: targetUser } = await serviceClient.auth.admin.getUserById(passkey.user_id)
+    const email = targetUser?.user?.email
+    if (!email) {
+      return jsonResponse(
+        { error: 'user lookup failed' },
+        { status: 500 },
+        corsHeaders,
+      )
+    }
+
+    // Use generateLink to obtain a fresh session for the user.
+    // We use 'magiclink' type and parse the action_link to extract tokens
+    // that the frontend can use directly via supabase.auth.setSession()
+    const { data: linkData, error: linkError } = await serviceClient.auth.admin.generateLink({
       type: 'magiclink',
-      email: (await serviceClient.auth.admin.getUserById(passkey.user_id)).data.user?.email ?? '',
+      email,
     })
 
-    if (sessionError) {
+    if (linkError) {
       return jsonResponse(
-        { error: 'session creation failed', detail: sessionError.message },
+        { error: 'session creation failed', detail: linkError.message },
+        { status: 500 },
+        corsHeaders,
+      )
+    }
+
+    // generateLink returns hashed_token + email_otp; we need to verify it server-side
+    // to obtain real session tokens.
+    const hashedToken = linkData.properties?.hashed_token
+    if (!hashedToken) {
+      return jsonResponse(
+        { error: 'no hashed token in link', detail: JSON.stringify(linkData.properties) },
+        { status: 500 },
+        corsHeaders,
+      )
+    }
+
+    // Verify the OTP server-side to get real session tokens
+    const { data: sessionData, error: verifyError } = await serviceClient.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: hashedToken,
+    })
+
+    if (verifyError || !sessionData?.session) {
+      return jsonResponse(
+        { error: 'session verification failed', detail: verifyError?.message },
         { status: 500 },
         corsHeaders,
       )
@@ -434,8 +472,8 @@ async function handleAuthenticateVerify(
       {
         verified: true,
         passwordless: true,
-        // The frontend will use this to complete login
-        action_link: sessionData.properties?.action_link,
+        access_token: sessionData.session.access_token,
+        refresh_token: sessionData.session.refresh_token,
       },
       { status: 200 },
       corsHeaders,

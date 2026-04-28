@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
+
+const EDGE_FN_URL = `${import.meta.env.VITE_SUPABASE_URL || 'https://cwewsfuswiiliritikvh.supabase.co'}/functions/v1/webauthn`
 
 const FONT = "'Open Sans Hebrew', 'Open Sans', Arial, sans-serif"
 
@@ -405,6 +408,8 @@ export default function Home() {
   const [resetSent, setResetSent]   = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
   const [customDisplayName, setCustomDisplayName] = useState(null)
+  const [faceIdLoading, setFaceIdLoading] = useState(false)
+  const [webauthnSupported] = useState(() => browserSupportsWebAuthn())
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -444,6 +449,75 @@ export default function Home() {
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, { redirectTo: window.location.origin })
     setResetLoading(false)
     if (error) setLoginError('שגיאה בשליחת המייל'); else setResetSent(true)
+  }
+
+  async function handleFaceIdLogin() {
+    if (!email_input || !email_input.includes('@')) {
+      setLoginError('יש להזין אימייל תקין')
+      return
+    }
+    setLoginError('')
+    setFaceIdLoading(true)
+    try {
+      // Step 1: Get authentication options for this email
+      const optsRes = await fetch(`${EDGE_FN_URL}?action=authenticate-options`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email_input }),
+      })
+      const optsBody = await optsRes.json()
+      if (!optsRes.ok) {
+        if (optsBody.error === 'no passkeys registered') {
+          throw new Error('לא רשום מכשיר ביומטרי לאימייל הזה')
+        }
+        if (optsBody.error === 'user not found') {
+          throw new Error('אימייל לא קיים')
+        }
+        throw new Error(optsBody.error || 'שגיאה')
+      }
+
+      // Step 2: Trigger native Face ID prompt
+      let authResp
+      try {
+        authResp = await startAuthentication({ optionsJSON: optsBody.options })
+      } catch (e) {
+        if (e?.name === 'NotAllowedError') {
+          throw new Error('הפעולה בוטלה')
+        }
+        throw new Error(e?.message || 'שגיאה בזיהוי הביומטרי')
+      }
+
+      // Step 3: Verify and get session tokens
+      const verifyRes = await fetch(`${EDGE_FN_URL}?action=authenticate-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response: authResp,
+          challenge_key: optsBody.challenge_key,
+        }),
+      })
+      const verifyBody = await verifyRes.json()
+      if (!verifyRes.ok || !verifyBody.verified) {
+        throw new Error(verifyBody.error || 'אימות נכשל')
+      }
+
+      // Step 4: Set the Supabase session from the tokens we received
+      if (verifyBody.access_token && verifyBody.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: verifyBody.access_token,
+          refresh_token: verifyBody.refresh_token,
+        })
+        if (sessionError) throw new Error('שגיאה בהפעלת הסשן')
+        // Save email for next time if remember was on
+        if (remember) localStorage.setItem('barons_email', email_input)
+      } else {
+        throw new Error('שגיאה בקבלת אסימון סשן')
+      }
+      // Success - the auth state listener will redirect us
+    } catch (e) {
+      setLoginError(e.message || 'שגיאה לא ידועה')
+      setFaceIdLoading(false)
+    }
   }
 
   const email     = session?.user?.email || ''
@@ -518,6 +592,33 @@ export default function Home() {
                 opacity: loginLoading ? 0.7 : 1 }}>
               {loginLoading ? 'מתחבר...' : 'התחבר'}
             </button>
+            {webauthnSupported && (
+              <>
+                <div style={{ display:'flex', alignItems:'center', gap:10, color:'rgba(255,255,255,0.3)',
+                  fontSize:11, margin:'4px 0' }}>
+                  <div style={{ flex:1, height:1, background:'rgba(255,255,255,0.1)' }} />
+                  <span>או</span>
+                  <div style={{ flex:1, height:1, background:'rgba(255,255,255,0.1)' }} />
+                </div>
+                <button type="button" onClick={handleFaceIdLogin} disabled={faceIdLoading || !email_input}
+                  style={{ padding:'13px', borderRadius:10,
+                    border:'1px solid rgba(255,255,255,0.18)',
+                    background:'rgba(255,255,255,0.04)',
+                    color:'white', fontSize:14, fontWeight:600,
+                    fontFamily:"'Heebo',sans-serif",
+                    cursor: faceIdLoading || !email_input ? 'not-allowed' : 'pointer',
+                    opacity: faceIdLoading || !email_input ? 0.5 : 1,
+                    display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 11V7a3 3 0 0 1 6 0v4"/>
+                    <rect x="5" y="11" width="14" height="10" rx="2" ry="2"/>
+                    <circle cx="12" cy="16" r="1"/>
+                  </svg>
+                  {faceIdLoading ? 'מאמת...' : 'כניסה עם Face ID / Touch ID'}
+                </button>
+              </>
+            )}
             <button type="button" onClick={() => setResetMode(true)}
               style={{ background:'none', border:'none', color:'#94a3b8',
                 fontSize:12, cursor:'pointer', fontFamily:"'Heebo',sans-serif" }}>
