@@ -523,7 +523,7 @@ function AddSegModal({ tripId, onClose, onSaved }) {
 }
 
 function LodgingModal({ tripId, onClose, onSaved, existing }) {
-  const [form, setForm] = useState(existing || { hotel_name:'',address:'',room_type:'',check_in:'',check_out:'',num_guests:'1',confirmation:'',booking_site:'' })
+  const [form, setForm] = useState(existing || { hotel_name:'',address:'',room_type:'',check_in:'',check_out:'',num_guests:'1',confirmation:'',booking_site:'',notes:'' })
   const [loading, setLoading] = useState(false)
   function set(k,v){ setForm(f=>({...f,[k]:v})) }
   async function save(){ setLoading(true); if(existing) await supabase.from('lodging').update(form).eq('id',existing.id); else await supabase.from('lodging').insert({...form,trip_id:tripId}); setLoading(false); onSaved(); onClose() }
@@ -538,6 +538,9 @@ function LodgingModal({ tripId, onClose, onSaved, existing }) {
       <Field label="סוג חדר"><input style={inp} value={form.room_type} onChange={e=>set('room_type',e.target.value)} onFocus={focusInp} onBlur={blurInp}/></Field>
       <Field label="אישור"><input style={inp} value={form.confirmation} onChange={e=>set('confirmation',e.target.value)} onFocus={focusInp} onBlur={blurInp}/></Field>
       <Field label="אתר הזמנה"><input style={inp} value={form.booking_site} onChange={e=>set('booking_site',e.target.value)} onFocus={focusInp} onBlur={blurInp}/></Field>
+      <Field label="הערות על המלון">
+        <textarea style={{...inp,minHeight:'90px',resize:'vertical',lineHeight:'1.6'}} value={form.notes||''} onChange={e=>set('notes',e.target.value)} placeholder="חוויה, דירוג, טיפים לפעם הבאה..." onFocus={focusInp} onBlur={blurInp}/>
+      </Field>
       <SaveBtn loading={loading} onClick={save}/>
     </Modal>
   )
@@ -1002,23 +1005,26 @@ export default function TripDetail() {
   const [lodging, setLodging] = useState([])
   const [allCompanions, setAllCompanions] = useState([])
   const [allTrips, setAllTrips] = useState([])
+  const [countriesWithNotes, setCountriesWithNotes] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [editMode, setEditMode] = useState(false)
   const [modal, setModal] = useState(null)
 
   async function load() {
-    const [tripRes, flightsRes, lodgingRes, compRes, allTripsRes] = await Promise.all([
+    const [tripRes, flightsRes, lodgingRes, compRes, allTripsRes, notesRes] = await Promise.all([
       supabase.from('trips').select(`*,trip_segments(*,segment_companions(companions(name)))`).eq('id', id).single(),
       supabase.from('flights').select('*').eq('trip_id', id).order('departure_date').order('departure_time'),
       supabase.from('lodging').select('*').eq('trip_id', id).order('check_in'),
       supabase.from('companions').select('name').order('name'),
       supabase.from('trips').select(`id,name,name_he,trip_segments(date_from)`),
+      supabase.from('country_notes').select('country'),
     ])
     setTrip(tripRes.data)
     setFlights(sortFlights(flightsRes.data || []))
     setLodging(lodgingRes.data || [])
     setAllCompanions(compRes.data?.map(c => c.name) || [])
+    setCountriesWithNotes(new Set((notesRes.data || []).map(n => n.country)))
     const sorted = (allTripsRes.data || []).map(t => {
       const dates = (t.trip_segments || []).map(s => s.date_from).filter(Boolean).sort()
       return { ...t, startDate: dates[0] || null }
@@ -1318,7 +1324,24 @@ export default function TripDetail() {
                           <div className="td-stop-body">
                             <div style={{ display:'flex',alignItems:'baseline',gap:'8px',flexWrap:'wrap' }}>
                               <span style={{ fontSize:'17px',fontWeight:800,color:LT.ink,letterSpacing:'-0.01em' }}>{heCity(seg.city)}</span>
-                              <span style={{ fontSize:'11px',color:LT.muted,fontWeight:600 }}>· {heCountry(seg.country)}</span>
+                              <button
+                                onClick={e => { e.stopPropagation(); navigate(`/country/${encodeURIComponent(seg.country)}`) }}
+                                title={countriesWithNotes.has(seg.country) ? `יש הערות על ${heCountry(seg.country)}` : `אין הערות עדיין על ${heCountry(seg.country)}`}
+                                style={{
+                                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                                  fontFamily: FF, fontSize: '11px', fontWeight: 600,
+                                  color: countriesWithNotes.has(seg.country) ? LT.accent : LT.muted2,
+                                  textDecoration: countriesWithNotes.has(seg.country) ? 'underline' : 'underline dotted',
+                                  textDecorationColor: countriesWithNotes.has(seg.country) ? LT.accent : LT.muted2,
+                                  textUnderlineOffset: '3px',
+                                  display: 'inline-flex', alignItems: 'center', gap: '3px',
+                                }}
+                              >
+                                {countriesWithNotes.has(seg.country) && (
+                                  <span style={{ display:'inline-block',width:'5px',height:'5px',borderRadius:'50%',background:LT.accent,flexShrink:0 }}/>
+                                )}
+                                · {heCountry(seg.country)}
+                              </button>
                             </div>
                             {(seg.date_from || seg.date_to) && (
                               <div style={{ fontSize:'12.5px',color:LT.muted,marginTop:'3px',fontVariantNumeric:'tabular-nums' }}>
@@ -1602,6 +1625,16 @@ export default function TripDetail() {
                             {l.confirmation && <span style={bitStyle}>אישור: {l.confirmation}</span>}
                             {l.booking_site && <span style={bitStyle}>{l.booking_site}</span>}
                           </div>
+                          {/* Hotel notes */}
+                          {l.notes && (
+                            <div style={{
+                              marginTop:'10px',
+                              background:'#fffbf0',border:'1px solid #f3e5b8',
+                              borderRadius:'10px',padding:'8px 12px',
+                              fontSize:'13px',color:'#92400e',lineHeight:1.65,
+                              whiteSpace:'pre-wrap',
+                            }}>{l.notes}</div>
+                          )}
                           {editMode && (
                             <div style={{ display:'flex',gap:'6px',marginTop:'8px' }}>
                               <button className="td-press" onClick={() => setModal({ type: 'editLodging', data: l })} style={editSmallBtn}>ערוך</button>

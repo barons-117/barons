@@ -46,6 +46,12 @@ const ROUTE_ICON = {
 const SUPER_ADMIN = 'erez@barons.co.il'
 const ALL_USERS   = ['erez@barons.co.il','roy@barons.co.il','user@barons.co.il','daphna@barons.co.il','danielle@barons.co.il']
 
+const PALETTE = [
+  '#1A1A1A', '#1d4ed8', '#0e7490', '#10b981',
+  '#65a30d', '#ca8a04', '#B8872D', '#ea580c',
+  '#dc2626', '#db2777', '#7c3aed', '#475569',
+]
+
 const DEFAULT_MENU_CONFIG = [
   { category:'שימושי', items:[
     { label:'קניות',   sub:'מעקב קניות ומשלמתית', path:'/shopping',  img:'shopping_large',  users:[...ALL_USERS] },
@@ -126,6 +132,7 @@ const SHIMMER_STYLE = `
   .barons-op-card {
     transition: transform 180ms cubic-bezier(0.23,1,0.32,1), box-shadow 180ms cubic-bezier(0.23,1,0.32,1);
     cursor: pointer;
+    aspect-ratio: 1 / 1;
   }
   .barons-op-card:hover {
     transform: translateY(-3px) scale(1.012);
@@ -193,6 +200,57 @@ const SHIMMER_STYLE = `
 
   @media(max-width:600px) {
     .home-modal { max-height:95vh; margin:4px !important; }
+  }
+
+  /* ── Mobile responsive: Hero + cards ─────────────────────────────────── */
+  .barons-hero-bg {
+    background-image: url('/desktop_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    aspect-ratio: 960 / 280;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
+  @media (max-width: 640px) {
+    .barons-hero-bg {
+      background-image: url('/mobile_bg.png');
+      aspect-ratio: 800 / 350;
+      align-items: flex-start;
+      padding-top: 24px;
+    }
+    .barons-hero-greeting {
+      font-size: 28px !important;
+    }
+    .barons-hero-tagline {
+      font-size: 10px !important;
+      letter-spacing: 1.5px !important;
+    }
+    .barons-action-btn {
+      gap: 0 !important;
+    }
+    .barons-action-btn-circle {
+      width: 18px !important;
+      height: 18px !important;
+    }
+    .barons-action-btn-circle svg {
+      width: 9px !important;
+      height: 9px !important;
+    }
+    .barons-action-btn-label {
+      display: none !important;
+    }
+    .barons-hero-actions {
+      gap: 10px !important;
+    }
+    .barons-op-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 10px !important;
+    }
+    .barons-op-card {
+      aspect-ratio: 4 / 3 !important;
+    }
   }
 
 `
@@ -346,6 +404,7 @@ export default function Home() {
   const [resetEmail, setResetEmail] = useState('')
   const [resetSent, setResetSent]   = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
+  const [customDisplayName, setCustomDisplayName] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -356,6 +415,20 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => subscription.unsubscribe()
   }, [])
+
+  // Load custom display name from user_profiles when session is available
+  useEffect(() => {
+    if (!session?.user?.id) { setCustomDisplayName(null); return }
+    let cancelled = false
+    supabase.from('user_profiles')
+      .select('display_name')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.display_name) setCustomDisplayName(data.display_name)
+      })
+    return () => { cancelled = true }
+  }, [session?.user?.id])
 
 
   async function handleLogin(e) {
@@ -379,7 +452,7 @@ export default function Home() {
     'daphna': 'דפנה', 'user': 'אורח'
   }
   const emailPrefix = email.split('@')[0]
-  const firstName = NAME_MAP[emailPrefix] || emailPrefix
+  const firstName = customDisplayName || NAME_MAP[emailPrefix] || emailPrefix
   const isSuperAdmin = email === SUPER_ADMIN
 
   const visibleConfig = menuConfig.map(cat => ({
@@ -499,8 +572,8 @@ export default function Home() {
       <style>{SHIMMER_STYLE}</style>
 
       {/* ── HERO ── */}
-      <div style={{ background:'#FAF8F4', padding:'20px 24px 0', maxWidth:900, margin:'0 auto' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, alignItems:'center' }}>
+      <div className="barons-hero-bg" style={{ maxWidth:900, margin:'0 auto', padding:'0 24px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, alignItems:'center', width:'100%' }}>
 
           {/* Left: card */}
           <div style={{ display:'flex', justifyContent:'center', alignItems:'center' }}>
@@ -518,64 +591,71 @@ export default function Home() {
 
           {/* Right: logo + greeting + buttons */}
           <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:11, fontWeight:500, color:'#B8872D', letterSpacing:'2px',
+            <div className="barons-hero-tagline" style={{ fontSize:11, fontWeight:500, color:'#FFFFFF', letterSpacing:'2px',
               textTransform:'uppercase', marginBottom:4 }}>
               משפחה מנצחת הכל
             </div>
-            <div style={{ fontSize:44, fontWeight:900, color:'#1A1A1A', lineHeight:1.1,
+            <div className="barons-hero-greeting" style={{ fontSize:44, fontWeight:900, color:'#FFFFFF', lineHeight:1.1,
               letterSpacing:'-0.02em', marginBottom:4 }}>
               שלום, {firstName}
             </div>
 
 
             {/* Action buttons */}
-            <div style={{ display:'flex', gap:20, justifyContent:'flex-end' }}>
+            <div className="barons-hero-actions" style={{ display:'flex', gap:20, justifyContent:'flex-end' }}>
               {/* Logout button */}
-              <div className="barons-btn-anim" onClick={handleLogout}
+              <div className="barons-btn-anim barons-action-btn" onClick={handleLogout}
                 style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
-                <div style={{
-                  width:40, height:40, borderRadius:'50%',
-                  background:'linear-gradient(135deg,#F5D88B,#B8872D)',
-                  boxShadow:'0 6px 16px rgba(184,135,45,0.35)',
+                <div className="barons-action-btn-circle" style={{
+                  width:24, height:24, borderRadius:'50%',
+                  background:'#FFFFFF',
+                  boxShadow:'0 3px 10px rgba(0,0,0,0.25)',
                   display:'flex', alignItems:'center', justifyContent:'center'
                 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                     <polyline points="16 17 21 12 16 7"/>
                     <line x1="21" y1="12" x2="9" y2="12"/>
                   </svg>
                 </div>
-                <span style={{ fontSize:10, fontWeight:600, color:'#B8872D' }}>התנתק</span>
+                <span className="barons-action-btn-label" style={{ fontSize:10, fontWeight:600, color:'#FFFFFF' }}>התנתק</span>
+              </div>
+              {/* Profile button (all users) */}
+              <div className="barons-btn-anim barons-action-btn" onClick={() => navigate('/profile')}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+                <div className="barons-action-btn-circle" style={{
+                  width:24, height:24, borderRadius:'50%',
+                  background:'#FFFFFF',
+                  boxShadow:'0 3px 10px rgba(0,0,0,0.25)',
+                  display:'flex', alignItems:'center', justifyContent:'center'
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <span className="barons-action-btn-label" style={{ fontSize:10, fontWeight:600, color:'#FFFFFF' }}>פרופיל</span>
               </div>
               {isSuperAdmin && (
-                <div className="barons-btn-anim" onClick={() => setShowEditor(true)}
+                <div className="barons-btn-anim barons-action-btn" onClick={() => setShowEditor(true)}
                   style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
-                  <div style={{
-                    width:40, height:40, borderRadius:'50%',
-                    background:'linear-gradient(135deg,#F5D88B,#B8872D)',
-                    boxShadow:'0 6px 16px rgba(184,135,45,0.35)',
+                  <div className="barons-action-btn-circle" style={{
+                    width:24, height:24, borderRadius:'50%',
+                    background:'#FFFFFF',
+                    boxShadow:'0 3px 10px rgba(0,0,0,0.25)',
                     display:'flex', alignItems:'center', justifyContent:'center'
                   }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </div>
-                  <span style={{ fontSize:10, fontWeight:600, color:'#B8872D' }}>עריכה</span>
+                  <span className="barons-action-btn-label" style={{ fontSize:10, fontWeight:600, color:'#FFFFFF' }}>עריכה</span>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── GOLD LINE DIVIDER ── */}
-      <div style={{ maxWidth:900, margin:'8px auto 0', padding:'0 20px' }}>
-        <div style={{
-          height:1,
-          background:'linear-gradient(to left, transparent, #C6A96A, #F5D88B, #C6A96A, transparent)',
-          opacity:0.7,
-        }} />
       </div>
 
       {/* ── CATEGORIES ── */}
@@ -586,16 +666,6 @@ export default function Home() {
 
           return (
             <div key={ci} className="barons-section" style={{ marginBottom: isShimushi ? 28 : 0 }}>
-              {/* Category label */}
-              <div style={{ textAlign:'center', margin:'18px 0 14px', position:'relative' }}>
-                <span style={{ fontSize:11, fontWeight:700, color:'#B8872D', letterSpacing:'3px',
-                  textTransform:'uppercase', background:'#FAF8F4', padding:'0 12px', position:'relative', zIndex:1 }}>
-                  {cat.category}
-                </span>
-                <div style={{ position:'absolute', top:'50%', left:0, right:0, height:1,
-                  background:'linear-gradient(to left, transparent, #C6A96A55, transparent)' }} />
-              </div>
-
               {/* שימושי: 3 large cards */}
               {isShimushi && (
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
@@ -627,13 +697,12 @@ export default function Home() {
 
               {/* תפעול: 4-column grid of small cards */}
               {!isShimushi && (
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+                <div className="barons-op-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
                   {cat.items.map((item, ii) => (
                     <div key={ii} className="barons-op-card"
                       onClick={() => navigate(item.path)}
                       style={{
                         borderRadius:16, overflow:'hidden', position:'relative',
-                        aspectRatio:'1/1',
                         backgroundImage: `url(${CAT_IMGS[item.img] || ''})`,
                         backgroundSize:'cover', backgroundPosition:'center',
                         boxShadow:'0 4px 14px rgba(0,0,0,0.09)',

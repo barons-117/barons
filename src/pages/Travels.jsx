@@ -1394,7 +1394,16 @@ function ChatLightbox({ trip, today, onClose, onNavigate }) {
 
 
 
-function GridReveal({ trips, today, onTripClick }) {
+// Splash icon from sweat-droplets-svgrepo-com.svg — purple
+function SplashIcon({ size = 14, color = '#a855f7' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill={color} d="M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z"/>
+    </svg>
+  )
+}
+
+function GridReveal({ trips, currentTrip, today, onTripClick }) {
   const sorted = [...trips].sort((a,b)=>a.startDate.localeCompare(b.startDate))
   const [hoverId, setHoverId] = useState(null)
   const [lightboxId, setLightboxId] = useState(null)
@@ -1406,18 +1415,91 @@ function GridReveal({ trips, today, onTripClick }) {
     return out
   })[0]
   const lightboxTrip = lightboxId ? sorted.find(t=>t.id===lightboxId) : null
-  const lightboxIdx  = lightboxId ? sorted.findIndex(t=>t.id===lightboxId) : -1
+
+  // Current trip card — navigates directly, no chat
+  const CurrentTripTile = currentTrip ? (() => {
+    const city    = (currentTrip.cities&&currentTrip.cities[0]) || ''
+    const country = (currentTrip.countries&&currentTrip.countries[0]) || ''
+    const photo   = destImage(currentTrip)
+    const back    = destBackdrop(currentTrip)
+    const isMobile = useIsMobile()
+    return (
+      <div
+        onClick={() => onTripClick(currentTrip.id)}
+        style={{
+          position:'relative', aspectRatio:'3/4', borderRadius:'16px',
+          overflow:'hidden', cursor:'pointer',
+          background: photo ? '#0b1222' : back.background,
+          // Yellow outline — same as isNearest upcoming
+          boxShadow: `0 2px 10px rgba(0,0,0,0.4), 0 0 0 3px #FFCC1D, 0 0 18px rgba(255,204,29,0.35)`,
+          isolation:'isolate',
+        }}
+      >
+        {/* Background image */}
+        {photo && (
+          <img src={photo} alt="" style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',opacity:0.85 }}/>
+        )}
+        {!photo && (
+          <div style={{ position:'absolute',inset:0,background:back.gradient||back.background }}/>
+        )}
+        {/* Gradient overlay */}
+        <div style={{ position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 35%,rgba(0,0,0,0) 65%,rgba(0,0,0,0.55) 100%)',pointerEvents:'none' }}/>
+
+        {/* Content */}
+        {isMobile ? (
+          <>
+            <div style={{ position:'absolute',top:0,left:0,right:0,padding:'10px 12px',color:'#fff' }}>
+              <div style={{ fontSize:'13px',fontWeight:700,textShadow:'0 1px 3px rgba(0,0,0,0.5)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>
+                {(CITY_HE[city]||city)||heCountry(country)}
+              </div>
+            </div>
+            <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'8px 12px',color:'#fff' }}>
+              <div style={{ display:'inline-flex',alignItems:'center',gap:'4px',marginBottom:'4px' }}>
+                <SplashIcon size={13} color="#c084fc"/>
+                <span style={{ fontSize:'11px',fontWeight:800,color:'#c084fc',textShadow:'0 1px 4px rgba(0,0,0,0.5)',letterSpacing:'0.04em' }}>עכשיו</span>
+              </div>
+              <div style={{ fontSize:'11px',fontWeight:600,textShadow:'0 1px 3px rgba(0,0,0,0.6)' }}>
+                {fmtShort(currentTrip.startDate)} – {fmtShort(currentTrip.endDate)}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ position:'absolute',top:0,left:0,right:0,padding:'10px 12px',color:'#fff' }}>
+              <div style={{ display:'flex',alignItems:'center',gap:'6px',fontSize:'13px',fontWeight:700,textShadow:'0 1px 3px rgba(0,0,0,0.5)' }}>
+                <span style={{ whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>{(CITY_HE[city]||city)||heCountry(country)}</span>
+              </div>
+              <div style={{ fontSize:'10.5px',color:'rgba(255,255,255,0.78)',marginTop:'2px',fontFamily:'ui-monospace,Menlo,monospace' }}>{handleFor(currentTrip)}</div>
+            </div>
+            <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'10px 12px',color:'#fff' }}>
+              <div style={{ display:'inline-flex',alignItems:'center',gap:'5px',marginBottom:'5px' }}>
+                <SplashIcon size={15} color="#c084fc"/>
+                <span style={{ fontSize:'12px',fontWeight:800,color:'#c084fc',textShadow:'0 1px 4px rgba(0,0,0,0.6)',letterSpacing:'0.04em' }}>עכשיו</span>
+              </div>
+              <div style={{ fontSize:'11px',fontWeight:600,textShadow:'0 1px 3px rgba(0,0,0,0.6)',lineHeight:1.3 }}>
+                {fmtShort(currentTrip.startDate)} – {fmtShort(currentTrip.endDate)}
+                <div style={{ fontSize:'10px',fontWeight:500,color:'rgba(255,255,255,0.78)',marginTop:'2px' }}>{daysBetween(currentTrip.startDate,currentTrip.endDate)} ימים</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    )
+  })() : null
+
   return (
     <section style={{marginBottom:'48px'}} dir="rtl">
       <div style={{fontSize:'11px',fontWeight:700,letterSpacing:'2px',color:'#64748b',marginBottom:'16px',textTransform:'uppercase',animation:`tv-fade-up 440ms ${EASE.out} 100ms both`}}>
         קרובים
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',animation:`tv-fade-up 520ms ${EASE.out} 120ms both`}}>
+        {/* Current trip — always first, direct navigate */}
+        {CurrentTripTile}
         {sorted.map((t,i)=>(
           <GridTile key={t.id} trip={t} today={today} idx={i}
             personSrc={peoplePick[i]}
             hovered={hoverId===t.id}
-            isNearest={i===0}
+            isNearest={!currentTrip && i===0}
             onEnter={()=>setHoverId(t.id)}
             onLeave={()=>setHoverId(prev=>prev===t.id?null:prev)}
             onTap={()=>setLightboxId(t.id)}
@@ -1477,7 +1559,8 @@ export default function Travels({ session }) {
   useEffect(() => { loadTrips() }, [])
 
   const past = trips.filter(t => t.endDate && t.endDate < today)
-  const upcoming = trips.filter(t => t.startDate >= today)
+  const currentTrip = trips.find(t => t.startDate <= today && t.endDate >= today) || null
+  const upcoming = trips.filter(t => t.startDate > today)
   const totalDays = past.reduce((acc, t) => acc + (daysBetween(t.startDate, t.endDate) || 0), 0)
   const countries = new Set(trips.flatMap(t => t.countries)).size
 
@@ -1561,6 +1644,7 @@ export default function Travels({ session }) {
           subtitle="יומן הטיולים שלי"
           breadcrumbs={[{ label: 'נסיעות', path: '/travels' }]}
           actions={[
+            { label: 'יעדים', onClick: () => navigate('/countries') },
             { label: 'סטטיסטיקות', onClick: () => navigate('/stats') },
             { label: '📋 TripIt', onClick: () => setShowTripit(true) },
             { label: '+ טיול', onClick: () => setShowAdd(true), primary: true }
@@ -1585,6 +1669,9 @@ export default function Travels({ session }) {
               <div className="featured-value">
                 <span className="featured-num">{Math.round(totalDays)}</span>
                 <span className="featured-unit">ימים</span>
+              </div>
+              <div style={{ fontSize:'11px', color:'#64748b', marginTop:'2px', marginBottom:'4px', letterSpacing:'0.01em' }}>
+                מתוך {Math.floor((new Date() - new Date('1980-02-03')) / 86400000).toLocaleString('he-IL')} ימים שאני חי
               </div>
               <div className="featured-caption">
                 <b>{past.length}</b> טיולים · <b>{countries}</b> מדינות · <b>{new Set(past.flatMap(t => t.continents)).size}</b> יבשות
@@ -1634,8 +1721,8 @@ export default function Travels({ session }) {
               style={{ animation: `tv-fade-blur-in 360ms ${EASE.out} both` }}
             >
               {/* Upcoming section — GridReveal v11 */}
-              {upcoming.length > 0 && !q && (
-                <GridReveal trips={upcoming} today={today} onTripClick={id => navigate(`/travels/${id}`)} />
+              {(upcoming.length > 0 || currentTrip) && !q && (
+                <GridReveal trips={upcoming} currentTrip={currentTrip} today={today} onTripClick={id => navigate(`/travels/${id}`)} />
               )}
 
               {/* Past trips — redesigned year-grouped panel */}

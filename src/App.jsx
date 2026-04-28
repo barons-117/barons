@@ -19,6 +19,10 @@ import AssetDetail from './pages/AssetDetail'
 import School from './pages/School'
 import SmartHome from './pages/SmartHome'
 import AliExpressOrders from './pages/AliExpressOrders'
+import Countries from './pages/Countries'
+import CountryDetail from './pages/CountryDetail'
+import Profile from './pages/Profile'
+
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
 const SUPER_ADMIN = 'erez@barons.co.il'
@@ -51,6 +55,12 @@ function Guard({ session, route, children }) {
   return children
 }
 
+// Guard for routes that just require a logged-in user (no per-user route permissions)
+function AuthOnly({ session, children }) {
+  if (!session) return <Navigate to="/" replace />
+  return children
+}
+
 // ─── Analytics ────────────────────────────────────────────────────────────────
 const GA_ID = 'G-DLFH9B6GWW'
 
@@ -62,6 +72,8 @@ const ROUTE_NAMES = {
   '/school':        'אקדמיה',
   '/smarthome':     'בית חכם',
   '/aliexpress':    'הזמנות AliExpress',
+  '/countries':     'יעדים',
+  '/country':       'עמוד יעד',
   '/vouchers':      'שוברים',
   '/gym':           'כושר',
   '/assets':        'נכסים',
@@ -70,6 +82,7 @@ const ROUTE_NAMES = {
   '/family':        'עץ משפחה',
   '/shopping':      'קניות',
   '/shopping-quick':'קניות מהירות',
+  '/profile':       'פרופיל',
 }
 
 function initAnalyticsUser(user) {
@@ -180,6 +193,9 @@ export default function App() {
         <Route path="/school"          element={G('/school',      <School         session={session} />)} />
         <Route path="/smarthome"       element={G('/smarthome',   <SmartHome      session={session} />)} />
         <Route path="/aliexpress"      element={G('/aliexpress',  <AliExpressOrders session={session} />)} />
+        <Route path="/profile"         element={<AuthOnly session={session}><Profile session={session} /></AuthOnly>} />
+        <Route path="/countries"       element={G('/travels',     <Countries        session={session} />)} />
+        <Route path="/country/:country" element={G('/travels',    <CountryDetail    session={session} />)} />
         <Route path="/shopping-quick"  element={<ShoppingQuick />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
