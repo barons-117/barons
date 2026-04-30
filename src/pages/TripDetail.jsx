@@ -129,7 +129,9 @@ function contTint(c){return CONT_TINTS[c]||'#eef1ff'}
 function contBorder(c){return CONT_BORDERS[c]||'rgba(99,102,241,0.22)'}
 function fmtLong(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'})}
 function fmtShort(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short'})}
+function fmtShortY(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short',year:'numeric'})}
 function fmtNum(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return `${dt.getDate()}/${dt.getMonth()+1}`}
+function fmtNumY(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return `${dt.getDate()}/${dt.getMonth()+1}/${String(dt.getFullYear()).slice(2)}`}
 function daysBetween(a,b){if(!a||!b)return null;return Math.round((new Date(b)-new Date(a))/(1000*60*60*24))}
 function addDays(d,n){if(!d)return d;const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0]}
 function sortFlights(fs){return[...fs].sort((a,b)=>((a.departure_date||'')+(a.departure_time||'00:00')).localeCompare((b.departure_date||'')+(b.departure_time||'00:00')))}
@@ -1164,7 +1166,7 @@ export default function TripDetail() {
                 )}
                 {startDate && <>
                   <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: LT.muted2 }}/>
-                  <b style={{ color: LT.ink, fontWeight: 700 }}>{fmtShort(startDate)}{endDate ? ` — ${fmtShort(endDate)}` : ''}</b>
+                  <b style={{ color: LT.ink, fontWeight: 700 }}>{fmtShort(startDate)}{endDate ? ` — ${fmtShortY(endDate)}` : ''}</b>
                 </>}
                 {totalDays && <>
                   <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: LT.muted2 }}/>
@@ -1442,7 +1444,7 @@ export default function TripDetail() {
                               {f.from_airport} <span style={{ color:LT.muted2,fontWeight:400 }}>→</span> {f.to_airport}
                             </div>
                             <div style={{ fontSize:'11px',color:LT.muted,marginTop:'2px',fontVariantNumeric:'tabular-nums' }}>
-                              {fmtNum(f.departure_date)}{f.service_class ? ` · ${f.service_class}` : ''}
+                              {fmtNumY(f.departure_date)}{f.service_class ? ` · ${f.service_class}` : ''}
                             </div>
                           </div>
                         </div>
@@ -1541,7 +1543,7 @@ export default function TripDetail() {
                           <div style={{ fontFamily:FF_MONO,fontSize:'22px',fontWeight:800,color:LT.ink,letterSpacing:'0.02em' }}>{f.from_airport}</div>
                           <div style={{ fontSize:'11.5px',color:LT.muted,marginTop:'2px' }}>{f.from_city}</div>
                           {f.departure_time && <div style={{ fontFamily:FF_MONO,fontSize:'13px',color:LT.ink2,marginTop:'6px',fontVariantNumeric:'tabular-nums' }}>{f.departure_time.slice(0,5)}</div>}
-                          <div style={{ fontSize:'11px',color:LT.muted,marginTop:'1px' }}>{fmtShort(f.departure_date)}</div>
+                          <div style={{ fontSize:'11px',color:LT.muted,marginTop:'1px' }}>{fmtShortY(f.departure_date)}</div>
                         </div>
                         {/* גלובוס — אמצע */}
                         <div className="td-flight-globe" style={{ textAlign:'center',position:'relative' }}>
@@ -1566,7 +1568,7 @@ export default function TripDetail() {
                           <div style={{ fontFamily:FF_MONO,fontSize:'22px',fontWeight:800,color:LT.ink,letterSpacing:'0.02em' }}>{f.to_airport}</div>
                           <div style={{ fontSize:'11.5px',color:LT.muted,marginTop:'2px' }}>{f.to_city}</div>
                           {f.arrival_time && <div style={{ fontFamily:FF_MONO,fontSize:'13px',color:LT.ink2,marginTop:'6px',fontVariantNumeric:'tabular-nums' }}>{f.arrival_time.slice(0,5)}</div>}
-                          <div style={{ fontSize:'11px',color:LT.muted,marginTop:'1px' }}>{fmtShort(f.arrival_date)}</div>
+                          <div style={{ fontSize:'11px',color:LT.muted,marginTop:'1px' }}>{fmtShortY(f.arrival_date)}</div>
                         </div>
                       </div>
 
@@ -1644,7 +1646,7 @@ export default function TripDetail() {
                         </div>
                         <div className="td-lodging-meta" style={{ textAlign:'left',fontFamily:FF_MONO,fontSize:'11.5px',color:LT.muted,direction:'ltr' }}>
                           {nights != null && <b style={{ display:'block',color:LT.ink,fontSize:'17px',fontWeight:800,fontFamily:FF,letterSpacing:'-0.01em' }}>{nights} לילות</b>}
-                          {l.check_in && l.check_out && <>{fmtNum(l.check_in)} — {fmtNum(l.check_out)}</>}
+                          {l.check_in && l.check_out && <>{fmtNumY(l.check_in)} — {fmtNumY(l.check_out)}</>}
                         </div>
                       </div>
                     )
