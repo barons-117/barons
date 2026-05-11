@@ -141,16 +141,17 @@ async function consumeChallenge(
 // ─── 1. REGISTER OPTIONS ─────────────────────────────────────────────────
 async function handleRegisterOptions(
   req: Request,
-  supabase: ReturnType<typeof createClient>,
+  userClient: ReturnType<typeof createClient>,
+  serviceClient: ReturnType<typeof createClient>,
   corsHeaders: Record<string, string>,
 ) {
-  const user = await getAuthUser(req, supabase)
+  const user = await getAuthUser(req, userClient)
   if (!user) return jsonResponse({ error: 'unauthenticated' }, { status: 401 }, corsHeaders)
 
   const { rpId } = pickRpId(req.headers.get('Origin'))
 
   // Get any existing passkeys for this user to exclude (avoid double-registration)
-  const { data: existing } = await supabase
+  const { data: existing } = await serviceClient
     .from('user_passkeys')
     .select('credential_id, transports')
     .eq('user_id', user.id)
@@ -175,8 +176,8 @@ async function handleRegisterOptions(
     },
   })
 
-  // Store challenge for verification step
-  await storeChallenge(supabase, `reg:${user.id}`, options.challenge, user.id)
+  // Store challenge for verification step (use serviceClient to bypass RLS)
+  await storeChallenge(serviceClient, `reg:${user.id}`, options.challenge, user.id)
 
   return jsonResponse({ options }, { status: 200 }, corsHeaders)
 }
@@ -189,10 +190,11 @@ interface RegisterVerifyBody {
 
 async function handleRegisterVerify(
   req: Request,
-  supabase: ReturnType<typeof createClient>,
+  userClient: ReturnType<typeof createClient>,
+  serviceClient: ReturnType<typeof createClient>,
   corsHeaders: Record<string, string>,
 ) {
-  const user = await getAuthUser(req, supabase)
+  const user = await getAuthUser(req, userClient)
   if (!user) return jsonResponse({ error: 'unauthenticated' }, { status: 401 }, corsHeaders)
 
   const body = (await req.json()) as RegisterVerifyBody
@@ -200,7 +202,7 @@ async function handleRegisterVerify(
 
   if (!response) return jsonResponse({ error: 'missing response' }, { status: 400 }, corsHeaders)
 
-  const stored = await consumeChallenge(supabase, `reg:${user.id}`)
+  const stored = await consumeChallenge(serviceClient, `reg:${user.id}`)
   if (!stored) return jsonResponse({ error: 'challenge expired' }, { status: 400 }, corsHeaders)
 
   const { rpId, origin } = pickRpId(req.headers.get('Origin'))
@@ -232,8 +234,8 @@ async function handleRegisterVerify(
   const counter = credential.counter
   const transports = response.response.transports || []
 
-  // Save to DB
-  const { error: insertError } = await supabase.from('user_passkeys').insert({
+  // Save to DB (use serviceClient to bypass RLS)
+  const { error: insertError } = await serviceClient.from('user_passkeys').insert({
     user_id: user.id,
     credential_id: credentialId,
     public_key: publicKey,
@@ -261,11 +263,12 @@ interface AuthOptionsBody {
 
 async function handleAuthenticateOptions(
   req: Request,
-  supabase: ReturnType<typeof createClient>,
+  userClient: ReturnType<typeof createClient>,
+  serviceClient: ReturnType<typeof createClient>,
   corsHeaders: Record<string, string>,
 ) {
   const { rpId } = pickRpId(req.headers.get('Origin'))
-  const user = await getAuthUser(req, supabase)
+  const user = await getAuthUser(req, userClient)
   const body = (await req.json().catch(() => ({}))) as AuthOptionsBody
 
   let userIdForChallenge: string | null = null
@@ -274,7 +277,7 @@ async function handleAuthenticateOptions(
   if (user) {
     // Re-prompt scenario: logged-in user, fetch their passkeys
     userIdForChallenge = user.id
-    const { data } = await supabase
+    const { data } = await serviceClient
       .from('user_passkeys')
       .select('credential_id, transports')
       .eq('user_id', user.id)
@@ -287,10 +290,6 @@ async function handleAuthenticateOptions(
     }
   } else if (body.email) {
     // Login scenario: look up user by email via service role, then their passkeys
-    const serviceClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    )
     const { data: userList } = await serviceClient.auth.admin.listUsers()
     const target = userList?.users?.find((u) => u.email === body.email)
     if (!target) return jsonResponse({ error: 'user not found' }, { status: 404 }, corsHeaders)
@@ -326,7 +325,8 @@ async function handleAuthenticateOptions(
   } else {
     challengeKey = `auth:anon:${crypto.randomUUID()}`
   }
-  await storeChallenge(supabase, challengeKey, options.challenge, userIdForChallenge)
+  // Use serviceClient to bypass RLS
+  await storeChallenge(serviceClient, challengeKey, options.challenge, userIdForChallenge)
 
   return jsonResponse({ options, challenge_key: challengeKey }, { status: 200 }, corsHeaders)
 }
@@ -339,10 +339,11 @@ interface AuthVerifyBody {
 
 async function handleAuthenticateVerify(
   req: Request,
-  supabase: ReturnType<typeof createClient>,
+  userClient: ReturnType<typeof createClient>,
+  serviceClient: ReturnType<typeof createClient>,
   corsHeaders: Record<string, string>,
 ) {
-  const user = await getAuthUser(req, supabase)
+  const user = await getAuthUser(req, userClient)
   const body = (await req.json()) as AuthVerifyBody
   const { response, challenge_key } = body
 
@@ -352,17 +353,13 @@ async function handleAuthenticateVerify(
   const key = user ? `auth:${user.id}` : challenge_key
   if (!key) return jsonResponse({ error: 'missing challenge key' }, { status: 400 }, corsHeaders)
 
-  const stored = await consumeChallenge(supabase, key)
+  const stored = await consumeChallenge(serviceClient, key)
   if (!stored) return jsonResponse({ error: 'challenge expired' }, { status: 400 }, corsHeaders)
 
   const { rpId, origin } = pickRpId(req.headers.get('Origin'))
 
   // Look up the credential being used
   const credentialId = response.id
-  const serviceClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  )
   const { data: passkey, error: pkError } = await serviceClient
     .from('user_passkeys')
     .select('id, user_id, credential_id, public_key, counter, transports')
@@ -499,13 +496,19 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'method not allowed' }, { status: 405 }, corsHeaders)
   }
 
-  // Initialize Supabase client (uses caller's JWT for RLS)
-  const supabase = createClient(
+  // User-scoped client (uses caller's JWT for auth.getUser only)
+  const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_ANON_KEY')!,
     {
       global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
     },
+  )
+
+  // Service role client (bypasses RLS) - used for ALL DB operations to avoid RLS issues
+  const serviceClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
 
   try {
@@ -525,13 +528,13 @@ Deno.serve(async (req: Request) => {
 
     switch (action) {
       case 'register-options':
-        return await handleRegisterOptions(req, supabase, corsHeaders)
+        return await handleRegisterOptions(req, userClient, serviceClient, corsHeaders)
       case 'register-verify':
-        return await handleRegisterVerify(req, supabase, corsHeaders)
+        return await handleRegisterVerify(req, userClient, serviceClient, corsHeaders)
       case 'authenticate-options':
-        return await handleAuthenticateOptions(req, supabase, corsHeaders)
+        return await handleAuthenticateOptions(req, userClient, serviceClient, corsHeaders)
       case 'authenticate-verify':
-        return await handleAuthenticateVerify(req, supabase, corsHeaders)
+        return await handleAuthenticateVerify(req, userClient, serviceClient, corsHeaders)
       default:
         return jsonResponse(
           { error: 'unknown action', valid: ['register-options', 'register-verify', 'authenticate-options', 'authenticate-verify'] },

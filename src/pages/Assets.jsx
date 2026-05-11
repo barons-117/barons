@@ -69,6 +69,7 @@ const TYPE_META = {
   real_estate_abroad: { label: 'נדל"ן בחו"ל', color: '#38bdf8' },
   equity:             { label: 'מניות/חברה',   color: '#a78bfa' },
   land:               { label: 'קרקע',         color: '#94a3b8' },
+  investment:         { label: 'השקעה',        color: '#06b6d4' },
 }
 
 const STATUS_META = {
@@ -126,6 +127,11 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('he-IL', { year: 'numeric', month: 'short' })
 }
 
+function fmtDateShort(d) {
+  if (!d) return ''
+  return new Date(d).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' })
+}
+
 // ─── Badge ────────────────────────────────────────────────────────────────────
 
 function Badge({ text, color }) {
@@ -148,21 +154,47 @@ function SummaryBlock({ entity, assets, allIncome, allPartners, fx, index = 0 })
   , 0)
 
   const totalValue = myAssets.reduce((sum, a) => {
-    if (!a.estimated_value) return sum
+    // חלק האחוז של הישות הזו בנכס
     const pct = (allPartners[a.id] || [])
       .filter(p => entity.incomeEntities.includes(p.entity))
       .reduce((s, p) => s + p.percentage, 0)
-    return sum + toILS(a.estimated_value, a.estimated_value_currency, fx) * pct
+
+    // לנכסי השקעה — שווי = סך כל ההשקעות (בלי תלות ב-estimated_value)
+    if (a.asset_type === 'investment') {
+      return sum + (a._totalInvestmentsILS || 0) * pct
+    }
+    // אחרת: לוגיקה זהה ל-AssetCard
+    // 1) אם יש estimated_value → השתמש בו
+    if (a.estimated_value) {
+      return sum + toILS(a.estimated_value, a.estimated_value_currency, fx) * pct
+    }
+    // 2) אם אין — fallback לסך הרכישות (משוער מהשקעה).
+    //    _totalPurchasesILS הוא חלק הישויות הפנימיות בלבד, אז כדי לקבל את
+    //    שווי הנכס המלא צריך לחלק ב-myPct של אותן ישויות (כל הלא-חיצוניים).
+    //    אז שווי החלק של הישות הספציפית = (purchases / internalPct) × pct.
+    if (a._totalPurchasesILS && pct > 0) {
+      const internalPct = (allPartners[a.id] || [])
+        .filter(p => p.entity !== 'external')
+        .reduce((s, p) => s + p.percentage, 0)
+      if (internalPct > 0) {
+        const fullValue = a._totalPurchasesILS / internalPct
+        return sum + fullValue * pct
+      }
+    }
+    return sum
   }, 0)
 
   return (
     <div
       className="assets-summary"
       style={{
-        flex: 1, minWidth: 200,
+        flex: '1 1 calc(50% - 6px)',
+        maxWidth: 'calc(50% - 6px)',
+        minWidth: 220,
         background: 'rgba(255,255,255,0.06)',
         border: `1px solid ${entity.color}33`,
         borderRadius: 14, padding: '18px 20px',
+        boxSizing: 'border-box',
         animationDelay: `${index * 60}ms`,
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
@@ -175,15 +207,27 @@ function SummaryBlock({ entity, assets, allIncome, allPartners, fx, index = 0 })
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px', minWidth: 0 }}>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>הכנסה חודשית</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>
+          <div style={{
+            fontSize: 15, fontWeight: 700, color: 'white',
+            whiteSpace: 'nowrap',
+            direction: 'ltr', textAlign: 'right',
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.01em',
+          }}>
             {fmtILS(totalMonthly)}
           </div>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px', minWidth: 0 }}>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>שווי חלק</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>
+          <div style={{
+            fontSize: 15, fontWeight: 700, color: 'white',
+            whiteSpace: 'nowrap',
+            direction: 'ltr', textAlign: 'right',
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.01em',
+          }}>
             {fmtILS(totalValue)}
           </div>
         </div>
@@ -197,6 +241,7 @@ function SummaryBlock({ entity, assets, allIncome, allPartners, fx, index = 0 })
 function AssetCard({ asset, partners, income, entitySection, fx, onClick, index = 0 }) {
   const type   = TYPE_META[asset.asset_type] || {}
   const status = STATUS_META[asset.status]   || {}
+  const isInvestment = asset.asset_type === 'investment'
 
   const internalPartners = partners.filter(p =>
     ['erez','roi','erez_roi','reuven_private','reuven_company'].includes(p.entity)
@@ -214,24 +259,37 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
     .filter(p => entitySection.incomeEntities.includes(p.entity))
     .reduce((s,p) => s + p.percentage, 0)
 
-  // שווי: אם יש estimated_value — משתמשים בו. אם לא — מחשבים מסך ההשקעות / האחוז
-  const isILS = !asset.estimated_value_currency || asset.estimated_value_currency === 'ILS'
-  const hasEstimate = !!asset.estimated_value
-  const valueILS_total = hasEstimate
-    ? toILS(asset.estimated_value, asset.estimated_value_currency || 'ILS', fx)
-    : (() => {
-        // סכם את כל הרכישות של הנכס (asset.purchases מגיע כ-prop נפרד בדשבורד — כאן אין לנו אותם,
-        // אז נשתמש ב-asset._totalPurchasesILS שנחשב מחוץ)
-        if (!asset._totalPurchasesILS || myPct <= 0) return 0
-        return asset._totalPurchasesILS / myPct  // השקעה / אחוז = ערך כולל משוער
-      })()
-  const valueOrig = hasEstimate
-    ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
-    : null
-  const impliedValue = !hasEstimate && valueILS_total > 0
-  const myValueILS = myPct > 0 && myPct < 1 && valueILS_total
-    ? fmtILS(valueILS_total * myPct)
-    : null
+  // שווי: לוגיקה שונה לנכסי השקעה
+  let valueILS_total = 0
+  let valueOrig = null
+  let impliedValue = false
+  let myValueILS = null
+  let isILS = true
+
+  if (isInvestment) {
+    // נכס השקעה — שווי = סך כל ההשקעות (כבר בשקלים)
+    valueILS_total = asset._totalInvestmentsILS || 0
+    if (myPct > 0 && myPct < 1 && valueILS_total) {
+      myValueILS = fmtILS(valueILS_total * myPct)
+    }
+  } else {
+    // לוגיקה קיימת לנכסי נדל"ן וכו'
+    isILS = !asset.estimated_value_currency || asset.estimated_value_currency === 'ILS'
+    const hasEstimate = !!asset.estimated_value
+    valueILS_total = hasEstimate
+      ? toILS(asset.estimated_value, asset.estimated_value_currency || 'ILS', fx)
+      : (() => {
+          if (!asset._totalPurchasesILS || myPct <= 0) return 0
+          return asset._totalPurchasesILS / myPct
+        })()
+    valueOrig = hasEstimate
+      ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
+      : null
+    impliedValue = !hasEstimate && valueILS_total > 0
+    myValueILS = myPct > 0 && myPct < 1 && valueILS_total
+      ? fmtILS(valueILS_total * myPct)
+      : null
+  }
 
   return (
     <div
@@ -249,10 +307,17 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
           <div style={{ fontSize: 14, fontWeight: 700, color: 'white', lineHeight: 1.35, marginBottom: 3 }}>
             {asset.name}
           </div>
-          {asset.address_city && (
+          {/* כתובת — לא מציגים לנכסי השקעה (שלהם אין כתובת) */}
+          {!isInvestment && asset.address_city && (
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
               {asset.address_city}
               {asset.address_country !== 'ישראל' ? ` · ${asset.address_country}` : ''}
+            </div>
+          )}
+          {/* בנכס השקעה — מציגים מספר השקעות פעילות */}
+          {isInvestment && asset._investmentCount > 0 && (
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
+              {asset._investmentCount} {asset._investmentCount === 1 ? 'השקעה' : 'השקעות'}
             </div>
           )}
         </div>
@@ -279,15 +344,44 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
         </div>
       )}
 
-      {/* הכנסה + שווי */}
+      {/* הכנסה / עדכון אחרון + שווי */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 2 }}>
         <div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 2 }}>הכנסה חודשית</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: myMonthly > 0 ? 'white' : 'rgba(255,255,255,0.52)' }}>
-            {myMonthly > 0 ? fmtILS(myMonthly) : 'אין'}
-          </div>
+          {isInvestment ? (
+            <>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 2 }}>עדכון אחרון</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: asset._lastBalanceDate ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)' }}>
+                {asset._lastBalanceDate ? fmtDateShort(asset._lastBalanceDate) : '—'}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 2 }}>הכנסה חודשית</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: myMonthly > 0 ? 'white' : 'rgba(255,255,255,0.52)' }}>
+                {myMonthly > 0 ? fmtILS(myMonthly) : 'אין'}
+              </div>
+            </>
+          )}
         </div>
-        {(valueOrig || impliedValue) && (
+        {/* שווי */}
+        {isInvestment && valueILS_total > 0 ? (
+          <div style={{ textAlign: 'left' }}>
+            {myValueILS ? (
+              <>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#67e8f9' }}>
+                  {myValueILS}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 1 }}>
+                  מתוך {fmtILS(valueILS_total)} ({Math.round(myPct*100)}%)
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#67e8f9' }}>
+                {fmtILS(valueILS_total)}
+              </div>
+            )}
+          </div>
+        ) : (valueOrig || impliedValue) && (
           <div style={{ textAlign: 'left' }}>
             {myValueILS ? (
               <>
@@ -399,19 +493,21 @@ export default function Assets({ session }) {
       setLoading(true)
       try {
         const [
-          { data: assetsData,    error: e1 },
-          { data: partnersData,  error: e2 },
-          { data: incomeData,    error: e3 },
-          { data: splitsData,    error: e4 },
-          { data: purchasesData, error: e5 },
+          { data: assetsData,      error: e1 },
+          { data: partnersData,    error: e2 },
+          { data: incomeData,      error: e3 },
+          { data: splitsData,      error: e4 },
+          { data: purchasesData,   error: e5 },
+          { data: investmentsData, error: e6 },
         ] = await Promise.all([
           supabase.from('assets').select('*').order('address_city'),
           supabase.from('asset_partners').select('*'),
           supabase.from('asset_income').select('*'),
           supabase.from('asset_income_splits').select('*'),
           supabase.from('asset_purchases').select('asset_id, amount, currency'),
+          supabase.from('asset_investments').select('asset_id, amount, currency, balance_date'),
         ])
-        if (e1 || e2 || e3 || e4 || e5) throw e1 || e2 || e3 || e4 || e5
+        if (e1 || e2 || e3 || e4 || e5 || e6) throw e1 || e2 || e3 || e4 || e5 || e6
 
         const partnersMap = {}
         ;(partnersData || []).forEach(p => {
@@ -434,10 +530,32 @@ export default function Assets({ session }) {
           const ils = p.amount * (FX_FALLBACK[p.currency] || 1)
           purchaseTotals[p.asset_id] = (purchaseTotals[p.asset_id] || 0) + ils
         })
-        const assetsWithPurchases = (assetsData || []).map(a => ({
-          ...a, _totalPurchasesILS: purchaseTotals[a.id] || 0
+
+        // חשב סך השקעות (investments) בשקלים + תאריך עדכון אחרון + מספר השקעות לכל נכס
+        const investmentTotals = {}
+        const investmentLastDate = {}
+        const investmentCount = {}
+        ;(investmentsData || []).forEach(inv => {
+          if (!inv.amount) return
+          const ils = inv.amount * (FX_FALLBACK[inv.currency] || 1)
+          investmentTotals[inv.asset_id] = (investmentTotals[inv.asset_id] || 0) + ils
+          investmentCount[inv.asset_id]  = (investmentCount[inv.asset_id]  || 0) + 1
+          if (inv.balance_date) {
+            const cur = investmentLastDate[inv.asset_id]
+            if (!cur || new Date(inv.balance_date) > new Date(cur)) {
+              investmentLastDate[inv.asset_id] = inv.balance_date
+            }
+          }
+        })
+
+        const assetsWithExtras = (assetsData || []).map(a => ({
+          ...a,
+          _totalPurchasesILS:   purchaseTotals[a.id]     || 0,
+          _totalInvestmentsILS: investmentTotals[a.id]   || 0,
+          _lastBalanceDate:     investmentLastDate[a.id] || null,
+          _investmentCount:     investmentCount[a.id]    || 0,
         }))
-        setAssets(assetsWithPurchases)
+        setAssets(assetsWithExtras)
         setPartners(partnersMap)
         setIncome(incomeMap)
       } catch (err) {
@@ -462,6 +580,7 @@ export default function Assets({ session }) {
     { value: 'real_estate_abroad', label: 'נדל"ן בחו"ל' },
     { value: 'equity',             label: 'מניות/חברה' },
     { value: 'land',               label: 'קרקע' },
+    { value: 'investment',         label: 'השקעה' },
   ]
 
   const statusChips = [
@@ -738,4 +857,3 @@ const ASSETS_STYLE = `
     }
   }
 `
-

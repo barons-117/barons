@@ -830,6 +830,23 @@ function TripHeader({ displayName, editMode, setEditMode, setModal, navigate, pr
         <button className="td-iconbtn td-press" title="ייבא מ-TripIt" onClick={() => setModal('tripit')} style={iconBtn}>
           <ImportIcon size={14} />
         </button>
+        <button
+          className="td-iconbtn td-press"
+          title="AI-Travel — שאל על הטיולים שלך"
+          onClick={() => navigate('/travels/ask')}
+          style={{
+            ...iconBtn,
+            background: 'rgba(59,130,246,0.12)',
+            borderColor: 'rgba(59,130,246,0.4)',
+            color: LT.accent,
+            fontWeight: 800,
+            fontSize: '11px',
+            letterSpacing: '0.04em',
+            fontFamily: FF,
+          }}
+        >
+          AI
+        </button>
         <button className="td-iconbtn td-press" title={editMode ? 'סיים עריכה' : 'עריכה'} onClick={() => setEditMode(e => !e)}
           style={{ ...iconBtn, ...(editMode ? { background: LT.accent, color: '#fff', borderColor: 'transparent' } : {}) }}>
           <EditIcon size={14} />

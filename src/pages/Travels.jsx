@@ -1748,6 +1748,28 @@ export default function Travels({ session }) {
                       <button className="btn-advanced-sm" onClick={() => navigate('/search')}>
                         חיפוש מתקדם
                       </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate('/travels/ask') }}
+                        style={{
+                          background: 'rgba(59,130,246,0.12)',
+                          border: '1px solid rgba(59,130,246,0.4)',
+                          color: '#3b82f6',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          fontFamily: 'inherit',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          marginInlineStart: '8px',
+                          transition: 'background 150ms cubic-bezier(0.23, 1, 0.32, 1)',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.2)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.12)' }}
+                      >
+                        AI-Travel
+                      </button>
                     </div>
                   </div>
 

@@ -22,6 +22,7 @@ const TYPE_LABELS = {
   real_estate_abroad: 'נדל"ן בחו"ל',
   equity:             'מניות/חברה',
   land:               'קרקע',
+  investment:         'השקעה',
 }
 
 const STATUS_LABELS = { active: 'פעיל', sold: 'נמכר', archived: 'ארכיון' }
@@ -31,7 +32,7 @@ const FREQ_LABELS = { monthly: 'חודשי', quarterly: 'רבעוני', 'semi-an
 const VAT_LABELS  = { none: 'ללא מעמ', included: 'כולל מעמ', plus: '+ מעמ' }
 
 const CURRENCIES = ['ILS','USD','EUR','HUF','GBP']
-const ASSET_TYPES = ['residential','commercial','real_estate_abroad','equity','land']
+const ASSET_TYPES = ['residential','commercial','real_estate_abroad','equity','land','investment']
 const STATUSES    = ['active','sold','archived']
 const ENTITIES    = ['erez','roi','erez_roi','reuven_private','reuven_company','external']
 
@@ -345,7 +346,7 @@ const Cs = {
 function MapEmbed({ asset }) {
   const addr = [asset.address_street, asset.address_city, asset.address_country]
     .filter(Boolean).join(', ')
-  if (!addr || asset.asset_type === 'equity') return null
+  if (!addr || asset.asset_type === 'equity' || asset.asset_type === 'investment') return null
 
   const query = encodeURIComponent(addr)
   const src = `https://maps.google.com/maps?q=${query}&output=embed&z=15`
@@ -464,15 +465,23 @@ function GeneralSection({ asset: assetProp, onSave, readOnly, index = 0 }) {
   return (
     <SectionCard index={index} title="מידע כללי" action={<EditBtn onClick={startEdit} hidden={readOnly} />}>
       <Row label="סוג"    value={TYPE_LABELS[asset.asset_type]} />
-      <Row label="כתובת"  value={[asset.address_street, asset.address_city, asset.address_country].filter(Boolean).join(', ')} />
-      <Row label="גוש/חלקה" value={[asset.gush, asset.helka].filter(Boolean).join(' / ')} />
+      {asset.asset_type !== 'investment' && (
+        <Row label="כתובת"  value={[asset.address_street, asset.address_city, asset.address_country].filter(Boolean).join(', ')} />
+      )}
+      {asset.asset_type !== 'investment' && (asset.gush || asset.helka) && (
+        <Row label="גוש/חלקה" value={[asset.gush, asset.helka].filter(Boolean).join(' / ')} />
+      )}
       <Row label="סטטוס"  value={STATUS_LABELS[asset.status]} />
       <Row label="שווי" value={
-        asset.estimated_value
-          ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
-          : asset._totalPurchasesILS && asset._myPct > 0
-            ? `~${fmtILS(asset._totalPurchasesILS / asset._myPct)} (משוער מהשקעה)`
-            : '—'
+        asset.asset_type === 'investment'
+          ? (asset._totalInvestmentsILS > 0
+              ? `${fmtILS(asset._totalInvestmentsILS)} (סך השקעות)`
+              : '—')
+          : asset.estimated_value
+            ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
+            : asset._totalPurchasesILS && asset._myPct > 0
+              ? `~${fmtILS(asset._totalPurchasesILS / asset._myPct)} (משוער מהשקעה)`
+              : '—'
       } />
       {asset.description && (
         <div style={{ marginTop:14, fontSize:13, color:'rgba(255,255,255,0.7)', lineHeight:1.7,
@@ -1150,6 +1159,219 @@ function ContactsSection({ assetId, contacts, onSave, readOnly, index = 0 }) {
   )
 }
 
+// ─── Section: Investments (השקעות כספיות) ─────────────────────────────────────
+// משמש לנכסים מסוג 'investment' — תיק השקעות שמכיל מספר השקעות:
+// כל אחת עם מנהל (הפניקס/מיטב), סכום, תאריך עדכון יתרה, והערות.
+
+function InvestmentsSection({ assetId, investments, fx, onSave, readOnly, index = 0 }) {
+  const [editing, setEditing] = useState(false)
+  const [rows, setRows]       = useState([])
+  const [saving, setSaving]   = useState(false)
+
+  function startEdit() {
+    setRows(investments.map(inv => ({
+      ...inv,
+      // ולידציה למחרוזות תאריך
+      balance_date: inv.balance_date || new Date().toISOString().split('T')[0],
+    })))
+    setEditing(true)
+  }
+
+  function addRow() {
+    setRows(r => [...r, {
+      id: null, asset_id: assetId,
+      manager_name: '', amount: '', currency: 'ILS',
+      balance_date: new Date().toISOString().split('T')[0],
+      notes: '', sort_order: r.length,
+    }])
+  }
+
+  async function save() {
+    setSaving(true)
+    await supabase.from('asset_investments').delete().eq('asset_id', assetId)
+    const ALLOWED = ['asset_id','manager_name','amount','currency','balance_date','notes','sort_order']
+    const toInsert = rows
+      .filter(r => (r.manager_name || '').trim() && parseFloat(r.amount) > 0)
+      .map((r, i) => {
+        const row = { asset_id: assetId, sort_order: i }
+        ALLOWED.forEach(k => {
+          if (k === 'asset_id' || k === 'sort_order') return
+          if (k === 'amount') row[k] = parseFloat(r[k]) || 0
+          else if (k in r) row[k] = r[k] || null
+        })
+        return row
+      })
+    if (toInsert.length > 0) {
+      const { error } = await supabase.from('asset_investments').insert(toInsert)
+      if (error) { console.error('investments insert error:', error); setSaving(false); return }
+    }
+    setSaving(false)
+    onSave()
+    setEditing(false)
+  }
+
+  // חישובי סיכום (גם בעריכה — לפי rows)
+  const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+  const rates = fx || FX_FB
+  const sourceList = editing ? rows : investments
+  const totalILS = sourceList.reduce((s, inv) => {
+    const amt = parseFloat(inv.amount) || 0
+    return s + amt * (rates[inv.currency || 'ILS'] || 1)
+  }, 0)
+
+  // מיון להצגה: לפי תאריך יתרה יורד (החדש למעלה)
+  const sortedView = [...investments].sort((a, b) => {
+    if (!a.balance_date) return 1
+    if (!b.balance_date) return -1
+    return new Date(b.balance_date) - new Date(a.balance_date)
+  })
+
+  // ─── מצב עריכה ────────────────────────────────────────────────────────────
+  if (editing) return (
+    <SectionCard index={index} title="השקעות" action={
+      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        <span style={{ fontSize:12, fontWeight:700, color:'#67e8f9' }}>
+          סה"כ: {fmtILS(totalILS)}
+        </span>
+        <CancelBtn onClick={() => setEditing(false)} />
+        <SaveBtn onClick={save} loading={saving} />
+      </div>
+    }>
+      {/* כותרת עמודות */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'1.4fr 1fr 80px 130px 24px',
+        gap:8, marginBottom:6,
+      }}>
+        <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>מנהל</span>
+        <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>סכום</span>
+        <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>מטבע</span>
+        <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>תאריך יתרה</span>
+        <span />
+      </div>
+      {rows.map((row, i) => (
+        <div key={i} style={{ marginBottom: 12, padding:'10px', background:'rgba(255,255,255,0.03)', borderRadius:10, border:'1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns:'1.4fr 1fr 80px 130px 24px',
+            gap:8, alignItems:'center', marginBottom:8,
+          }}>
+            <Input
+              value={row.manager_name}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, manager_name:v} : x))}
+              placeholder="שם הגוף המנהל"
+            />
+            <Input
+              type="number"
+              value={row.amount}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, amount:v} : x))}
+              placeholder="0"
+            />
+            <Select
+              value={row.currency}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, currency:v} : x))}
+              options={CURRENCIES.map(c => ({ value:c, label:c }))}
+            />
+            <Input
+              type="date"
+              value={row.balance_date}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, balance_date:v} : x))}
+            />
+            <button onClick={() => setRows(r => r.filter((_,j) => j!==i))}
+              className="ad-x-red ad-press"
+              type="button"
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:16, padding:0 }}
+            >×</button>
+          </div>
+          <Textarea
+            value={row.notes}
+            onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, notes:v} : x))}
+            placeholder="מידע נוסף (חשבון, יועץ, סוג השקעה וכו')"
+            rows={2}
+          />
+        </div>
+      ))}
+      <button onClick={addRow} className="ad-text-btn ad-press" type="button"
+        style={{ fontSize:12, color:'#60a5fa', background:'none', border:'none', cursor:'pointer', fontFamily:"'Open Sans Hebrew', 'Open Sans', sans-serif", padding:0, marginTop:4 }}>
+        + הוסף השקעה
+      </button>
+    </SectionCard>
+  )
+
+  // ─── מצב תצוגה ────────────────────────────────────────────────────────────
+  return (
+    <SectionCard index={index} title="השקעות" action={
+      <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+        {investments.length > 0 && (
+          <span style={{ fontSize:13, fontWeight:700, color:'#67e8f9' }}>
+            סה"כ מעודכן: {fmtILS(totalILS)}
+          </span>
+        )}
+        <EditBtn onClick={startEdit} hidden={readOnly} />
+      </div>
+    }>
+      {investments.length === 0 && (
+        <div style={{ color:'rgba(255,255,255,0.52)', fontSize:13, padding:'8px 0' }}>
+          אין השקעות רשומות. לחץ "עריכה" להוספה.
+        </div>
+      )}
+      {sortedView.map((inv, i) => {
+        const ils = (parseFloat(inv.amount) || 0) * (rates[inv.currency || 'ILS'] || 1)
+        const showILS = inv.currency && inv.currency !== 'ILS'
+        return (
+          <div key={inv.id || i} style={{
+            padding:'14px 0',
+            borderBottom: i < sortedView.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:700, color:'white', marginBottom:3 }}>
+                  {inv.manager_name}
+                </div>
+                {inv.balance_date && (
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.58)' }}>
+                    יתרה מעודכנת ל-{fmtDate(inv.balance_date)}
+                  </div>
+                )}
+              </div>
+              <div style={{ textAlign:'left', minWidth:110 }}>
+                <div style={{ fontSize:15, fontWeight:700, color:'white' }}>
+                  {fmtOrig(inv.amount, inv.currency || 'ILS')}
+                </div>
+                {showILS && (
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.55)', marginTop:2 }}>
+                    ≈ {fmtILS(ils)}
+                  </div>
+                )}
+              </div>
+            </div>
+            {inv.notes && (
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.65)', marginTop:6, lineHeight:1.6, whiteSpace:'pre-wrap' }}>
+                {inv.notes}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      {/* סיכום למטה */}
+      {investments.length > 0 && (
+        <div style={{
+          marginTop:14, paddingTop:14,
+          borderTop:'1px solid rgba(255,255,255,0.1)',
+          display:'flex', justifyContent:'space-between', alignItems:'center',
+        }}>
+          <span style={{ fontSize:13, color:'rgba(255,255,255,0.7)', fontWeight:600 }}>
+            סה"כ {investments.length} {investments.length === 1 ? 'השקעה' : 'השקעות'}
+          </span>
+          <span style={{ fontSize:17, fontWeight:700, color:'#67e8f9' }}>
+            {fmtILS(totalILS)}
+          </span>
+        </div>
+      )}
+    </SectionCard>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -1516,9 +1738,31 @@ export default function AssetDetail({ session }) {
   const [events,    setEvents]    = useState([])
   const [contacts,  setContacts]  = useState([])
   const [files,     setFiles]     = useState([])
+  const [investments, setInvestments] = useState([])
   const [loading,   setLoading]   = useState(true)
 
   async function load() {
+    // אם זה /assets/new — צור נכס ריק וניווט אליו (replace)
+    if (id === 'new') {
+      const { data: created, error: createErr } = await supabase
+        .from('assets')
+        .insert({
+          name: 'נכס חדש',
+          asset_type: 'residential',
+          status: 'active',
+          address_country: 'ישראל',
+        })
+        .select()
+        .single()
+      if (createErr || !created) {
+        console.error('Failed to create asset:', createErr)
+        navigate('/assets')
+        return
+      }
+      navigate(`/assets/${created.id}`, { replace: true })
+      return
+    }
+
     const [
       { data: a },
       { data: p },
@@ -1527,6 +1771,7 @@ export default function AssetDetail({ session }) {
       { data: ev },
       { data: con },
       { data: fil },
+      { data: invs },
     ] = await Promise.all([
       supabase.from('assets').select('*').eq('id', id).single(),
       supabase.from('asset_partners').select('*').eq('asset_id', id),
@@ -1535,6 +1780,7 @@ export default function AssetDetail({ session }) {
       supabase.from('asset_events').select('*').eq('asset_id', id).order('event_date', { ascending: false }),
       supabase.from('contacts').select('*').eq('asset_id', id),
       supabase.from('asset_files').select('*').eq('asset_id', id).order('sort_order'),
+      supabase.from('asset_investments').select('*').eq('asset_id', id).order('sort_order'),
     ])
     const purData  = pur || []
     const prtData  = p   || []
@@ -1542,13 +1788,23 @@ export default function AssetDetail({ session }) {
     const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
     const totalPurchasesILS = purData.reduce((s,pu) =>
       s + (pu.amount || 0) * (FX_FB[pu.currency] || 1), 0)
+    // סך השקעות בשקלים — לתצוגה ב-GeneralSection במקום שווי מוערך לנכסי investment
+    const investData = invs || []
+    const totalInvestmentsILS = investData.reduce((s, inv) =>
+      s + (inv.amount || 0) * (FX_FB[inv.currency] || 1), 0)
     // מחשב myPct — אחוז ארז+רועי+חברה (כל מי שלא חיצוני)
     const myPct = prtData
       .filter(p => p.entity !== 'external')
       .reduce((s,p) => s + p.percentage, 0)
-    setAsset({ ...a, _totalPurchasesILS: totalPurchasesILS, _myPct: myPct })
+    setAsset({
+      ...a,
+      _totalPurchasesILS:   totalPurchasesILS,
+      _totalInvestmentsILS: totalInvestmentsILS,
+      _myPct:               myPct,
+    })
     setPartners(prtData); setIncome(inc || [])
     setPurchases(purData); setEvents(ev || []); setContacts(con || []); setFiles(fil || [])
+    setInvestments(investData)
     // בדיקת הרשאה לרועי — רק נכסים עם erez_roi
     if (isRoi) {
       const hasAccess = (p || []).some(pt =>
@@ -1601,22 +1857,36 @@ export default function AssetDetail({ session }) {
             readOnly={isRoi}
             index={1}
           />
-          <IncomeSection
-            assetId={id}
-            income={income}
-            partners={partners}
-            fx={fx}
-            onSave={load}
-            readOnly={isRoi}
-            index={2}
-          />
-          <PurchasesSection
-            assetId={id}
-            purchases={purchases}
-            onSave={load}
-            readOnly={isRoi}
-            index={3}
-          />
+          {/* נכסי השקעה — מציג InvestmentsSection במקום Income+Purchases */}
+          {asset.asset_type === 'investment' ? (
+            <InvestmentsSection
+              assetId={id}
+              investments={investments}
+              fx={fx}
+              onSave={load}
+              readOnly={isRoi}
+              index={2}
+            />
+          ) : (
+            <>
+              <IncomeSection
+                assetId={id}
+                income={income}
+                partners={partners}
+                fx={fx}
+                onSave={load}
+                readOnly={isRoi}
+                index={2}
+              />
+              <PurchasesSection
+                assetId={id}
+                purchases={purchases}
+                onSave={load}
+                readOnly={isRoi}
+                index={3}
+              />
+            </>
+          )}
           <EventsSection
             assetId={id}
             events={events}

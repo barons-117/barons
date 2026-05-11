@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import Home from './pages/Home'
 import Travels from './pages/Travels'
 import TripDetail from './pages/TripDetail'
+import TravelsAsk from './pages/TravelsAsk'
 import Search from './pages/Search'
 import Stats from './pages/Stats'
 import Vouchers from './pages/Vouchers'
@@ -20,6 +21,7 @@ import School from './pages/School'
 import SmartHome from './pages/SmartHome'
 import AliExpressOrders from './pages/AliExpressOrders'
 import Countries from './pages/Countries'
+import HebrewClock from './components/HebrewClock'
 import CountryDetail from './pages/CountryDetail'
 import Profile from './pages/Profile'
 import RequireBiometric from './components/RequireBiometric'
@@ -69,6 +71,7 @@ const GA_ID = 'G-DLFH9B6GWW'
 const ROUTE_NAMES = {
   '/':              'Home',
   '/travels':       'נסיעות — רשימה',
+  '/travels/ask':   'AI-Travel',
   '/search':        'חיפוש',
   '/stats':         'סטטיסטיקות',
   '/school':        'אקדמיה',
@@ -186,6 +189,8 @@ export default function App() {
       <Routes>
         <Route path="/"                element={<Home session={session} />} />
         <Route path="/travels"         element={G('/travels',     <RequireBiometric route="/travels"><Travels        session={session} /></RequireBiometric>)} />
+        <Route path="/travels/ask"     element={G('/travels',     <RequireBiometric route="/travels"><TravelsAsk     session={session} /></RequireBiometric>)} />
+        <Route path="/travels/ask/:chatId" element={G('/travels', <RequireBiometric route="/travels"><TravelsAsk     session={session} /></RequireBiometric>)} />
         <Route path="/travels/:id"     element={G('/travels',     <RequireBiometric route="/travels"><TripDetail     session={session} /></RequireBiometric>)} />
         <Route path="/assets"          element={G('/assets',      <RequireBiometric route="/assets"><Assets         session={session} /></RequireBiometric>)} />
         <Route path="/assets/:id"      element={G('/assets',      <RequireBiometric route="/assets"><AssetDetail    session={session} /></RequireBiometric>)} />
@@ -205,6 +210,7 @@ export default function App() {
         <Route path="/countries"       element={G('/travels',     <Countries        session={session} />)} />
         <Route path="/country/:country" element={G('/travels',    <CountryDetail    session={session} />)} />
         <Route path="/shopping-quick"  element={<ShoppingQuick />} />
+        <Route path="/clock"           element={<HebrewClock />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
