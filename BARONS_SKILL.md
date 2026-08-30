@@ -9,8 +9,11 @@ description: סקיל מלא לפרויקט BARONS — אתר משפחתי עם 
 
 ```
 Domain:     barons.co.il
-Repo:       git@github.com:barons-117/barons.git
-Local:      /Users/erezblt/Library/CloudStorage/Dropbox/Barons Site/barons/
+Repo:       git@github.com:barons-117/barons.git   ← SSH בלבד, ראה §14
+Local:      Dropbox/A Sites/barons/
+            iMac White:   /Users/erezb/...
+            iMac Blue:    /Users/erezbaron/...
+            MacBook Air:  /Users/erezblt/...
 Stack:      React + Vite → GitHub Pages
 Routing:    HashRouter (#/travels, #/stats וכו׳)
 Font:       Open Sans (Google Fonts) — חובה בכל מקום
@@ -46,23 +49,16 @@ src/
 │   ├── TripItImport.jsx     ← ייבוא מ-TripIt (paste)
 │   ├── Search.jsx           ← חיפוש מתקדם + ייצוא
 │   ├── Stats.jsx            ← סטטיסטיקות
+│   ├── Assets.jsx           ← רשימת נכסים + SummaryBlock + EntitySection
+│   ├── AssetDetail.jsx      ← עמוד נכס + HierarchySection
+│   ├── EinavVouchers.jsx    ← קופונינב
 │   └── BaronsHeader.jsx     ← header משותף
 public/
 ├── favicon.ico
 ├── logo-circle.png          ← לוגו על עיגול כחול כהה
 ├── logo-white.png
 ├── logo-dark.png
-├── apple-touch-icon.png
-└── upcoming/
-    └── assets/
-        ├── person.png       ← בובות אנשים לגריד הנסיעות הקרובות (1-9)
-        ├── person-2.png
-        ├── ...person-9.png
-        └── dest/            ← תמונות רקע ליעדים
-            ├── paris.avif
-            ├── london.avif
-            ├── budapest.jpg
-            └── ... (ראה סעיף 16)
+└── apple-touch-icon.png
 index.html                   ← Open Sans Hebrew מ-Google Fonts
 index.css                    ← CSS variables + global animations
 ```
@@ -102,6 +98,53 @@ lodging (
   created_at
 )
 ```
+
+### מודול נכסים (`/assets`)
+
+```sql
+assets (
+  id uuid PK,
+  parent_asset_id uuid FK → assets(id) ON DELETE SET NULL,   -- היררכיית החזקות, §17
+  name, description,
+  asset_type,          -- residential | commercial | real_estate_abroad
+                       -- | equity | land | investment | income
+  status,              -- active | archived | sold
+  address_street, address_city, address_country,
+  gush, helka,
+  estimated_value, estimated_value_currency,
+  sold_date, sold_price, sold_price_currency,
+  cover_image_path, cover_image_path2, cover_image_path3,
+  created_at, updated_at
+)
+
+asset_partners (
+  id uuid PK, asset_id FK,
+  entity,              -- erez | roi | erez_roi | reuven_private | reuven_company | external
+  percentage numeric,  -- ⚠️ שבר 0–1, לא 0–100. סכום לכל נכס חייב = 1.0000
+  name, notes, created_at
+)
+
+asset_income (
+  id uuid PK, asset_id FK,
+  tenant_name, tenant_phone, tenant_email,
+  tenant_name2, tenant_phone2, tenant_email2,
+  gross_amount, currency,
+  payment_frequency,   -- monthly | quarterly | semi-annual | annual
+  vat_type,            -- none | included | excluded
+  is_active bool, split_by_ownership bool,   -- ⚠️ nullable — לבדוק !== false
+  income_kind, start_date, contract_end_date, vacated_date,
+  notes, created_at, updated_at
+)
+
+asset_income_splits (id uuid PK, income_id FK, entity, percentage)
+asset_purchases     (id uuid PK, asset_id FK, purchase_date, amount, currency, from_whom, notes)
+asset_events        (id uuid PK, asset_id FK, event_date, description)
+asset_investments   (id uuid PK, asset_id FK, manager_name, amount, currency, balance_date, notes, sort_order)
+asset_files         (id uuid PK, asset_id FK, storage_path, caption, sort_order)
+contacts            (id uuid PK, asset_id FK, name, role, phone, email, notes)
+```
+
+**תמונות:** `cover_image_path*` הוא נתיב ב-Storage bucket `assets`. הקוד קורא ב-`createSignedUrl(path)` לפי הנתיב עצמו, **לא** לפי תיקיית ה-asset — לכן אפשר להעביר מצביע תמונה בין נכסים ב-`UPDATE` בלי להזיז את הקובץ.
 
 ---
 
@@ -221,7 +264,10 @@ USER_MENUS = {
 /travels/:id → TripDetail
 /search     → Search
 /stats      → Stats
-/vouchers   → Vouchers (עתידי)
+/vouchers   → Vouchers
+/assets     → Assets            ← רשימה + קיבוץ היררכי (§17)
+/assets/:id → AssetDetail       ← ⚠️ 'new' = יצירת רשומה ריקה + redirect
+/einav      → EinavVouchers
 ```
 
 ---
@@ -304,116 +350,7 @@ const AIRPORT_INFO = {
 
 ---
 
-## 9. FlightAnimation — אנימציית גלובוס בכרטיסי טיסה
-
-### קבצים
-```
-src/pages/FlightAnimation.jsx   ← קומפוננט הגלובוס SVG
-src/pages/airports.js           ← 186 שדות תעופה: IATA → { city, lon, lat }
-src/pages/continentsLoader.js   ← טוען geometria יבשות מ-CDN (cached)
-```
-
-### שימוש בטאב טיסות (TripDetail.jsx)
-```jsx
-import FlightAnimation from './FlightAnimation'
-
-// בתוך כרטיס טיסה — grid 1fr auto 1fr, direction ltr
-<FlightAnimation
-  from={f.from_airport || 'TLV'}
-  to={f.to_airport || 'CDG'}
-  size={220}
-  duration={2800}
-  palette="dark"
-  accent="#60a5fa"
-  showLabels={false}
-/>
-```
-
-### הוספת שדה תעופה חסר
-ב-`airports.js`, בסוף האובייקט AIRPORTS:
-```js
-XYZ: { city: "שם העיר", lon: 34.89, lat: 32.01 },
-```
-
----
-
-## 10. GridReveal — נסיעות קרובות (Travels.jsx)
-
-קומפוננט v11-gridchat — גריד 3 עמודות עם תמונות יעד, בובות אנשים, ספירה לאחור, ופופאובר צ׳אט בהובר.
-
-### מבנה Assets
-```
-public/upcoming/assets/
-├── person.png            ← בובות PNG (רקע שקוף) לגריד
-├── person-2.png
-├── ...
-└── dest/
-    ├── paris.avif
-    ├── budapest.jpg
-    └── ...
-```
-
-### הוספת בובת אדם חדשה
-**צעד 1** — שמור קובץ PNG עם רקע שקוף:
-```
-public/upcoming/assets/person-10.png
-```
-**צעד 2** — הוסף שורה למערך PEOPLE ב-`Travels.jsx`:
-```js
-const PEOPLE = [
-  '/upcoming/assets/person.png',
-  ...
-  '/upcoming/assets/person-10.png',  // ← מוסיף כאן
-]
-```
-
-### הוספת יעד חדש
-**צעד 1** — שמור תמונת יעד (WEBP עדיף, portrait 3:4 אידיאלי):
-```
-public/upcoming/assets/dest/tokyo.jpg
-```
-**צעד 2** — הוסף שורה ל-`destImage()` ב-`Travels.jsx`:
-```js
-// ברמת עיר (מדויק יותר):
-const CITIES = [
-  ...
-  ['tokyo', '/upcoming/assets/dest/tokyo.jpg'],
-]
-
-// ברמת מדינה (fallback):
-const COUNTRIES = [
-  ...
-  ['japan', '/upcoming/assets/dest/tokyo.jpg'],
-]
-```
-
-### כשמישהו אומר "הוספתי יעד / אדם" — מה לעדכן
-כשהמשתמש כותב משהו כמו:
-- "הוספתי `tokyo.jpg` ליעד טוקיו"
-- "הוספתי `person-10.png`"
-
-→ לעדכן את `Travels.jsx` עם השורות הנכונות בתוך `destImage()` / `PEOPLE`.
-
-### צבעי ספירה לאחור (urgencyPalette)
-```js
-dLeft <= 7  → '#f87171' אדום   — "כבר פה"
-dLeft <= 30 → '#fbbf24' צהוב   — "ממש בקרוב"
-dLeft <= 90 → '#38bdf8' כחול   — "בדרך"
-dLeft > 90  → '#818cf8' סגול   — "בהמשך"
-```
-
-### יעדים קיימים עם תמונות (dest/)
-```
-paris.avif, london.avif, berlin.webp, amsterdam.webp,
-barcelona.jpg, madrid.webp, budapest.jpg, newyork.jpg,
-bangkok.jpg, sydney.jpeg, lasvegas.jpg, losangeles.jpg,
-warsaw.jpg, prague.webp, bucharest.jpg, vienna.jpg,
-lisbon.jpeg, brussels.jpg, vietnam.jpg
-```
-
----
-
-## 11. SQL Patterns
+## 9. SQL Patterns
 
 ### ניקוי כפילויות
 ```sql
@@ -462,7 +399,7 @@ JOIN trips t ON t.id=s.trip_id WHERE s.date_to IS NULL;
 
 ---
 
-## 12. Supabase Notes — דברים שלמדנו
+## 10. Supabase Notes — דברים שלמדנו
 
 | נושא | כלל |
 |------|-----|
@@ -471,10 +408,14 @@ JOIN trips t ON t.id=s.trip_id WHERE s.date_to IS NULL;
 | UUID בshops | `MIN(id)` לא עובד עם UUID — השתמש ב-`ROW_NUMBER()` |
 | Service role key | אסור ב-git! רק ב-.env. Publishable key: `sb_publishable_...` |
 | Shopping RLS | בכוונה פתוח ל-anon (ShoppingQuick) — לא לשנות |
+| `parent_asset_id` | נכס-מטרייה לא נושא `estimated_value` ולא `asset_income` — אחרת ספירה כפולה (§17) |
+| `asset_partners.percentage` | שבר 0–1. סכום לכל נכס = 1.0000, כולל `external` — החישוב מסתמך על זה |
+| מצביעי תמונות | `createSignedUrl` קורא לפי `path` ולא לפי תיקייה — אפשר להעביר בין נכסים ב-`UPDATE` |
+| מחרוזות ריקות | להמיר ל-`null` לפני insert בעמודות typed (date וכו') — אחרת כשל שקט. תמיד לבדוק את `error` |
 
 ---
 
-## 13. Component Patterns
+## 11. Component Patterns
 
 ### Breadcrumbs — כל עמוד
 ```jsx
@@ -514,7 +455,7 @@ function addDays(d, n) {
 
 ---
 
-## 14. Skills שהופעלו בפרויקט
+## 12. Skills שהופעלו בפרויקט
 
 | Skill | שימוש |
 |-------|-------|
@@ -531,7 +472,7 @@ function addDays(d, n) {
 
 ---
 
-## 15. Known Pitfalls
+## 13. Known Pitfalls
 
 1. **JSX truncation** — אף פעם לא לקצר קבצים באמצע. קובץ שנכתב חלקית = קובץ שבור
 2. **date comparison** — תמיד `date + 'T12:00:00'` ל-`new Date()` כדי להימנע מבעיות timezone
@@ -539,26 +480,59 @@ function addDays(d, n) {
 4. **hotel date logic** — `<` (strict) ולא `<=` לבדיקת check_in < date_to
 5. **companions cleanup** — תמיד להריץ `DELETE FROM companions WHERE id NOT IN...` אחרי עריכות
 6. **UUID** — אין `MIN(id)` על UUID, להשתמש ב-`ROW_NUMBER() OVER (...ORDER BY created_at)`
+7. **node_modules ב-Dropbox** — `mv node_modules /tmp/...` נכשל ב-`Operation timed out` על CloudStorage. להשתמש ב-`rm -rf node_modules`. תמיד לוודא שהמחיקה הצליחה לפני `npm install`, אחרת npm רואה תיקייה קיימת ומוסיף 2 חבילות ב-9 שניות במקום להתקין מאפס — והבינארי הפגום נשאר
+8. **`gh-pages` לא יורש את `origin`** — הוא פותח חיבור HTTPS משלו. `git remote set-url` לבדו לא מספיק; צריך גם `url.insteadOf` גלובלי (ראה §16)
+9. **`&&` בין build ל-git** — אם מריצים `git` בשורה נפרדת הוא ירוץ גם כשהבילד נכשל, וייווצר קומיט על קוד שבור. תמיד שרשרת אחת: `npm run build && npm run deploy && git push`
+10. **עותקים מתנגשים של Dropbox** — `*conflicted copy*` נכנסים ל-git ומזהמים קומיטים. לפני מחיקה תמיד לוודא שהמקור קיים (ייתכן שהמקור נמחק והעותק הוא הקובץ היחיד ששרד)
 
 ---
 
-## 16. Git Workflow
+## 14. Git Workflow
 
 ```bash
-cd "/Users/erezblt/Library/CloudStorage/Dropbox/Barons Site/barons"
+cd "/Users/erezblt/Library/CloudStorage/Dropbox/A Sites/barons"
 # פיתוח
 npm run dev
 # העתק קבצים שנוצרו → src/pages/
-# ואז:
-git add -A
-git commit -m "description"
-git push
-npm run deploy
+# ואז — שרשרת אחת, לא שורות נפרדות:
+npm run build && npm run deploy && git push
 ```
+
+### Remote — SSH בלבד
+
+ה-PAT הקלאסי ("barons") פג ביולי 2026. עברנו ל-SSH. מפתח נפרד לכל מכונה (iMac Blue, iMac White, MacBook Air), Authentication Key ולא Signing Key.
+
+```bash
+ssh-keygen -t ed25519 -C "erez@barons.co.il"
+pbcopy < ~/.ssh/id_ed25519.pub        # ← להדביק ב-GitHub, השורה המלאה
+git remote set-url origin git@github.com:barons-117/barons.git
+git config --global url."git@github.com:".insteadOf "https://github.com/"
+ssh -T git@github.com                  # ← אמור להחזיר "Hi barons-117!"
+```
+
+ה-`insteadOf` הוא הקריטי — בלעדיו `gh-pages` יבקש שם וסיסמה. GitHub לא מקבל סיסמאות מ-2021, ובפרט לא סיסמת Google SSO. אם מופיעה בקשת סיסמה — Ctrl+C, לא להזין כלום.
+
+### `.gitignore` — חובה
+
+```
+*conflicted copy*
+.claude/
+supabase/.temp/
+node_modules
+```
+
+### זהות git
+
+```bash
+git config --global user.name "Erez Baron"
+git config --global user.email "erez@barons.co.il"
+```
+
+בלי זה git ממציא `erezb@Erezs-iMac-White.local` מה-hostname.
 
 ---
 
-## 17. עתידי — Sub-projects מתוכננים
+## 15. עתידי — Sub-projects מתוכננים
 
 | מודול | סטטוס | route |
 |-------|--------|-------|
@@ -572,3 +546,159 @@ npm run deploy
 3. תפריט ב-`Home.jsx` → `USER_MENUS` (לאיזה users)
 4. טבלה ב-Supabase + RLS
 5. `npm run deploy`
+
+---
+
+## 16. Deployment Runbook — פריסה מאפס
+
+הסדר הזה נבדק ב-30/08/2026 אחרי כשל פריסה מלא. לעקוב שלב-שלב, לא לדלג.
+
+### 0. אם הבילד נכשל ב-`Cannot find native binding`
+
+Dropbox סנכרן חלקית את `node_modules` ובלע את הבינארי הנייטיב של rolldown.
+
+```bash
+# 1. Quit ל-Dropbox (לא רק Pause — Pause לפעמים לא נתפס)
+cd "/Users/erezb/Library/CloudStorage/Dropbox/A Sites/barons"
+rm -rf node_modules                    # לא mv! ראה §13.7
+ls -d node_modules 2>/dev/null && echo "עדיין קיים — עצור" || echo "נמחק"
+rm -f package-lock.json
+npm install                            # ← אמור לקחת ~40s ולהוסיף ~300 חבילות
+xattr -w com.dropbox.ignored 1 node_modules
+# 2. עכשיו לחדש את Dropbox
+```
+
+**סימן שההתקנה לא באמת רצה:** "added 2 packages ... in 9s". התקנה אמיתית = מאות חבילות, עשרות שניות.
+
+**אם עדיין נכשל אחרי זה** — זו גרסת Node. v25.x היא אי-זוגית ו-rolldown לא מפרסם עבורה בינאריים. לעבור ל-22 LTS:
+```bash
+nvm install 22 && nvm use 22 && rm -rf node_modules && npm install
+```
+
+### 1. ניקוי לפני קומיט
+
+```bash
+find src public supabase -name "*conflicted copy*" -print
+```
+לוודא שהמקור של כל קובץ קיים לפני מחיקה, ואז:
+```bash
+find src public supabase -name "*conflicted copy*" -delete
+git rm -r --cached supabase/.temp .claude 2>/dev/null
+```
+
+### 2. פריסה
+
+```bash
+npm run build && npm run deploy && git push
+```
+
+### 3. אימות
+
+לפתוח `https://barons.co.il/#/assets` **בחלון פרטי** או Cmd+Shift+R. HashRouter מגיש מ-cache ונראה כאילו הפריסה נכשלה כשהיא עברה.
+
+**אם gh-pages תקוע על Published בלי שהאתר מתעדכן:** Settings → Pages → source ל-None, שמור, וחזרה ל-`gh-pages`.
+
+---
+
+## 17. מודול נכסים — היררכיית חברות החזקות
+
+### הבעיה
+
+נכס אחד (`OKY LLC — קליבלנד ואוהיו`) הכיל בפועל שני נכסים פיזיים באותה רשומה — `address_street` היה `11629 Ravenna Rd / 2023 W 93rd St`. אין איפה לשים כתובת שנייה, שוכר שני, או חוזה נפרד.
+
+### ההכרעה — מודל שטוח + עמודת `parent_asset_id`
+
+נכס נפרד לכל נכס פיזי, ונכס-מטרייה אחד לחברה. הסיבות: כל הסכמה ב-`AssetDetail` היא per-property (כתובת, gush/helka, מפה, 3 תמונות, purchases, income עם שוכרים, contacts, files, events); הסינונים עובדים ברמת נכס; ומכירה של נכס אחד מתוך כמה = `status: 'sold'` במקום מחיקת שורות מרשומה חיה.
+
+```sql
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS parent_asset_id uuid REFERENCES assets(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_assets_parent ON assets(parent_asset_id);
+```
+
+### ⚠️ הכלל הקריטי — חלוקת אחריות
+
+| | החברה (מטרייה) | הנכסים (בנים) |
+|---|---|---|
+| `estimated_value` | **NULL** | **NULL** |
+| `asset_purchases` | ✅ רכישות החלקים ב-LLC | ❌ ריק |
+| `asset_income` | ❌ ריק | ✅ שכירות ושוכרים |
+| כתובת, תמונות, מסמכים | ❌ | ✅ |
+| `asset_partners` | ✅ אחוז אפקטיבי | ✅ אותו אחוז אפקטיבי |
+
+**למה זה עובד בלי שינוי קוד:** כש-`estimated_value = NULL`, ה-fallback ב-`SummaryBlock` וב-`AssetCard` מחשב `_totalPurchasesILS / internalPct × pct`. עם רכישות רק על המטרייה, זה מחזיר בדיוק את סך מה ששולם. הבנים בלי רכישות ובלי `estimated_value` תורמים 0 לשווי. **אין ספירה כפולה.**
+
+לכן **לא צריך** דגל `is_holding` ולא צריך לסנן את המטרייה מהחישוב. נשקל ונדחה — היה מוסיף סיבוכיות בלי תועלת.
+
+**מלכודת:** אם מוסיפים `estimated_value` לנכס בן *וגם* משאירים רכישות על המטרייה — ספירה כפולה מיידית. להחליט אחת: או שווי שוק על הבנים והמטרייה נקייה, או cost basis על המטרייה והבנים נקיים. **בפרויקט זה נבחר cost basis על המטרייה.**
+
+### אחוזים אפקטיביים (look-through)
+
+לא מוסיפים entity חדש ל-`ENTITY_META` עבור כלי החזקה — הישויות שם מייצגות *מי מהמשפחה*, לא *דרך איזה כלי*, וזה מפוצץ את `ENTITIES[].match`. במקום זה: אחוז אפקטיבי ישיר על כל נכס בן.
+
+```sql
+INSERT INTO asset_partners (asset_id, entity, percentage, name, notes)
+SELECT c.id, v.entity, v.pct, v.pname, 'דרך OKY LLC'
+FROM (VALUES ('<child-1>'::uuid), ('<child-2>'::uuid)) AS c(id),
+     (VALUES ('erez_roi', 0.1456, NULL::text),
+             ('external', 0.3673, 'יובל קליין'),
+             ('external', 0.4871, 'מיכל קליין')) AS v(entity, pct, pname);
+```
+
+חובה להזין גם את ה-`external` — חישוב `fullValue = _totalPurchasesILS / internalPct` מסתמך על כך שהאחוזים מסתכמים ל-1.0000.
+
+### שינויי קוד שבוצעו
+
+**`Assets.jsx`** — `EntitySection` בונה מפת `childrenOf` מתוך הרשימה המסוננת ומקנן בנים במסגרת ענבר (`.assets-group` / `.assets-group-children`). נכס בן מקונן **רק אם האם עבר את אותם פילטרים** — כך שסינון לפי `real_estate_abroad` (שמעלים את המטרייה, שהיא `equity`) מציג את הבנים עצמאית במקום להעלים אותם. אינדקס ה-stagger רץ דרך `nextIndex()` ונשאר רציף על פני הקינון.
+
+`AssetCard` קיבל שלושה props אופציונליים: `childCount` ("מחזיקה N נכסים"), `heldViaName` ("דרך X"), `isChild` (class לעיצוב). בלעדיהם ההתנהגות זהה לקודם.
+
+**`AssetDetail.jsx`** — קומפוננטת `HierarchySection` חדשה. ⚠️ ה-prop נקרא `items` ולא `children` — `children` הוא prop שמור ב-React. שליפת ההיררכיה עטופה ב-`try/catch` כדי שהעמוד ימשיך לעבוד על סביבה שבה המיגרציה עוד לא רצה. Breadcrumb מדורג: `נכסים ← <חברה> ← <נכס>`.
+
+### מצב נוכחי — OKY Properties LLC
+
+```
+a1000000-...-0004  OKY Properties LLC          equity, EIN 36-4901498, 14.5598795%
+├─ a1000000-...-0041  טווינסבורג — 6 יח"ד, Ravenna Rd    (ההכנסה $5,700/חודש)
+└─ a1000000-...-0042  קליבלנד — 2023 W 93rd St            (2 יחידות, is_active=false)
+```
+
+רכישות על המטרייה: $38,990 (2020) + $21,745 (2021) + $9,463 (2026) = **$70,198** = החלק שלנו. שווי חברה משתמע: ~$482,000.
+
+**מקורות נתונים:** K-1 שנתי מ-M. Moretzky LLC (מגיע ~יולי), טופס 8805, Schedule K-3, Ohio IT K-1. מס עירוני ל-RITA עבור Twinsburg בלבד.
+
+**פתוח:** יחידה 2 ב-93rd לא מפורסמת ב-Zillow — לברר עם יובל אם מושכרת ($1,900/חודש). תמונות 93rd עדיין לא הועלו. כששוכר נחתם — להפוך את רשומת ההכנסה ל-`is_active = true`.
+
+### הוספת נכס נוסף לחברה קיימת — צ׳קליסט
+
+1. `INSERT INTO assets` עם `parent_asset_id`, בלי `estimated_value`
+2. `INSERT INTO asset_partners` — האחוז האפקטיבי + כל ה-`external`, סכום = 1.0000
+3. `INSERT INTO asset_income` — `is_active = false` עד חתימת שוכר
+4. אימות: `sum_pct = 1.0000`, `estimated_value IS NULL`, אפס רכישות על הבן
+5. תמונות — ידנית דרך ה-UI (לא ניתן דרך SQL)
+
+### שאילתת אימות
+
+```sql
+SELECT a.name, a.parent_asset_id IS NOT NULL AS is_child, a.estimated_value,
+       (SELECT round(sum(percentage)::numeric,4) FROM asset_partners p WHERE p.asset_id=a.id) AS sum_pct,
+       (SELECT count(*) FROM asset_income i WHERE i.asset_id=a.id AND i.is_active) AS active_income,
+       (SELECT round(sum(amount)::numeric) FROM asset_purchases u WHERE u.asset_id=a.id) AS purchases
+FROM assets a
+WHERE a.id = '<holding-uuid>' OR a.parent_asset_id = '<holding-uuid>'
+ORDER BY is_child, a.name;
+```
+
+### מתי *לא* לפצל
+
+אם מקבלים דיסטריביושן אחד מהחברה ולא עוקבים אחרי שכירות פר-נכס — החברה היא נכס `equity` בודד וההכנסה היא הדיסטריביושן. הפיצול מוצדק רק כשמנהלים שוכרים, הוצאות ומכירה ברמת הנכס.
+
+---
+
+## 18. חוב טכני פתוח
+
+| נושא | פרטים |
+|------|--------|
+| Chunk > 500kB | אזהרת Vite בבילד. פתרון: code-splitting עם `import()` דינמי על המסלולים |
+| `npm audit` | 1 high severity אחרי ההתקנה מחדש. לא חוסם בילד — לטפל בנפרד, לא באמצע פריסה |
+| `git remote` פר-מכונה | ה-SSH הוגדר על iMac White בלבד. iMac Blue ו-MacBook Air עדיין על HTTPS עם PAT שפג |
+| שערי FX | `FALLBACK_FX` מקודדים בשלושה מקומות (`Assets.jsx`, `AssetDetail.jsx`, `load()`). לאחד |
