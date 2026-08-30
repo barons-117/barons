@@ -1634,12 +1634,21 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
   async function handleSave() {
     if (!form.name.trim()) { setActiveTab('info'); return alert('חובה להזין שם שובר') }
     setSaving(true)
-    await onSave({
-      ...form,
-      original_amount:  form.original_amount  === '' ? null : Number(form.original_amount),
-      remaining_amount: form.remaining_amount === '' ? null : Number(form.remaining_amount),
-    })
-    setSaving(false)
+    try {
+      await onSave({
+        ...form,
+        original_amount:  form.original_amount  === '' ? null : Number(form.original_amount),
+        remaining_amount: form.remaining_amount === '' ? null : Number(form.remaining_amount),
+        expiry_date:      form.expiry_date      === '' ? null : form.expiry_date,
+        voucher_number:   form.voucher_number    === '' ? null : form.voucher_number,
+        cvv:              form.cvv              === '' ? null : form.cvv,
+        notes:            form.notes            === '' ? null : form.notes,
+        stores:           form.stores            === '' ? null : form.stores,
+        scan_url:         form.scan_url          === '' ? null : form.scan_url,
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const storeCount = storesToArr(form.stores).length
@@ -2250,7 +2259,8 @@ export default function Vouchers({ session }) {
         {showAdd && (
           <VoucherFormModal title="שובר חדש" onClose={() => setShowAdd(false)}
             onSave={async data => {
-              await supabase.from('vouchers').insert({ ...data, added_by: userEmail, is_archived: false })
+              const { error } = await supabase.from('vouchers').insert({ ...data, added_by: userEmail, is_archived: false })
+              if (error) { alert('שמירת השובר נכשלה: ' + error.message); return }
               setShowAdd(false); loadVouchers()
             }} />
         )}
@@ -2258,7 +2268,8 @@ export default function Vouchers({ session }) {
         {editVoucher && (
           <VoucherFormModal title="עריכת שובר" initial={editVoucher} onClose={() => setEditVoucher(null)}
             onSave={async data => {
-              await supabase.from('vouchers').update(data).eq('id', editVoucher.id)
+              const { error } = await supabase.from('vouchers').update(data).eq('id', editVoucher.id)
+              if (error) { alert('עדכון השובר נכשל: ' + error.message); return }
               setEditVoucher(null); loadVouchers()
             }} />
         )}

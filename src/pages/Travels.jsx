@@ -1105,6 +1105,7 @@ function destImage(trip) {
     ['vienna','/upcoming/assets/dest/vienna.jpg'],['lisbon','/upcoming/assets/dest/lisbon.jpeg'],
     ['brussels','/upcoming/assets/dest/brussels.jpg'],
     ['utah','/upcoming/assets/dest/utah.jpg'],['salt lake','/upcoming/assets/dest/utah.jpg'],
+    ['tokyo','/upcoming/assets/dest/tokyo.jpg'],
   ]
   for (const [k,src] of CITIES) { if (city.includes(k)) return src }
   const COUNTRIES = [
@@ -1112,11 +1113,14 @@ function destImage(trip) {
     ['england','/upcoming/assets/dest/london.avif'],['germany','/upcoming/assets/dest/berlin.webp'],
     ['netherlands','/upcoming/assets/dest/amsterdam.webp'],['spain','/upcoming/assets/dest/barcelona.jpg'],
     ['hungary','/upcoming/assets/dest/budapest.jpg'],['new york','/upcoming/assets/dest/newyork.jpg'],
+    ['japan','/upcoming/assets/dest/tokyo.jpg'],
     ['thailand','/upcoming/assets/dest/bangkok.jpg'],['australia','/upcoming/assets/dest/sydney.jpeg'],
     ['poland','/upcoming/assets/dest/warsaw.jpg'],['czech','/upcoming/assets/dest/prague.webp'],
     ['romania','/upcoming/assets/dest/bucharest.jpg'],['austria','/upcoming/assets/dest/vienna.jpg'],
     ['portugal','/upcoming/assets/dest/lisbon.jpeg'],['belgium','/upcoming/assets/dest/brussels.jpg'],
     ['utah','/upcoming/assets/dest/utah.jpg'],
+    ['korea','/upcoming/assets/dest/korea.jpg'],
+    ['colombia','/upcoming/assets/dest/colombia.jpg'],
   ]
   for (const [k,src] of COUNTRIES) { if (country.includes(k)) return src }
   return null
@@ -1536,7 +1540,14 @@ export default function Travels({ session }) {
     const tripsWithLodging = new Set((lodgingRes.data || []).map(l => l.trip_id))
     if (tripsRes.data) {
       const enriched = tripsRes.data.map(t => {
-        const segs = t.trip_segments || []
+        const segsRaw = [...(t.trip_segments || [])].sort((a, b) => (a.date_from || '').localeCompare(b.date_from || ''))
+        // אם date_to חסר -- משתמשים ב-date_from של הקטע הבא באותו טיול (טיסת המשך/יעד הבא)
+        // לקטע האחרון בטיול (אין קטע הבא) -- נופלים חזרה ל-date_from של אותו קטע עצמו
+        const segs = segsRaw.map((s, i) => {
+          if (s.date_to) return s
+          const next = segsRaw[i + 1]
+          return { ...s, date_to: next?.date_from || s.date_from }
+        })
         const dates = segs.map(s => s.date_from).filter(Boolean).sort()
         const ends = segs.map(s => s.date_to).filter(Boolean).sort()
         return {

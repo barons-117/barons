@@ -20,6 +20,8 @@ import AssetDetail from './pages/AssetDetail'
 import School from './pages/School'
 import SmartHome from './pages/SmartHome'
 import AliExpressOrders from './pages/AliExpressOrders'
+import EinavVouchers from './pages/EinavVouchers'
+import EinavQuickAdd from './pages/EinavQuickAdd'
 import Countries from './pages/Countries'
 import HebrewClock from './components/HebrewClock'
 import CountryDetail from './pages/CountryDetail'
@@ -86,6 +88,7 @@ const ROUTE_NAMES = {
   '/marathon':      'מרתון',
   '/family':        'עץ משפחה',
   '/shopping':      'קניות',
+  '/einav':         'שוברים עינב',
   '/shopping-quick':'קניות מהירות',
   '/profile':       'פרופיל',
 }
@@ -209,6 +212,8 @@ export default function App() {
         <Route path="/profile"         element={<AuthOnly session={session}><Profile session={session} /></AuthOnly>} />
         <Route path="/countries"       element={G('/travels',     <Countries        session={session} />)} />
         <Route path="/country/:country" element={G('/travels',    <CountryDetail    session={session} />)} />
+        <Route path="/einav/add"       element={<EinavQuickAdd />} />
+        <Route path="/einav"           element={<EinavVouchers />} />
         <Route path="/shopping-quick"  element={<ShoppingQuick />} />
         <Route path="/clock"           element={<HebrewClock />} />
         <Route path="*"                element={<Navigate to="/" replace />} />

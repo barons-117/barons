@@ -23,6 +23,7 @@ const TYPE_LABELS = {
   equity:             'מניות/חברה',
   land:               'קרקע',
   investment:         'השקעה',
+  income:             'הכנסה',
 }
 
 const STATUS_LABELS = { active: 'פעיל', sold: 'נמכר', archived: 'ארכיון' }
@@ -32,7 +33,17 @@ const FREQ_LABELS = { monthly: 'חודשי', quarterly: 'רבעוני', 'semi-an
 const VAT_LABELS  = { none: 'ללא מעמ', included: 'כולל מעמ', plus: '+ מעמ' }
 
 const CURRENCIES = ['ILS','USD','EUR','HUF','GBP']
-const ASSET_TYPES = ['residential','commercial','real_estate_abroad','equity','land','investment']
+const ASSET_TYPES = ['residential','commercial','real_estate_abroad','equity','land','investment','income']
+
+// סוגי הכנסות קבועות — רלוונטי רק לנכסי asset_type === 'income'
+const INCOME_KINDS = [
+  { value: 'national_insurance', label: 'ביטוח לאומי' },
+  { value: 'pension_fund',       label: 'קרן פנסיה' },
+  { value: 'provident_fund',     label: 'קרן גמל / השתלמות' },
+  { value: 'state_pension',      label: 'קרן גמלאות' },
+  { value: 'other',              label: 'אחר' },
+]
+const INCOME_KIND_LABELS = Object.fromEntries(INCOME_KINDS.map(k => [k.value, k.label]))
 const STATUSES    = ['active','sold','archived']
 const ENTITIES    = ['erez','roi','erez_roi','reuven_private','reuven_company','external']
 
@@ -84,6 +95,88 @@ function SectionCard({ title, action, children, index = 0 }) {
       </div>
       {children}
     </div>
+  )
+}
+
+// ─── Section: Hierarchy (חברת החזקות / נכסי בת) ───────────────────────────────
+// מוצג רק כשיש קשר היררכי. בעמוד של חברת החזקות — רשימת הנכסים שתחתיה.
+// בעמוד של נכס בת — קישור חזרה לחברה המחזיקה.
+
+function HierarchySection({ parent, items, onNavigate, index = 0 }) {
+  const hasParent   = !!parent
+  const hasChildren = (items || []).length > 0
+  if (!hasParent && !hasChildren) return null
+
+  const title = hasChildren ? 'נכסים בבעלות החברה' : 'מוחזק דרך'
+
+  return (
+    <SectionCard index={index} title={title}>
+      {hasParent && (
+        <button
+          onClick={() => onNavigate(parent.id)}
+          className="ad-press"
+          style={{
+            width:'100%', textAlign:'right', display:'flex', alignItems:'center', gap:10,
+            background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.24)',
+            borderRadius:10, padding:'12px 14px', cursor:'pointer',
+            fontFamily:"'Open Sans Hebrew', 'Open Sans', sans-serif",
+            marginBottom: hasChildren ? 12 : 0,
+          }}
+        >
+          <span style={{ fontSize:16, color:'#fcd34d', lineHeight:1 }}>&#8599;</span>
+          <span style={{ flex:1, minWidth:0 }}>
+            <span style={{ display:'block', fontSize:13, fontWeight:700, color:'#fcd34d' }}>
+              {parent.name}
+            </span>
+            <span style={{ display:'block', fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:2 }}>
+              חברת ההחזקות — שם מנוהלים הרכישות, ההון והדוחות
+            </span>
+          </span>
+        </button>
+      )}
+
+      {hasChildren && (
+        <div style={{ display:'grid', gap:8 }}>
+          {items.map(c => (
+            <button
+              key={c.id}
+              onClick={() => onNavigate(c.id)}
+              className="ad-press"
+              style={{
+                width:'100%', textAlign:'right', display:'flex', alignItems:'center', gap:10,
+                background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)',
+                borderRadius:10, padding:'12px 14px', cursor:'pointer',
+                fontFamily:"'Open Sans Hebrew', 'Open Sans', sans-serif",
+              }}
+            >
+              <span style={{ fontSize:16, color:'rgba(255,255,255,0.4)', lineHeight:1 }}>&#8600;</span>
+              <span style={{ flex:1, minWidth:0 }}>
+                <span style={{ display:'block', fontSize:13, fontWeight:700, color:'white' }}>
+                  {c.name}
+                </span>
+                {c.address_city && (
+                  <span style={{ display:'block', fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:2 }}>
+                    {c.address_city}
+                    {c.address_country && c.address_country !== 'ישראל' ? ` · ${c.address_country}` : ''}
+                  </span>
+                )}
+              </span>
+              {c.status !== 'active' && (
+                <span style={{
+                  fontSize:10, padding:'2px 8px', borderRadius:999,
+                  background:'rgba(148,163,184,0.16)', color:'#cbd5e1', fontWeight:600, flexShrink:0,
+                }}>
+                  {c.status === 'sold' ? 'נמכר' : 'ארכיון'}
+                </span>
+              )}
+            </button>
+          ))}
+          <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginTop:4, lineHeight:1.6 }}>
+            הנכסים מוחזקים 100% על ידי החברה. השווי הכספי והרכישות מנוהלים ברמת החברה כדי למנוע ספירה כפולה.
+          </div>
+        </div>
+      )}
+    </SectionCard>
   )
 }
 
@@ -346,7 +439,7 @@ const Cs = {
 function MapEmbed({ asset }) {
   const addr = [asset.address_street, asset.address_city, asset.address_country]
     .filter(Boolean).join(', ')
-  if (!addr || asset.asset_type === 'equity' || asset.asset_type === 'investment') return null
+  if (!addr || asset.asset_type === 'equity' || asset.asset_type === 'investment' || asset.asset_type === 'income') return null
 
   const query = encodeURIComponent(addr)
   const src = `https://maps.google.com/maps?q=${query}&output=embed&z=15`
@@ -465,24 +558,26 @@ function GeneralSection({ asset: assetProp, onSave, readOnly, index = 0 }) {
   return (
     <SectionCard index={index} title="מידע כללי" action={<EditBtn onClick={startEdit} hidden={readOnly} />}>
       <Row label="סוג"    value={TYPE_LABELS[asset.asset_type]} />
-      {asset.asset_type !== 'investment' && (
+      {asset.asset_type !== 'investment' && asset.asset_type !== 'income' && (
         <Row label="כתובת"  value={[asset.address_street, asset.address_city, asset.address_country].filter(Boolean).join(', ')} />
       )}
-      {asset.asset_type !== 'investment' && (asset.gush || asset.helka) && (
+      {asset.asset_type !== 'investment' && asset.asset_type !== 'income' && (asset.gush || asset.helka) && (
         <Row label="גוש/חלקה" value={[asset.gush, asset.helka].filter(Boolean).join(' / ')} />
       )}
       <Row label="סטטוס"  value={STATUS_LABELS[asset.status]} />
-      <Row label="שווי" value={
-        asset.asset_type === 'investment'
-          ? (asset._totalInvestmentsILS > 0
-              ? `${fmtILS(asset._totalInvestmentsILS)} (סך השקעות)`
-              : '—')
-          : asset.estimated_value
-            ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
-            : asset._totalPurchasesILS && asset._myPct > 0
-              ? `~${fmtILS(asset._totalPurchasesILS / asset._myPct)} (משוער מהשקעה)`
-              : '—'
-      } />
+      {asset.asset_type !== 'income' && (
+        <Row label="שווי" value={
+          asset.asset_type === 'investment'
+            ? (asset._totalInvestmentsILS > 0
+                ? `${fmtILS(asset._totalInvestmentsILS)} (סך השקעות)`
+                : '—')
+            : asset.estimated_value
+              ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
+              : asset._totalPurchasesILS && asset._myPct > 0
+                ? `~${fmtILS(asset._totalPurchasesILS / asset._myPct)} (משוער מהשקעה)`
+                : '—'
+        } />
+      )}
       {asset.description && (
         <div style={{ marginTop:14, fontSize:13, color:'rgba(255,255,255,0.7)', lineHeight:1.7,
           borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:14, whiteSpace:'pre-wrap' }}>
@@ -671,7 +766,9 @@ function TenantRow({ inc, partners, fx }) {
       label:  ENTITY_META[p.entity]?.label || p.entity,
       color:  ENTITY_COLORS[p.entity] || '#94a3b8',
       amount: (() => {
-        if (inc.split_by_ownership) return monthly * p.percentage
+        // null/undefined → ברירת מחדל: חלוקה לפי שותפויות
+        const splitByOwnership = inc.split_by_ownership !== false
+        if (splitByOwnership) return monthly * p.percentage
         const split = (inc.splits || []).find(s => s.entity === p.entity)
         return split ? monthly * (split.percentage || 0) : 0
       })(),
@@ -1372,6 +1469,306 @@ function InvestmentsSection({ assetId, investments, fx, onSave, readOnly, index 
   )
 }
 
+// ─── Section: Fixed Income (הכנסות קבועות — קצבאות, פנסיות) ───────────────────
+// משמש לנכסים מסוג 'income'. משתמש באותה טבלה asset_income כמו השכירויות,
+// אבל UI מותאם: בלי VAT, בלי splits, עם שדה income_kind חדש.
+// כל זרם נשמר עם split_by_ownership=true כדי שיתפלג אוטומטית לפי הבעלים היחיד.
+
+function FixedIncomeSection({ assetId, income, fx, onSave, readOnly, index = 0 }) {
+  const [editing, setEditing] = useState(false)
+  const [rows, setRows]       = useState([])
+  const [saving, setSaving]   = useState(false)
+
+  function startEdit() {
+    setRows(income.map(inc => ({ ...inc })))
+    setEditing(true)
+  }
+
+  function addRow() {
+    setRows(r => [...r, {
+      id: null, asset_id: assetId,
+      tenant_name: '',
+      income_kind: 'national_insurance',
+      gross_amount: '',
+      currency: 'ILS',
+      payment_frequency: 'monthly',
+      vat_type: 'none',             // קצבאות ללא מע"מ (ערך חוקי בDB)
+      split_by_ownership: true,     // מתחלק לפי הבעלים היחיד אוטומטית
+      is_active: true,
+      start_date: null,
+      contract_end_date: null,      // העמודה הקיימת בטבלה (לא end_date)
+      notes: '',
+    }])
+  }
+
+  async function save() {
+    setSaving(true)
+    // קודם — מחק splits של רשומות שהולכות להימחק (FK)
+    const existingIds = income.map(i => i.id).filter(Boolean)
+    if (existingIds.length > 0) {
+      await supabase.from('asset_income_splits').delete().in('income_id', existingIds)
+    }
+    await supabase.from('asset_income').delete().eq('asset_id', assetId)
+
+    const ALLOWED = [
+      'asset_id','tenant_name','income_kind','gross_amount','currency',
+      'payment_frequency','vat_type','split_by_ownership','is_active',
+      'start_date','contract_end_date','notes',
+    ]
+    const toInsert = rows
+      .filter(r => parseFloat(r.gross_amount) > 0)
+      .map(r => {
+        const row = { asset_id: assetId }
+        ALLOWED.forEach(k => {
+          if (k === 'asset_id') return
+          if (k === 'gross_amount') row[k] = parseFloat(r[k]) || 0
+          else if (k === 'split_by_ownership' || k === 'is_active') row[k] = !!r[k]
+          else if (k in r) row[k] = r[k] === '' ? null : r[k]
+        })
+        // ברירות מחדל הגנתיות לעמודות שעלולות להיות NOT NULL
+        if (!row.tenant_name)       row.tenant_name       = INCOME_KIND_LABELS[row.income_kind] || 'הכנסה'
+        if (!row.currency)          row.currency          = 'ILS'
+        if (!row.payment_frequency) row.payment_frequency = 'monthly'
+        if (!row.vat_type)          row.vat_type          = 'none'
+        return row
+      })
+    if (toInsert.length > 0) {
+      const { error } = await supabase.from('asset_income').insert(toInsert)
+      if (error) {
+        console.error('fixed income insert error:', error)
+        console.error('details:', JSON.stringify(error, null, 2))
+        console.error('first row payload:', JSON.stringify(toInsert[0], null, 2))
+        alert('שגיאה בשמירה:\n' + (error.message || JSON.stringify(error)) +
+              (error.details ? '\n\n' + error.details : '') +
+              (error.hint ? '\n\nרמז: ' + error.hint : ''))
+        setSaving(false)
+        return
+      }
+    }
+    setSaving(false)
+    onSave()
+    setEditing(false)
+  }
+
+  // חישובי סיכום
+  const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+  const rates = fx || FX_FB
+  // ל-frequency: monthly=1, quarterly=3, semi-annual=6, annual=12
+  const FREQ_DIV = { monthly: 1, quarterly: 3, 'semi-annual': 6, annual: 12 }
+  const sourceList = editing ? rows : income
+  const totalMonthlyILS = sourceList.reduce((s, inc) => {
+    if (!inc.is_active) return s
+    const amt = parseFloat(inc.gross_amount) || 0
+    const monthly = amt / (FREQ_DIV[inc.payment_frequency] || 1)
+    return s + monthly * (rates[inc.currency || 'ILS'] || 1)
+  }, 0)
+
+  // מיון להצגה: פעילות קודם, ואז לפי סכום יורד
+  const sortedView = [...income].sort((a, b) => {
+    if (a.is_active !== b.is_active) return a.is_active ? -1 : 1
+    return (parseFloat(b.gross_amount) || 0) - (parseFloat(a.gross_amount) || 0)
+  })
+
+  const FREQ_LABELS = {
+    monthly:        'חודשי',
+    quarterly:      'רבעוני',
+    'semi-annual':  'חצי-שנתי',
+    annual:         'שנתי',
+  }
+
+  // ─── מצב עריכה ────────────────────────────────────────────────────────────
+  if (editing) return (
+    <SectionCard index={index} title="הכנסות קבועות" action={
+      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        <span style={{ fontSize:12, fontWeight:700, color:'#5eead4' }}>
+          {fmtILS(totalMonthlyILS)} / חודש
+        </span>
+        <CancelBtn onClick={() => setEditing(false)} />
+        <SaveBtn onClick={save} loading={saving} />
+      </div>
+    }>
+      {rows.map((row, i) => (
+        <div key={i} style={{ marginBottom: 12, padding:'12px', background:'rgba(255,255,255,0.03)', borderRadius:10, border:'1px solid rgba(255,255,255,0.08)' }}>
+          {/* שורה 1: מקור + סוג */}
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 24px', gap:8, marginBottom:8 }}>
+            <Input
+              value={row.tenant_name}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, tenant_name:v} : x))}
+              placeholder="מקור (למשל: קצבת זקנה)"
+            />
+            <Select
+              value={row.income_kind || 'other'}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, income_kind:v} : x))}
+              options={INCOME_KINDS}
+            />
+            <button onClick={() => setRows(r => r.filter((_,j) => j!==i))}
+              className="ad-x-red ad-press"
+              type="button"
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:16, padding:0 }}
+            >×</button>
+          </div>
+          {/* שורה 2: סכום + מטבע + תדירות */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 1fr', gap:8, marginBottom:8 }}>
+            <Input
+              type="number"
+              value={row.gross_amount}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, gross_amount:v} : x))}
+              placeholder="סכום"
+            />
+            <Select
+              value={row.currency || 'ILS'}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, currency:v} : x))}
+              options={CURRENCIES.map(c => ({ value:c, label:c }))}
+            />
+            <Select
+              value={row.payment_frequency || 'monthly'}
+              onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, payment_frequency:v} : x))}
+              options={[
+                { value:'monthly',       label:'חודשי' },
+                { value:'quarterly',     label:'רבעוני' },
+                { value:'semi-annual',   label:'חצי-שנתי' },
+                { value:'annual',        label:'שנתי' },
+              ]}
+            />
+          </div>
+          {/* שורה 3: תאריכים */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+            <div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', marginBottom:3 }}>תחילה</div>
+              <Input
+                type="date"
+                value={row.start_date || ''}
+                onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, start_date:v || null} : x))}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', marginBottom:3 }}>סיום (אם הסתיים)</div>
+              <Input
+                type="date"
+                value={row.contract_end_date || ''}
+                onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, contract_end_date:v || null} : x))}
+              />
+            </div>
+          </div>
+          {/* שורה 4: פעיל + הערות */}
+          <div style={{ display:'flex', gap:8, alignItems:'flex-start', marginBottom:8 }}>
+            <label style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'rgba(255,255,255,0.75)', cursor:'pointer', whiteSpace:'nowrap', paddingTop:6 }}>
+              <input
+                type="checkbox"
+                checked={!!row.is_active}
+                onChange={e => setRows(r => r.map((x,j) => j===i ? {...x, is_active:e.target.checked} : x))}
+              />
+              פעיל
+            </label>
+          </div>
+          <Textarea
+            value={row.notes || ''}
+            onChange={v => setRows(r => r.map((x,j) => j===i ? {...x, notes:v} : x))}
+            placeholder="הערות (אופציונלי)"
+            rows={2}
+          />
+        </div>
+      ))}
+      <button onClick={addRow} className="ad-text-btn ad-press" type="button"
+        style={{ fontSize:12, color:'#5eead4', background:'none', border:'none', cursor:'pointer', fontFamily:"'Open Sans Hebrew', 'Open Sans', sans-serif", padding:0, marginTop:4 }}>
+        + הוסף הכנסה
+      </button>
+    </SectionCard>
+  )
+
+  // ─── מצב תצוגה ────────────────────────────────────────────────────────────
+  return (
+    <SectionCard index={index} title="הכנסות קבועות" action={
+      <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+        {income.length > 0 && (
+          <span style={{ fontSize:13, fontWeight:700, color:'#5eead4' }}>
+            סה"כ חודשי: {fmtILS(totalMonthlyILS)}
+          </span>
+        )}
+        <EditBtn onClick={startEdit} hidden={readOnly} />
+      </div>
+    }>
+      {income.length === 0 && (
+        <div style={{ color:'rgba(255,255,255,0.52)', fontSize:13, padding:'8px 0' }}>
+          אין הכנסות רשומות. לחץ "עריכה" להוספה.
+        </div>
+      )}
+      {sortedView.map((inc, i) => {
+        const amt   = parseFloat(inc.gross_amount) || 0
+        const ils   = amt * (rates[inc.currency || 'ILS'] || 1)
+        const monthlyILS = ils / (FREQ_DIV[inc.payment_frequency] || 1)
+        const showILS    = inc.currency && inc.currency !== 'ILS'
+        const kindLabel  = INCOME_KIND_LABELS[inc.income_kind] || null
+        return (
+          <div key={inc.id || i} style={{
+            padding:'14px 0',
+            borderBottom: i < sortedView.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+            opacity: inc.is_active ? 1 : 0.55,
+          }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3, flexWrap:'wrap' }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:'white' }}>
+                    {inc.tenant_name || kindLabel || 'הכנסה'}
+                  </span>
+                  {kindLabel && inc.tenant_name && kindLabel !== inc.tenant_name && (
+                    <span style={{
+                      fontSize:10, padding:'2px 7px', borderRadius:999,
+                      background:'rgba(20,184,166,0.15)', color:'#5eead4', fontWeight:600,
+                    }}>{kindLabel}</span>
+                  )}
+                  {!inc.is_active && (
+                    <span style={{
+                      fontSize:10, padding:'2px 7px', borderRadius:999,
+                      background:'rgba(148,163,184,0.15)', color:'#94a3b8', fontWeight:600,
+                    }}>לא פעיל</span>
+                  )}
+                </div>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.55)' }}>
+                  {FREQ_LABELS[inc.payment_frequency] || 'חודשי'}
+                  {inc.start_date && ` · החל מ-${fmtDate(inc.start_date)}`}
+                  {inc.contract_end_date && ` · עד ${fmtDate(inc.contract_end_date)}`}
+                </div>
+              </div>
+              <div style={{ textAlign:'left', minWidth:110 }}>
+                <div style={{ fontSize:15, fontWeight:700, color:'white' }}>
+                  {fmtOrig(amt, inc.currency || 'ILS')}
+                </div>
+                {(showILS || (inc.payment_frequency && inc.payment_frequency !== 'monthly')) && (
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.55)', marginTop:2 }}>
+                    ≈ {fmtILS(monthlyILS)} / חודש
+                  </div>
+                )}
+              </div>
+            </div>
+            {inc.notes && (
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.65)', marginTop:6, lineHeight:1.6, whiteSpace:'pre-wrap' }}>
+                {inc.notes}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      {/* סיכום למטה */}
+      {income.length > 0 && (
+        <div style={{
+          marginTop:14, paddingTop:14,
+          borderTop:'1px solid rgba(255,255,255,0.1)',
+          display:'flex', justifyContent:'space-between', alignItems:'center',
+        }}>
+          <span style={{ fontSize:13, color:'rgba(255,255,255,0.7)', fontWeight:600 }}>
+            סה"כ {income.length} {income.length === 1 ? 'הכנסה' : 'הכנסות'}
+            {income.filter(i => !i.is_active).length > 0 && ` (${income.filter(i => i.is_active).length} פעילות)`}
+          </span>
+          <span style={{ fontSize:17, fontWeight:700, color:'#5eead4' }}>
+            {fmtILS(totalMonthlyILS)} / חודש
+          </span>
+        </div>
+      )}
+    </SectionCard>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -1739,6 +2136,8 @@ export default function AssetDetail({ session }) {
   const [contacts,  setContacts]  = useState([])
   const [files,     setFiles]     = useState([])
   const [investments, setInvestments] = useState([])
+  const [parentAsset,   setParentAsset]   = useState(null)
+  const [childAssets,   setChildAssets]   = useState([])
   const [loading,   setLoading]   = useState(true)
 
   async function load() {
@@ -1782,6 +2181,33 @@ export default function AssetDetail({ session }) {
       supabase.from('asset_files').select('*').eq('asset_id', id).order('sort_order'),
       supabase.from('asset_investments').select('*').eq('asset_id', id).order('sort_order'),
     ])
+
+    // ─── היררכיה: נכסי בת של הנכס הנוכחי, ונכס האם אם קיים ────────────────
+    // נעטף ב-try כדי שהעמוד ימשיך לעבוד גם אם עמודת parent_asset_id
+    // עדיין לא הורצה בסביבה כלשהי.
+    try {
+      const { data: kids } = await supabase
+        .from('assets')
+        .select('id, name, address_city, address_country, status, asset_type')
+        .eq('parent_asset_id', id)
+        .order('name')
+      setChildAssets(kids || [])
+
+      if (a?.parent_asset_id) {
+        const { data: par } = await supabase
+          .from('assets')
+          .select('id, name, address_city, address_country, status, asset_type')
+          .eq('id', a.parent_asset_id)
+          .single()
+        setParentAsset(par || null)
+      } else {
+        setParentAsset(null)
+      }
+    } catch (hierErr) {
+      console.warn('hierarchy fetch skipped:', hierErr)
+      setChildAssets([]); setParentAsset(null)
+    }
+
     const purData  = pur || []
     const prtData  = p   || []
     // חשב ערך משוער מרכישות לתצוגה ב-GeneralSection
@@ -1837,8 +2263,22 @@ export default function AssetDetail({ session }) {
       {/* Header — full width, sticky */}
       <BaronsHeader
         title={asset.name}
-        subtitle={asset.address_city ? `${asset.address_city}${asset.address_country !== 'ישראל' ? ' · ' + asset.address_country : ''}` : 'נכס'}
-        breadcrumbs={[{ label: 'נכסים', path: '/assets' }, { label: asset.name }]}
+        subtitle={
+          asset.address_city
+            ? `${asset.address_city}${asset.address_country !== 'ישראל' ? ' · ' + asset.address_country : ''}`
+            : (childAssets.length > 0
+                ? `חברת החזקות · ${childAssets.length} ${childAssets.length === 1 ? 'נכס' : 'נכסים'}`
+                : 'נכס')
+        }
+        breadcrumbs={
+          parentAsset
+            ? [
+                { label: 'נכסים', path: '/assets' },
+                { label: parentAsset.name, path: `/assets/${parentAsset.id}` },
+                { label: asset.name },
+              ]
+            : [{ label: 'נכסים', path: '/assets' }, { label: asset.name }]
+        }
         actions={[]}
       />
 
@@ -1850,6 +2290,12 @@ export default function AssetDetail({ session }) {
             readOnly={isRoi}
             index={0}
           />
+          <HierarchySection
+            parent={parentAsset}
+            items={childAssets}
+            onNavigate={cid => navigate(`/assets/${cid}`)}
+            index={1}
+          />
           <PartnersSection
             assetId={id}
             partners={partners}
@@ -1857,11 +2303,23 @@ export default function AssetDetail({ session }) {
             readOnly={isRoi}
             index={1}
           />
-          {/* נכסי השקעה — מציג InvestmentsSection במקום Income+Purchases */}
+          {/* רינדור מותנה לפי סוג הנכס:
+              - investment → רק InvestmentsSection
+              - income     → רק FixedIncomeSection
+              - אחר        → IncomeSection + PurchasesSection (ברירת מחדל) */}
           {asset.asset_type === 'investment' ? (
             <InvestmentsSection
               assetId={id}
               investments={investments}
+              fx={fx}
+              onSave={load}
+              readOnly={isRoi}
+              index={2}
+            />
+          ) : asset.asset_type === 'income' ? (
+            <FixedIncomeSection
+              assetId={id}
+              income={income}
               fx={fx}
               onSave={load}
               readOnly={isRoi}

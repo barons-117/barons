@@ -20,6 +20,7 @@ const CAT_IMGS = {
   baron_academy_small: '/cat_baron_academy_small.png',
   smarthome_small: '/cat_smarthome_small.png',
   dud_ali_small: '/cat_dud_ali_small.png',
+  einav_small: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNDMjQ1NkIiLz48c3RvcCBvZmZzZXQ9IjAuNTUiIHN0b3AtY29sb3I9IiM5QjMxNTEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM2RTFGMzkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIyMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjI3MiIgY3k9IjQwIiByPSI2MiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjA3Ii8+PGNpcmNsZSBjeD0iNDYiIGN5PSIxOTYiIHI9IjQ0IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIwLjMwIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMTUyIiBoZWlnaHQ9Ijk4IiByeD0iMTMiLz48cGF0aCBkPSJNNDQgOTJoMTUyIi8+PHBhdGggZD0iTTEyMCA1NnY5OCIvPjxwYXRoIGQ9Ik0xMjAgNTZjLTEzLTIzLTM4LTE5LTM4LTQgMCAxMCAxOSAxMCAzOCA0Ii8+PHBhdGggZD0iTTEyMCA1NmMxMy0yMyAzOC0xOSAzOC00IDAgMTAtMTkgMTAtMzggNCIvPjwvZz48L3N2Zz4=",
 }
 
 
@@ -48,6 +49,9 @@ const ROUTE_ICON = {
 
 const SUPER_ADMIN = 'erez@barons.co.il'
 const ALL_USERS   = ['erez@barons.co.il','roy@barons.co.il','user@barons.co.il','daphna@barons.co.il','danielle@barons.co.il']
+const EINAV       = 'einavsw88@gmail.com'
+// מי מופיע ככפתור בחירה בעורך התפריט. לא משנה שום הרשאה קיימת.
+const MENU_USERS  = [...ALL_USERS, EINAV]
 
 const PALETTE = [
   '#1A1A1A', '#1d4ed8', '#0e7490', '#10b981',
@@ -70,6 +74,7 @@ const DEFAULT_MENU_CONFIG = [
     { label:'School',     sub:'לימודים — דניאל ודפנה',  path:'/school',    img:'baron_academy_small', users:['erez@barons.co.il','roy@barons.co.il','danielle@barons.co.il','daphna@barons.co.il'] },
     { label:'בית חכם',   sub:'שליטה בתאורת הבית',      path:'/smarthome', img:'smarthome_small',     users:['erez@barons.co.il','roy@barons.co.il'] },
     { label:'דוד עלי',   sub:'קניות זה החיים',          path:'/aliexpress',img:'dud_ali_small',       users:['erez@barons.co.il'] },
+    { label:'קופונינב', sub:'השוברים של עינב',         path:'/einav',     img:'einav_small',         users:['erez@barons.co.il', EINAV] },
   ]},
 ]
 
@@ -265,8 +270,8 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
   const [addMode, setAddMode]   = useState(false)
   const [picker, setPicker]     = useState(null)
   const [newItem, setNewItem]   = useState({ label:'', sub:'', path:'', color:'#4355c9', users:[...ALL_USERS], categoryIdx:0 })
-  const allRoutes = ['/travels','/recipes','/gym','/vouchers','/cards','/assets','/family','/shopping','/marathon','/school','/smarthome','/aliexpress']
-  const uL = {'erez@barons.co.il':'ארז','roy@barons.co.il':'רועי','user@barons.co.il':'אורח','daphna@barons.co.il':'דפנה','danielle@barons.co.il':'דניאל'}
+  const allRoutes = ['/travels','/recipes','/gym','/vouchers','/cards','/assets','/family','/shopping','/marathon','/school','/smarthome','/aliexpress','/einav']
+  const uL = {'erez@barons.co.il':'ארז','roy@barons.co.il':'רועי','user@barons.co.il':'אורח','daphna@barons.co.il':'דפנה','danielle@barons.co.il':'דניאל','einavsw88@gmail.com':'עינב'}
 
   const upd = fn => { const c = JSON.parse(JSON.stringify(config)); fn(c); setConfig(c) }
   const toggleUser = (ci,ii,u) => upd(c => { const a=c[ci].items[ii].users,i=a.indexOf(u); i>=0?a.splice(i,1):a.push(u) })
@@ -317,7 +322,7 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
                     <span style={{display:'block',color:'#94a3b8',fontSize:9,fontFamily:'monospace',paddingRight:2}}>{item.path}</span>
                   </div>
                   <div style={{display:'flex',gap:3}}>
-                    {ALL_USERS.map(u=>(
+                    {MENU_USERS.map(u=>(
                       <button key={u} className="home-press" onClick={()=>toggleUser(ci,ii,u)} style={{borderRadius:20,padding:'2px 8px',fontSize:10,cursor:'pointer',fontFamily:FONT,background:item.users.includes(u)?'rgba(99,102,241,0.12)':'rgba(0,0,0,0.03)',border:item.users.includes(u)?'1px solid rgba(99,102,241,0.5)':'1px solid #e2e8f0',color:item.users.includes(u)?'#6366f1':'#64748b',transition:'background-color 0.18s var(--home-ease-out), color 0.18s var(--home-ease-out), border-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}}>{uL[u]}</button>
                     ))}
                   </div>
@@ -350,7 +355,7 @@ function MenuEditor({ menuConfig, onSave, onClose }) {
               </div>
               <div style={{display:'flex',gap:6,marginTop:8,alignItems:'center'}}>
                 <span style={{color:'#64748b',fontSize:11}}>הצג ל:</span>
-                {ALL_USERS.map(u=><button key={u} className="home-press" onClick={()=>setNewItem(p=>{const users=p.users.includes(u)?p.users.filter(x=>x!==u):[...p.users,u];return{...p,users}})} style={{borderRadius:20,padding:'2px 8px',fontSize:10,cursor:'pointer',fontFamily:FONT,background:newItem.users.includes(u)?'rgba(99,102,241,0.12)':'rgba(0,0,0,0.03)',border:newItem.users.includes(u)?'1px solid rgba(99,102,241,0.5)':'1px solid #e2e8f0',color:newItem.users.includes(u)?'#6366f1':'#64748b',transition:'background-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}}>{uL[u]}</button>)}
+                {MENU_USERS.map(u=><button key={u} className="home-press" onClick={()=>setNewItem(p=>{const users=p.users.includes(u)?p.users.filter(x=>x!==u):[...p.users,u];return{...p,users}})} style={{borderRadius:20,padding:'2px 8px',fontSize:10,cursor:'pointer',fontFamily:FONT,background:newItem.users.includes(u)?'rgba(99,102,241,0.12)':'rgba(0,0,0,0.03)',border:newItem.users.includes(u)?'1px solid rgba(99,102,241,0.5)':'1px solid #e2e8f0',color:newItem.users.includes(u)?'#6366f1':'#64748b',transition:'background-color 0.18s var(--home-ease-out), transform 0.16s var(--home-ease-out)'}}>{uL[u]}</button>)}
               </div>
               <div style={{display:'flex',gap:8,marginTop:12}}>
                 <button className="home-press home-primary-btn" style={{background:'linear-gradient(135deg,#3b82f6,#2563eb)',border:'none',color:'white',padding:'9px 20px',borderRadius:10,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 2px 8px rgba(59,130,246,0.25)',transition:'transform 0.16s var(--home-ease-out), box-shadow 0.2s var(--home-ease-out), filter 0.2s var(--home-ease-out)'}} onClick={addNewItem}>הוסף</button>

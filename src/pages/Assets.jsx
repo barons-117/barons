@@ -70,6 +70,7 @@ const TYPE_META = {
   equity:             { label: 'מניות/חברה',   color: '#a78bfa' },
   land:               { label: 'קרקע',         color: '#94a3b8' },
   investment:         { label: 'השקעה',        color: '#06b6d4' },
+  income:             { label: 'הכנסה',        color: '#14b8a6' },
 }
 
 const STATUS_META = {
@@ -95,7 +96,10 @@ function entityMonthlyILS(income, partners, entity, fx) {
   return income.filter(i => i.is_active).reduce((sum, inc) => {
     const monthly = incomeMonthlyILS(inc, fx)
     let pct = 0
-    if (inc.split_by_ownership) {
+    // ברירת מחדל: אם split_by_ownership הוא null/undefined, להתייחס כ-true
+    // (חלוקה לפי שותפויות). זה תואם רשומות ישנות שנוצרו לפני שהשדה היה קיים.
+    const splitByOwnership = inc.split_by_ownership !== false
+    if (splitByOwnership) {
       const p = partners.find(p => p.entity === entity)
       pct = p ? p.percentage : 0
     } else {
@@ -238,10 +242,14 @@ function SummaryBlock({ entity, assets, allIncome, allPartners, fx, index = 0 })
 
 // ─── AssetCard ────────────────────────────────────────────────────────────────
 
-function AssetCard({ asset, partners, income, entitySection, fx, onClick, index = 0 }) {
+function AssetCard({ asset, partners, income, entitySection, fx, onClick, index = 0,
+                     childCount = 0, heldViaName = null, isChild = false }) {
   const type   = TYPE_META[asset.asset_type] || {}
   const status = STATUS_META[asset.status]   || {}
   const isInvestment = asset.asset_type === 'investment'
+  const isIncome     = asset.asset_type === 'income'
+  // נכסים "מופשטים" — בלי כתובת/שווי. רק זרמי כסף.
+  const isAbstract   = isInvestment || isIncome
 
   const internalPartners = partners.filter(p =>
     ['erez','roi','erez_roi','reuven_private','reuven_company'].includes(p.entity)
@@ -272,15 +280,23 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
     if (myPct > 0 && myPct < 1 && valueILS_total) {
       myValueILS = fmtILS(valueILS_total * myPct)
     }
+  } else if (isIncome) {
+    // נכס הכנסה — אין שווי, רק זרם חודשי. valueILS_total נשאר 0 ולא יוצג.
   } else {
     // לוגיקה קיימת לנכסי נדל"ן וכו'
     isILS = !asset.estimated_value_currency || asset.estimated_value_currency === 'ILS'
     const hasEstimate = !!asset.estimated_value
+    // internalPct = סך אחוזי הישויות הפנימיות (כל מי שלא חיצוני).
+    // _totalPurchasesILS מייצג רק את החלק שהישויות הפנימיות שילמו,
+    // אז כדי לקבל את שווי הנכס המלא צריך לחלק ב-internalPct (לא ב-myPct).
+    const internalPct = partners
+      .filter(p => p.entity !== 'external')
+      .reduce((s, p) => s + p.percentage, 0)
     valueILS_total = hasEstimate
       ? toILS(asset.estimated_value, asset.estimated_value_currency || 'ILS', fx)
       : (() => {
-          if (!asset._totalPurchasesILS || myPct <= 0) return 0
-          return asset._totalPurchasesILS / myPct
+          if (!asset._totalPurchasesILS || internalPct <= 0) return 0
+          return asset._totalPurchasesILS / internalPct
         })()
     valueOrig = hasEstimate
       ? fmtOrig(asset.estimated_value, asset.estimated_value_currency || 'ILS')
@@ -294,7 +310,7 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
   return (
     <div
       onClick={onClick}
-      className="assets-card assets-press"
+      className={`assets-card assets-press${childCount > 0 ? ' assets-holding' : ''}${isChild ? ' assets-child' : ''}`}
       style={{
         borderRadius: 14, padding: '16px 18px',
         cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10,
@@ -307,8 +323,8 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
           <div style={{ fontSize: 14, fontWeight: 700, color: 'white', lineHeight: 1.35, marginBottom: 3 }}>
             {asset.name}
           </div>
-          {/* כתובת — לא מציגים לנכסי השקעה (שלהם אין כתובת) */}
-          {!isInvestment && asset.address_city && (
+          {/* כתובת — לא מציגים לנכסי השקעה / הכנסה (להם אין כתובת) */}
+          {!isAbstract && asset.address_city && (
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
               {asset.address_city}
               {asset.address_country !== 'ישראל' ? ` · ${asset.address_country}` : ''}
@@ -318,6 +334,24 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
           {isInvestment && asset._investmentCount > 0 && (
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
               {asset._investmentCount} {asset._investmentCount === 1 ? 'השקעה' : 'השקעות'}
+            </div>
+          )}
+          {/* בנכס הכנסה — מציגים מספר הכנסות פעילות */}
+          {isIncome && asset._activeIncomeCount > 0 && (
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
+              {asset._activeIncomeCount} {asset._activeIncomeCount === 1 ? 'הכנסה פעילה' : 'הכנסות פעילות'}
+            </div>
+          )}
+          {/* חברת החזקות — מספר הנכסים שתחתיה */}
+          {childCount > 0 && (
+            <div style={{ fontSize: 11, color: '#fcd34d', marginTop: 2 }}>
+              מחזיקה {childCount} {childCount === 1 ? 'נכס' : 'נכסים'}
+            </div>
+          )}
+          {/* נכס בת — דרך איזו חברה הוא מוחזק */}
+          {heldViaName && (
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              דרך {heldViaName}
             </div>
           )}
         </div>
@@ -357,14 +391,20 @@ function AssetCard({ asset, partners, income, entitySection, fx, onClick, index 
           ) : (
             <>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 2 }}>הכנסה חודשית</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: myMonthly > 0 ? 'white' : 'rgba(255,255,255,0.52)' }}>
+              <div style={{
+                fontSize: isIncome ? 17 : 15,
+                fontWeight: 700,
+                color: myMonthly > 0
+                  ? (isIncome ? '#5eead4' : 'white')
+                  : 'rgba(255,255,255,0.52)',
+              }}>
                 {myMonthly > 0 ? fmtILS(myMonthly) : 'אין'}
               </div>
             </>
           )}
         </div>
-        {/* שווי */}
-        {isInvestment && valueILS_total > 0 ? (
+        {/* שווי — לא מוצג ל-income (אין שווי לקצבה) */}
+        {!isIncome && isInvestment && valueILS_total > 0 ? (
           <div style={{ textAlign: 'left' }}>
             {myValueILS ? (
               <>
@@ -421,6 +461,41 @@ function EntitySection({ entity, assets, allIncome, allPartners, typeFilter, sta
 
   if (filtered.length === 0) return null
 
+  // ─── בניית היררכיה: נכסי בת מקובצים תחת חברת ההחזקות שלהם ─────────────────
+  // נכס בת מקונן רק אם נכס האם עצמו עבר את הפילטרים. אחרת הוא מוצג עצמאית,
+  // כך שסינון לפי סוג (למשל "נדל\"ן בחו\"ל") לא מעלים נכסים.
+  const byId        = new Map(filtered.map(a => [a.id, a]))
+  const childrenOf  = new Map()
+  filtered.forEach(a => {
+    if (!a.parent_asset_id || !byId.has(a.parent_asset_id)) return
+    const list = childrenOf.get(a.parent_asset_id) || []
+    list.push(a)
+    childrenOf.set(a.parent_asset_id, list)
+  })
+  const topLevel = filtered.filter(a => !(a.parent_asset_id && byId.has(a.parent_asset_id)))
+
+  // אינדקס רץ ל-stagger — נשמר רציף גם כשיש קינון
+  let cursor = startIndex
+  const nextIndex = () => cursor++
+
+  function renderCard(asset, extra = {}) {
+    return (
+      <AssetCard
+        key={asset.id + entity.key}
+        asset={asset}
+        partners={allPartners[asset.id] || []}
+        income={allIncome[asset.id] || []}
+        entitySection={entity}
+        fx={fx}
+        onClick={() => onCardClick(asset.id)}
+        index={nextIndex()}
+        {...extra}
+      />
+    )
+  }
+
+  const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }
+
   return (
     <div style={{ marginBottom: 36 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -429,19 +504,44 @@ function EntitySection({ entity, assets, allIncome, allPartners, typeFilter, sta
         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{filtered.length} נכסים</span>
         <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-        {filtered.map((asset, i) => (
-          <AssetCard
-            key={asset.id + entity.key}
-            asset={asset}
-            partners={allPartners[asset.id] || []}
-            income={allIncome[asset.id] || []}
-            entitySection={entity}
-            fx={fx}
-            onClick={() => onCardClick(asset.id)}
-            index={startIndex + i}
-          />
-        ))}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {(() => {
+          const blocks = []
+          let plain = []
+
+          const flushPlain = () => {
+            if (plain.length === 0) return
+            blocks.push(
+              <div key={`plain-${blocks.length}`} style={gridStyle}>
+                {plain}
+              </div>
+            )
+            plain = []
+          }
+
+          topLevel.forEach(asset => {
+            const kids = childrenOf.get(asset.id)
+            if (!kids || kids.length === 0) {
+              plain.push(renderCard(asset))
+              return
+            }
+            flushPlain()
+            blocks.push(
+              <div key={`grp-${asset.id}`} className="assets-group">
+                {renderCard(asset, { childCount: kids.length })}
+                <div className="assets-group-children">
+                  <div style={gridStyle}>
+                    {kids.map(kid => renderCard(kid, { heldViaName: asset.name, isChild: true }))}
+                  </div>
+                </div>
+              </div>
+            )
+          })
+
+          flushPlain()
+          return blocks
+        })()}
       </div>
     </div>
   )
@@ -548,12 +648,20 @@ export default function Assets({ session }) {
           }
         })
 
+        // חשב מספר הכנסות פעילות לכל נכס (משמש לתצוגה בכרטיסי 'income')
+        const activeIncomeCount = {}
+        ;(incomeData || []).forEach(inc => {
+          if (!inc.is_active) return
+          activeIncomeCount[inc.asset_id] = (activeIncomeCount[inc.asset_id] || 0) + 1
+        })
+
         const assetsWithExtras = (assetsData || []).map(a => ({
           ...a,
           _totalPurchasesILS:   purchaseTotals[a.id]     || 0,
           _totalInvestmentsILS: investmentTotals[a.id]   || 0,
           _lastBalanceDate:     investmentLastDate[a.id] || null,
           _investmentCount:     investmentCount[a.id]    || 0,
+          _activeIncomeCount:   activeIncomeCount[a.id]  || 0,
         }))
         setAssets(assetsWithExtras)
         setPartners(partnersMap)
@@ -581,6 +689,7 @@ export default function Assets({ session }) {
     { value: 'equity',             label: 'מניות/חברה' },
     { value: 'land',               label: 'קרקע' },
     { value: 'investment',         label: 'השקעה' },
+    { value: 'income',             label: 'הכנסה' },
   ]
 
   const statusChips = [
@@ -760,6 +869,29 @@ const ASSETS_STYLE = `
       transform: translateY(-2px);
       box-shadow: 0 10px 28px rgba(0,0,0,0.28);
     }
+  }
+
+  /* Holding group — חברת החזקות והנכסים שתחתיה */
+  .assets-group {
+    border: 1px solid rgba(245,158,11,0.18);
+    background: rgba(245,158,11,0.04);
+    border-radius: 16px;
+    padding: 12px;
+  }
+  .assets-group .assets-holding {
+    border-color: rgba(245,158,11,0.34);
+    background: rgba(245,158,11,0.07);
+  }
+  .assets-group-children {
+    margin-top: 10px;
+    padding-top: 12px;
+    padding-inline-start: 14px;
+    border-top: 1px solid rgba(245,158,11,0.14);
+    border-inline-start: 2px solid rgba(245,158,11,0.22);
+  }
+  @media (max-width: 520px) {
+    .assets-group { padding: 10px; }
+    .assets-group-children { padding-inline-start: 8px; }
   }
 
   /* Chip buttons (filters) */

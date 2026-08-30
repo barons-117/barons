@@ -937,8 +937,11 @@ function GlobalStyles() {
 // ─── Renders text with math expressions in correct LTR direction ──────────────
 function MathText({ text, style }) {
   if (!text) return null
-  // Only wrap expressions that contain an actual math operator (not lone numbers)
-  const mathRegex = /([0-9]+\s*[×÷+\-−=\/]\s*[0-9][\d\s×÷+\-−=\/.,()]*)/g
+  // Catch: expressions with operators, fractions (3/4), true minus (−), percentages, powers
+  // Note: only the true minus sign − (U+2212) counts as negative, not the hyphen - used in Hebrew (ב-8)
+  // operand = optional minus + (digits with optional X, or X alone)
+  // Left operand must be non-empty so Hebrew hyphens (ב-8) are not captured
+  const mathRegex = /((?:−\s*)?(?:[0-9]+[Xx]?|[Xx])(?:[.,][0-9]+)?(?:\s*[×÷+\-−=%/]\s*(?:−\s*)?(?:[0-9]+[Xx]?|[Xx])(?:[.,][0-9]+)?)+|−\s*[0-9]+(?:[.,][0-9]+)?|[0-9]+\/[0-9]+|[0-9]+%|[0-9]+²|[0-9]+³)/g
   return (
     <div style={{ whiteSpace:'pre-line', ...style }}>
       {text.split('\n').map((line, li) => {
@@ -957,7 +960,7 @@ function MathText({ text, style }) {
           <span key={li}>
             {parts.map((p, pi) =>
               p.math
-                ? <span key={pi} dir="ltr" style={{ display:'inline-block', unicodeBidi:'embed' }}>{p.text}</span>
+                ? <span key={pi} dir="ltr" style={{ display:'inline-block', unicodeBidi:'isolate' }}>{p.text}</span>
                 : <span key={pi}>{p.text}</span>
             )}
             {li < text.split('\n').length - 1 && '\n'}
@@ -990,7 +993,10 @@ export default function School({ session }) {
   }, [])
 
   useEffect(() => {
-    if (!email) return
+    if (!email) {
+      setLoading(false)
+      return
+    }
     if (isStudent) {
       supabase
         .from('school_progress')
@@ -1691,9 +1697,10 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
               שאלה {currentQ + 1} מתוך {questions.length}
             </div>
             <div style={{ fontWeight:700, fontSize:16, color:C.navy, marginBottom:14, lineHeight:1.6, marginTop:6 }}>
-              {q.type === 'fill_blank' ? null :
-                <span dangerouslySetInnerHTML={{ __html: q.text }}
-                  onClick={e => { if (e.target.dataset.hint) showHint(e.target.dataset.hint, e) }} />
+              {q.type === 'fill_blank' ? null : isMath
+                ? <MathText text={q.text} style={{ fontWeight:700, fontSize:16, color:C.navy, lineHeight:1.6 }} />
+                : <span dangerouslySetInnerHTML={{ __html: q.text }}
+                    onClick={e => { if (e.target.dataset.hint) showHint(e.target.dataset.hint, e) }} />
               }
             </div>
 
@@ -1704,7 +1711,7 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
                 background:'rgba(245,158,11,0.06)', borderRadius:10,
                 borderRight:`3px solid ${C.gold}`, marginBottom:14, marginTop:-6,
               }}>
-                💡 רמז: {q.hint_he}
+                💡 רמז: {isMath ? <MathText text={q.hint_he} style={{display:'inline'}} /> : q.hint_he}
               </div>
             )}
 
@@ -1795,7 +1802,7 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
                       }}>
                         {String.fromCharCode(1488 + i)}
                       </span>
-                      {opt}
+                      {isMath ? <MathText text={opt} style={{ display:'inline' }} /> : opt}
                     </button>
                   )
                 })}
@@ -1830,7 +1837,7 @@ function SchoolMission({ session, mission, savedProgress, onComplete, onBack }) 
                   <MathText text={`❌ ${q.feedback_wrong}`} style={{ color:'#991b1b' }} />
                   {q.hint_he && (
                     <div style={{ marginTop:6, padding:'6px 10px', background:'rgba(255,255,255,0.6)', borderRadius:8, fontSize:12, color:C.mid }}>
-                      💡 {q.hint_he}
+                      💡 {isMath ? <MathText text={q.hint_he} style={{display:'inline'}} /> : q.hint_he}
                     </div>
                   )}
                 </div>
@@ -2234,8 +2241,28 @@ Return JSON exactly:
   }
 
   async function archiveMission(missionId) {
-    await supabase.from('school_missions').update({ active: false }).eq('id', missionId)
+    const { data, error } = await supabase
+      .from('school_missions')
+      .update({ active: false })
+      .eq('id', missionId)
+      .select()
+    if (error) {
+      console.error('Archive failed:', error)
+      alert('שגיאה בהעברה לארכיון: ' + error.message)
+      return
+    }
+    if (!data || data.length === 0) {
+      console.warn('Archive returned no rows — RLS may be blocking the update')
+      alert('העדכון לא בוצע. ייתכן שאין הרשאה (RLS)')
+      return
+    }
     onMissionsChanged && onMissionsChanged()
+    // Refresh archived list if archive tab is open
+    if (showArchive) {
+      const { data: arch } = await supabase.from('school_missions')
+        .select('*').eq('active', false).order('created_at', { ascending: false })
+      setArchived(arch || [])
+    }
   }
 
   async function restoreMission(missionId) {
