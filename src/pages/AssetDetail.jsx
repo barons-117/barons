@@ -50,7 +50,7 @@ const ENTITIES    = ['erez','roi','erez_roi','reuven_private','reuven_company','
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toILS(amount, currency, fx) {
-  const rates = fx || { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+  const rates = fx || { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
   return amount * (rates[currency] || 1)
 }
 
@@ -1308,7 +1308,7 @@ function InvestmentsSection({ assetId, investments, fx, onSave, readOnly, index 
   }
 
   // חישובי סיכום (גם בעריכה — לפי rows)
-  const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+  const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
   const rates = fx || FX_FB
   const sourceList = editing ? rows : investments
   const totalILS = sourceList.reduce((s, inv) => {
@@ -1551,7 +1551,7 @@ function FixedIncomeSection({ assetId, income, fx, onSave, readOnly, index = 0 }
   }
 
   // חישובי סיכום
-  const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+  const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
   const rates = fx || FX_FB
   // ל-frequency: monthly=1, quarterly=3, semi-annual=6, annual=12
   const FREQ_DIV = { monthly: 1, quarterly: 3, 'semi-annual': 6, annual: 12 }
@@ -2211,7 +2211,7 @@ export default function AssetDetail({ session }) {
     const purData  = pur || []
     const prtData  = p   || []
     // חשב ערך משוער מרכישות לתצוגה ב-GeneralSection
-    const FX_FB = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+    const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
     const totalPurchasesILS = purData.reduce((s,pu) =>
       s + (pu.amount || 0) * (FX_FB[pu.currency] || 1), 0)
     // סך השקעות בשקלים — לתצוגה ב-GeneralSection במקום שווי מוערך לנכסי investment

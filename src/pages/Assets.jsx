@@ -4,7 +4,7 @@ import BaronsHeader from './BaronsHeader'
 import { supabase } from '../lib/supabase'
 import { useFxRates } from '../lib/useFxRates'
 
-const FALLBACK_FX = { ILS: 1, USD: 3.72, EUR: 4.05, HUF: 0.0096, GBP: 4.70 }
+const FALLBACK_FX = { ILS: 1, USD: 3.00, EUR: 3.47, HUF: 0.0097, GBP: 4.04 }   // עודכן 31/08/2026
 
 function toILS(amount, currency, fx) {
   return amount * ((fx || FALLBACK_FX)[currency] || 1)
@@ -623,7 +623,7 @@ export default function Assets({ session }) {
         })
 
         // חשב סך השקעות בשקלים לכל נכס (לאומדן ערך כשאין estimated_value)
-        const FX_FALLBACK = { ILS:1, USD:3.72, EUR:4.05, HUF:0.0096, GBP:4.70 }
+        const FX_FALLBACK = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
         const purchaseTotals = {}
         ;(purchasesData || []).forEach(p => {
           if (!p.amount) return
