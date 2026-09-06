@@ -27,6 +27,7 @@ const CITY_HE = {
   'Salt Lake City':'סולט לייק סיטי','Austin':'אוסטין','Singapore':'סינגפור',
   'Tokyo':'טוקיו','Hong Kong':'הונג קונג','Seoul':'סיאול','Kyiv':'קייב',
   'Kiev':'קייב','Shanghai':'שנגחאי','Beijing':'בייג׳ינג',
+  'Florence':'פירנצה','Naples':'נאפולי','Palma de Mallorca':'פלמה דה מיורקה',
 }
 const COUNTRY_HE = {
   'UK':'בריטניה','Germany':'גרמניה','Netherlands':'הולנד','Spain':'ספרד','France':'צרפת',
@@ -140,6 +141,232 @@ function hotelsForSeg(seg,lodging){
   const sf=seg.date_from,st=seg.date_to
   return lodging.filter(l=>{if(!l.check_in)return false;if(!st)return l.check_in>=sf;return l.check_in>=sf&&l.check_in<st})
 }
+/* ═══════════════════════════════════════════════════════════════════
+   CRUISE GROUPING — a cruise is recognised from its lodging row: the
+   importer writes the line into booking_site and the ship into hotel_name.
+   Every segment whose dates overlap the ship's stay is a port of call and
+   gets nested under it, so the passenger list is stated once instead of
+   repeating on each one-day stop.
+   ═══════════════════════════════════════════════════════════════════ */
+const CRUISE_HINTS = [
+  'royal caribbean','celebrity cruise','msc','carnival','norwegian cruise','ncl',
+  'princess cruise','holland america','costa cruise','costa crociere','disney cruise',
+  'cunard','virgin voyages','oceania cruise','regent seven seas','silversea','viking ocean',
+  'viking cruise','seabourn','azamara','marella','aida','tui cruises','explora journeys',
+  'windstar','hurtigruten','ponant','mano maritime','of the seas','cruise',
+]
+function isCruiseLodging(row){
+  const hay = `${row?.booking_site||''} ${row?.hotel_name||''}`.toLowerCase()
+  return CRUISE_HINTS.some(k => hay.includes(k))
+}
+
+// Ordered list of itinerary entries: standalone stops and cruise groups,
+// interleaved by date. A hotel night before or after the sailing simply
+// stays a standalone stop — nothing about the cruise assumes it exists.
+function buildItinerary(segs, lodging){
+  const ships = (lodging||[]).filter(isCruiseLodging).filter(l => l.check_in)
+  const claimed = new Set()
+  const groups = []
+  ships.forEach(ship => {
+    const shipEnd = ship.check_out || ship.check_in
+    const stops = (segs||[]).filter(sg => {
+      if (!sg.date_from || claimed.has(sg.id)) return false
+      const segEnd = sg.date_to || sg.date_from
+      return sg.date_from <= shipEnd && segEnd >= ship.check_in
+    })
+    if (!stops.length) return
+    stops.forEach(sg => claimed.add(sg.id))
+    groups.push({ kind:'cruise', key:`cruise-${ship.id}`, ship, stops, date: ship.check_in })
+  })
+  const solo = (segs||[])
+    .filter(sg => !claimed.has(sg.id))
+    .map(sg => ({ kind:'stop', key:`stop-${sg.id}`, seg:sg, date: sg.date_from || '' }))
+  return [...solo, ...groups].sort((a,b) => (a.date||'').localeCompare(b.date||''))
+}
+
+function ShipIcon({ size = 15, color = 'currentColor' }){
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 18c1.2 0 1.2 1 2.4 1s1.2-1 2.4-1 1.2 1 2.4 1 1.2-1 2.4-1 1.2 1 2.4 1 1.2-1 2.4-1"/>
+      <path d="M4 15.5 5.5 10h13L20 15.5"/>
+      <path d="M7 10V6h10v4"/>
+      <path d="M12 3v3"/>
+    </svg>
+  )
+}
+
+// One port of call inside a cruise group. Deliberately lighter than a
+// standalone stop card: no companion chips (the group states them once)
+// and notes collapsed behind an icon.
+function CruiseStop({ seg, tag, editMode, onEdit, onCountry, countriesWithNotes }){
+  const [openNote, setOpenNote] = useState(false)
+  const img = segImage(seg.city, seg.country)
+  const cc = contColor(seg.continent)
+  const single = !seg.date_to || seg.date_to === seg.date_from
+  return (
+    <div>
+      <div
+        onClick={() => editMode && onEdit(seg)}
+        style={{
+          display:'grid', gridTemplateColumns:'40px 1fr auto', gap:'12px', alignItems:'center',
+          padding:'8px 10px', borderRadius:'11px', background:'#fff',
+          border:`1px solid ${LT.line}`, cursor: editMode ? 'pointer' : 'default',
+        }}
+      >
+        <div style={{
+          width:'40px', height:'40px', borderRadius:'10px', overflow:'hidden',
+          position:'relative', background: img ? '#0b1222' : contTint(seg.continent),
+          border:`1px solid ${contBorder(seg.continent)}`,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
+          {img
+            ? <img src={img} alt="" loading="lazy" style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover' }}/>
+            : <span style={{ fontSize:'12px',fontWeight:700,color:cc,fontFamily:FF_MONO }}>{(seg.city||'').slice(0,3).toUpperCase()}</span>}
+        </div>
+
+        <div style={{ minWidth:0 }}>
+          <div style={{ display:'flex',alignItems:'baseline',gap:'7px',flexWrap:'wrap' }}>
+            <span style={{ fontSize:'14.5px',fontWeight:800,color:LT.ink,letterSpacing:'-0.01em' }}>{heCity(seg.city)}</span>
+            {seg.country && (
+              <button
+                onClick={e => { e.stopPropagation(); onCountry(seg.country) }}
+                style={{
+                  background:'none', border:'none', cursor:'pointer', padding:0, fontFamily:FF,
+                  fontSize:'11px', fontWeight:600,
+                  color: countriesWithNotes.has(seg.country) ? LT.accent : LT.muted2,
+                  textDecoration: countriesWithNotes.has(seg.country) ? 'underline' : 'underline dotted',
+                  textUnderlineOffset:'3px',
+                }}
+              >{heCountry(seg.country)}</button>
+            )}
+            {tag && (
+              <span style={{
+                fontSize:'10px', fontWeight:800, color:LT.accent, letterSpacing:'0.04em',
+                background:'rgba(37,99,235,0.08)', border:`1px solid ${LT.line2}`,
+                padding:'1px 7px', borderRadius:'999px',
+              }}>{tag}</span>
+            )}
+          </div>
+          <div style={{ fontSize:'11.5px',color:LT.muted,marginTop:'2px',fontVariantNumeric:'tabular-nums' }}>
+            {single ? fmtShort(seg.date_from) : `${fmtShort(seg.date_from)} — ${fmtShort(seg.date_to)}`}
+          </div>
+        </div>
+
+        {seg.notes && (
+          <button
+            onClick={e => { e.stopPropagation(); setOpenNote(v => !v) }}
+            title={openNote ? 'הסתר הערה' : 'הצג הערה'}
+            style={{
+              width:'26px', height:'26px', borderRadius:'8px', cursor:'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              background: openNote ? 'rgba(245,158,11,0.14)' : '#fffbf0',
+              border:`1px solid ${openNote ? 'rgba(245,158,11,0.45)' : 'rgba(245,158,11,0.22)'}`,
+              color:'#b45309', transition:'background .15s ease, border-color .15s ease',
+            }}
+          ><NoteIcon size={13}/></button>
+        )}
+      </div>
+
+      {seg.notes && openNote && (
+        <div style={{
+          margin:'6px 10px 0 10px', background:'#fffbf0',
+          border:'1px solid rgba(245,158,11,0.18)', borderRight:'3px solid rgba(245,158,11,0.5)',
+          borderRadius:'8px', padding:'7px 11px',
+          fontSize:'12.5px', color:'#92400e', lineHeight:1.6,
+        }}>{seg.notes}</div>
+      )}
+    </div>
+  )
+}
+
+function CruiseGroup({ ship, stops, editMode, onEdit, onCountry, countriesWithNotes, delay = 0 }){
+  const LIMIT = 7
+  const [showAll, setShowAll] = useState(false)
+  const visible = showAll ? stops : stops.slice(0, LIMIT)
+  const hidden = stops.length - visible.length
+  const nights = daysBetween(ship.check_in, ship.check_out)
+  const people = [...new Set(stops.flatMap(sg => sg.segment_companions?.map(sc => sc.companions?.name) || []).filter(Boolean))]
+
+  return (
+    <div style={{
+      background:'linear-gradient(180deg,#f2f7ff 0%,#ffffff 42%)',
+      border:`1px solid ${LT.line2}`, borderRadius:'16px',
+      padding:'14px 14px 12px', position:'relative', overflow:'hidden',
+      boxShadow:'0 2px 10px rgba(37,99,235,0.05)',
+      animation:`td-seg-in 420ms ${EASE.out} both`, animationDelay:`${delay}ms`,
+    }}>
+      <div style={{ position:'absolute',right:0,top:0,bottom:0,width:'3px',background:LT.accent }}/>
+
+      {/* Ship header */}
+      <div style={{ display:'flex',alignItems:'flex-start',gap:'11px',flexWrap:'wrap' }}>
+        <div style={{
+          width:'38px',height:'38px',borderRadius:'11px',flexShrink:0,
+          background:'rgba(37,99,235,0.09)', border:`1px solid ${LT.line2}`, color:LT.accent,
+          display:'flex',alignItems:'center',justifyContent:'center',
+        }}><ShipIcon size={19}/></div>
+
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:'16.5px',fontWeight:800,color:LT.ink,letterSpacing:'-0.01em',lineHeight:1.25 }}>
+            {ship.hotel_name}
+          </div>
+          <div style={{ fontSize:'12px',color:LT.muted,marginTop:'3px',lineHeight:1.6 }}>
+            {[ship.booking_site, ship.room_type].filter(Boolean).join(' · ')}
+          </div>
+          <div style={{ fontSize:'12px',color:LT.muted,marginTop:'1px',fontVariantNumeric:'tabular-nums' }}>
+            {fmtShort(ship.check_in)} — {fmtShort(ship.check_out)}
+            {nights ? ` · ${nights} ימים` : ''}
+            {ship.confirmation ? ` · אישור ${ship.confirmation}` : ''}
+            {ship.cost ? ` · ${ship.cost}` : ''}
+          </div>
+        </div>
+
+        <div style={{ textAlign:'left',flexShrink:0 }}>
+          <div style={{ fontSize:'22px',fontWeight:800,color:LT.ink,lineHeight:1,fontVariantNumeric:'tabular-nums' }}>{stops.length}</div>
+          <div style={{ fontSize:'10.5px',color:LT.muted,fontWeight:600,marginTop:'2px' }}>עצירות</div>
+        </div>
+      </div>
+
+      {people.length > 0 && (
+        <div style={{ display:'flex',gap:'5px',marginTop:'10px',flexWrap:'wrap' }}>
+          {people.map(n => (
+            <span key={n} style={{
+              fontSize:'11.5px', color:LT.ink2, background:'#fff',
+              padding:'3px 9px', borderRadius:'999px', fontWeight:600,
+              border:`1px solid ${LT.line2}`,
+            }}>{n}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Ports of call */}
+      <div style={{ marginTop:'12px',paddingTop:'12px',borderTop:`1px solid ${LT.line}` }}>
+        <div style={{ display:'flex',flexDirection:'column',gap:'6px' }}>
+          {visible.map((sg, i) => (
+            <CruiseStop
+              key={sg.id} seg={sg}
+              tag={i === 0 ? 'עלייה' : (showAll || stops.length <= LIMIT) && i === stops.length - 1 ? 'ירידה' : null}
+              editMode={editMode} onEdit={onEdit} onCountry={onCountry}
+              countriesWithNotes={countriesWithNotes}
+            />
+          ))}
+        </div>
+
+        {hidden > 0 && (
+          <button
+            onClick={() => setShowAll(true)}
+            style={{
+              width:'100%', marginTop:'8px', padding:'9px', borderRadius:'10px',
+              background:'#fff', border:`1px dashed ${LT.line2}`, color:LT.accent,
+              fontSize:'12.5px', fontWeight:700, cursor:'pointer', fontFamily:FF,
+            }}
+          >הצג עוד {hidden} עצירות</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function daysUntil(d){
   if(!d)return null
   const now=new Date(); now.setHours(0,0,0,0)
@@ -166,6 +393,8 @@ function segImage(city, country) {
     ['vienna','/upcoming/assets/dest/vienna.jpg'],['lisbon','/upcoming/assets/dest/lisbon.jpeg'],
     ['brussels','/upcoming/assets/dest/brussels.jpg'],
     ['utah','/upcoming/assets/dest/utah.jpg'],['salt lake','/upcoming/assets/dest/utah.jpg'],
+    ['florence','/upcoming/assets/dest/florence.jpeg'],['naples','/upcoming/assets/dest/naples.jpg'],
+    ['rome','/upcoming/assets/dest/rome.jpeg'],['palma de mallorca','/upcoming/assets/dest/palmademallorca.avif'],
   ]
   for (const [k, src] of CITIES) { if (c.includes(k)) return src }
   const COUNTRIES = [
@@ -178,6 +407,7 @@ function segImage(city, country) {
     ['romania','/upcoming/assets/dest/bucharest.jpg'],['austria','/upcoming/assets/dest/vienna.jpg'],
     ['portugal','/upcoming/assets/dest/lisbon.jpeg'],['belgium','/upcoming/assets/dest/brussels.jpg'],
     ['utah','/upcoming/assets/dest/utah.jpg'],
+    ['italy','/upcoming/assets/dest/rome.jpeg'],
   ]
   for (const [k, src] of COUNTRIES) { if (cn.includes(k)) return src }
   return null
@@ -1086,6 +1316,7 @@ export default function TripDetail() {
   if (!trip) return null
 
   const segs = trip.trip_segments?.sort((a, b) => (a.date_from || '').localeCompare(b.date_from || '')) || []
+  const itinerary = buildItinerary(segs, lodging)
   const startDate = segs[0]?.date_from
   const endDate = segs[segs.length - 1]?.date_to
   const totalDays = daysBetween(startDate, endDate)
@@ -1281,10 +1512,20 @@ export default function TripDetail() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {segs.map((seg, segIdx) => {
+                    {itinerary.map((item, segIdx) => {
+                      if (item.kind === 'cruise') return (
+                        <CruiseGroup
+                          key={item.key} ship={item.ship} stops={item.stops}
+                          editMode={editMode} delay={segIdx * 60}
+                          onEdit={sg => setModal({ type:'editSeg', data:sg })}
+                          onCountry={c => navigate(`/country/${encodeURIComponent(c)}`)}
+                          countriesWithNotes={countriesWithNotes}
+                        />
+                      )
+                      const seg = item.seg
                       const segDays = daysBetween(seg.date_from, seg.date_to)
                       const comps = seg.segment_companions?.map(sc => sc.companions?.name).filter(Boolean) || []
-                      const segHotels = hotelsForSeg(seg, lodging)
+                      const segHotels = hotelsForSeg(seg, lodging).filter(h => !isCruiseLodging(h))
                       const cc = contColor(seg.continent)
                       const ct = contTint(seg.continent)
                       const cb = contBorder(seg.continent)
@@ -1409,7 +1650,7 @@ export default function TripDetail() {
                       )
                     })}
 
-                    {segs.length === 0 && (
+                    {itinerary.length === 0 && (
                       <div style={{ padding:'40px',textAlign:'center',color:LT.muted,background:'#fff',border:`1px solid ${LT.line2}`,borderRadius:'16px' }}>
                         <div style={{ fontSize:'14px' }}>לא הוגדרו יעדים{editMode ? ' — לחץ + יעד חדש' : ''}</div>
                       </div>

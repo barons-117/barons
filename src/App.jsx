@@ -20,6 +20,8 @@ import AssetDetail from './pages/AssetDetail'
 import School from './pages/School'
 import SmartHome from './pages/SmartHome'
 import AliExpressOrders from './pages/AliExpressOrders'
+import Expiry from './pages/expiry/Expiry'
+import ExpiryDetail from './pages/expiry/ExpiryDetail'
 import EinavVouchers from './pages/EinavVouchers'
 import EinavQuickAdd from './pages/EinavQuickAdd'
 import Countries from './pages/Countries'
@@ -47,6 +49,7 @@ const ROUTE_PERMISSIONS = {
   '/school':     [SUPER_ADMIN, 'roy@barons.co.il', 'daphna@barons.co.il', 'danielle@barons.co.il'],
   '/smarthome':  [SUPER_ADMIN, 'roy@barons.co.il'],
   '/aliexpress': [SUPER_ADMIN],
+  '/expiry':     [SUPER_ADMIN],
 }
 
 function canAccess(email, route) {
@@ -79,6 +82,7 @@ const ROUTE_NAMES = {
   '/school':        'אקדמיה',
   '/smarthome':     'בית חכם',
   '/aliexpress':    'הזמנות AliExpress',
+  '/expiry':        'תוקף',
   '/countries':     'יעדים',
   '/country':       'עמוד יעד',
   '/vouchers':      'שוברים',
@@ -209,6 +213,8 @@ export default function App() {
         <Route path="/school"          element={G('/school',      <School         session={session} />)} />
         <Route path="/smarthome"       element={G('/smarthome',   <SmartHome      session={session} />)} />
         <Route path="/aliexpress"      element={G('/aliexpress',  <AliExpressOrders session={session} />)} />
+        <Route path="/expiry"          element={G('/expiry',      <RequireBiometric route="/expiry"><Expiry         session={session} /></RequireBiometric>)} />
+        <Route path="/expiry/:id"      element={G('/expiry',      <RequireBiometric route="/expiry"><ExpiryDetail   session={session} /></RequireBiometric>)} />
         <Route path="/profile"         element={<AuthOnly session={session}><Profile session={session} /></AuthOnly>} />
         <Route path="/countries"       element={G('/travels',     <Countries        session={session} />)} />
         <Route path="/country/:country" element={G('/travels',    <CountryDetail    session={session} />)} />

@@ -6,7 +6,7 @@ import BaronsHeader from './BaronsHeader'
 import { supabase } from '../lib/supabase'
 
 const COUNTRY_HE = {'UK':'בריטניה','Germany':'גרמניה','Netherlands':'הולנד','Spain':'ספרד','France':'צרפת','Italy':'איטליה','Hungary':'הונגריה','Czech':'צ׳כיה','Austria':'אוסטריה','Belgium':'בלגיה','Switzerland':'שווייץ','Poland':'פולין','Ukraine':'אוקראינה','Moldova':'מולדובה','Romania':'רומניה','Cyprus':'קפריסין','Jordan':'ירדן','Portugal':'פורטוגל','Greece':'יוון','Thailand':'תאילנד','Australia':'אוסטרליה','New Zealand':'ניו זילנד','Canada':'קנדה','New York':'ניו יורק','California':'קליפורניה','Oregon':'אורגון','Nevada':'נבדה','Florida':'פלורידה','Massachusetts':'מסצ׳וסטס','Illinois':'אילינוי','Washington':'וושינגטון','Texas':'טקסס','Washington DC':'וושינגטון DC'}
-const CITY_HE = {'Bangkok':'בנגקוק','London':'לונדון','Paris':'פריז','Berlin':'ברלין','New York City':'ניו יורק','New York':'ניו יורק','Portland':'פורטלנד','San Francisco':'סן פרנסיסקו','Los Angeles':'לוס אנג׳לס','Las Vegas':'לאס וגאס','Amsterdam':'אמסטרדם','Budapest':'בודפשט','Vienna':'וינה','Brussels':'בריסל','Barcelona':'ברצלונה','Madrid':'מדריד','Rome':'רומא','Phuket':'פוקט','Prague':'פראג','Warsaw':'ורשה','Lisbon':'ליסבון','Athens':'אתונה','Bucharest':'בוקרשט','Tel Aviv-Yafo':'תל אביב','Miami':'מיאמי','Chicago':'שיקגו','Boston':'בוסטון','Seattle':'סיאטל','Munich':'מינכן','Zurich':'ציריך','Copenhagen':'קופנהגן','Stockholm':'סטוקהולם','Oslo':'אוסלו','Dublin':'דבלין','Singapore':'סינגפור','Tokyo':'טוקיו','Hong Kong':'הונג קונג','Seoul':'סיאול','Sydney':'סידני','Auckland':'אוקלנד','Kyiv':'קייב','Vancouver':'ונקובר','Toronto':'טורונטו','Montreal':'מונטריאול','Atlanta':'אטלנטה','Dallas':'דאלאס','Denver':'דנוור','Newark':'ניוארק','Salt Lake City':'סולט לייק סיטי'}
+const CITY_HE = {'Bangkok':'בנגקוק','London':'לונדון','Paris':'פריז','Berlin':'ברלין','New York City':'ניו יורק','New York':'ניו יורק','Portland':'פורטלנד','San Francisco':'סן פרנסיסקו','Los Angeles':'לוס אנג׳לס','Las Vegas':'לאס וגאס','Amsterdam':'אמסטרדם','Budapest':'בודפשט','Vienna':'וינה','Brussels':'בריסל','Barcelona':'ברצלונה','Madrid':'מדריד','Rome':'רומא','Phuket':'פוקט','Prague':'פראג','Warsaw':'ורשה','Lisbon':'ליסבון','Athens':'אתונה','Bucharest':'בוקרשט','Tel Aviv-Yafo':'תל אביב','Miami':'מיאמי','Chicago':'שיקגו','Boston':'בוסטון','Seattle':'סיאטל','Munich':'מינכן','Zurich':'ציריך','Copenhagen':'קופנהגן','Stockholm':'סטוקהולם','Oslo':'אוסלו','Dublin':'דבלין','Singapore':'סינגפור','Tokyo':'טוקיו','Hong Kong':'הונג קונג','Seoul':'סיאול','Sydney':'סידני','Auckland':'אוקלנד','Kyiv':'קייב','Vancouver':'ונקובר','Toronto':'טורונטו','Montreal':'מונטריאול','Atlanta':'אטלנטה','Dallas':'דאלאס','Denver':'דנוור','Newark':'ניוארק','Salt Lake City':'סולט לייק סיטי','Florence':'פירנצה','Naples':'נאפולי','Palma de Mallorca':'פלמה דה מיורקה',}
 
 const HE_TO_EN = {}
 Object.entries(COUNTRY_HE).forEach(([en,he])=>{HE_TO_EN[he]=en})
@@ -515,6 +515,9 @@ const KEYFRAMES = `
 /* Mobile cards */
 .trip-card-mobile { display: none; }
 .year-divider-mobile { display: none; }
+
+.up-more { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+@media (max-width: 760px) { .up-more { grid-template-columns: 1fr; } }
 
 @media (max-width: 900px) { .hero-stats { grid-template-columns: 1fr; gap: 12px; } }
 
@@ -1090,7 +1093,27 @@ function shade(hex, amt) {
   return '#'+toHex(mix(r))+toHex(mix(g))+toHex(mix(b))
 }
 
+// A cruise is recognised from its lodging row: the importer writes the line
+// into booking_site and the ship into hotel_name.
+const CRUISE_IMG = '/upcoming/assets/dest/cruise.jpg'
+const CRUISE_HINTS = [
+  'royal caribbean','celebrity cruise','msc','carnival','norwegian cruise','ncl',
+  'princess cruise','holland america','costa cruise','costa crociere','disney cruise',
+  'cunard','virgin voyages','oceania cruise','regent seven seas','silversea','viking ocean',
+  'viking cruise','seabourn','azamara','marella','aida','tui cruises','explora journeys',
+  'windstar','hurtigruten','ponant','mano maritime','of the seas','cruise',
+]
+function isCruiseLodging(row) {
+  const hay = `${row?.booking_site||''} ${row?.hotel_name||''}`.toLowerCase()
+  return CRUISE_HINTS.some(k => hay.includes(k))
+}
+
+// Source is a tall 1:2 portrait; 40% keeps the hull and the ship's name in frame
+// once it's cropped to the 3:4 tile.
+function destImagePos(trip) { return trip.isCruise ? 'center 40%' : 'center' }
+
 function destImage(trip) {
+  if (trip.isCruise) return CRUISE_IMG
   const city    = ((trip.cities&&trip.cities[0])||'').toLowerCase()
   const country = ((trip.countries&&trip.countries[0])||'').toLowerCase()
   const CITIES = [
@@ -1106,6 +1129,8 @@ function destImage(trip) {
     ['brussels','/upcoming/assets/dest/brussels.jpg'],
     ['utah','/upcoming/assets/dest/utah.jpg'],['salt lake','/upcoming/assets/dest/utah.jpg'],
     ['tokyo','/upcoming/assets/dest/tokyo.jpg'],
+    ['florence','/upcoming/assets/dest/florence.jpeg'],['naples','/upcoming/assets/dest/naples.jpg'],
+    ['rome','/upcoming/assets/dest/rome.jpeg'],['palma de mallorca','/upcoming/assets/dest/palmademallorca.avif'],
   ]
   for (const [k,src] of CITIES) { if (city.includes(k)) return src }
   const COUNTRIES = [
@@ -1121,6 +1146,7 @@ function destImage(trip) {
     ['utah','/upcoming/assets/dest/utah.jpg'],
     ['korea','/upcoming/assets/dest/korea.jpg'],
     ['colombia','/upcoming/assets/dest/colombia.jpg'],
+    ['italy','/upcoming/assets/dest/rome.jpeg'],
   ]
   for (const [k,src] of COUNTRIES) { if (country.includes(k)) return src }
   return null
@@ -1262,7 +1288,7 @@ function GridTile({ trip, today, idx, personSrc, hovered, isNearest, onEnter, on
         return `${baseShadow}, ${innerHairline}`
       })(),transform:hovered?'translateY(-3px)':'translateY(0)',transition:`transform 240ms ${EASE.out},box-shadow 240ms ${EASE.out}`,animation:`tv-fade-up 480ms ${EASE.out} ${160+idx*60}ms both`,isolation:'isolate',zIndex:hovered?20:1}}
     >
-      {photo&&<img src={photo} alt="" aria-hidden style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',transform:hovered?'scale(1.06)':'scale(1.01)',transition:`transform 600ms ${EASE.out}`,pointerEvents:'none'}}/>}
+      {photo&&<img src={photo} alt="" aria-hidden style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:destImagePos(trip),transform:hovered?'scale(1.06)':'scale(1.01)',transition:`transform 600ms ${EASE.out}`,pointerEvents:'none'}}/>}
       {!photo&&<div aria-hidden style={{position:'absolute',left:'50%',bottom:'32%',transform:'translateX(-50%)',width:'70%',height:'70%',borderRadius:'50%',background:`radial-gradient(circle,${back.stops[0]}aa 0%,${back.stops[0]}00 60%)`,filter:'blur(6px)',pointerEvents:'none'}}/>}
       <img src={personSrc} alt="" style={{position:'absolute',bottom:0,left:'50%',transform:`translateX(-50%) scale(${hovered?1.03:1})`,transition:`transform 500ms ${EASE.out}`,height:'82%',width:'auto',objectFit:'contain',objectPosition:'bottom center',pointerEvents:'none',filter:'drop-shadow(0 10px 14px rgba(0,0,0,0.45))'}}/>
       <div aria-hidden style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 35%,rgba(0,0,0,0) 65%,rgba(0,0,0,0.55) 100%)',pointerEvents:'none'}}/>
@@ -1407,6 +1433,86 @@ function SplashIcon({ size = 14, color = '#a855f7' }) {
   )
 }
 
+// Overflow row — a miniature of the tile above it: same 3:4 photo crop, same
+// gradient fallback, same urgency colour. Reads as a smaller sibling of the grid.
+function OverflowTripRow({ trip, today, idx, onClick }) {
+  const [hover, setHover] = useState(false)
+  const dLeft = daysLeftFrom(today, trip.startDate)
+  const u = urgencyPalette(dLeft)
+  const city = (trip.cities && trip.cities[0]) || ''
+  const country = (trip.countries && trip.countries[0]) || ''
+  const place = (CITY_HE[city] || city) || heCountry(country)
+  const title = trip.name_he || trip.name || place
+  const photo = destImage(trip)
+  const back = destBackdrop(trip)
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
+      onFocus={()=>setHover(true)} onBlur={()=>setHover(false)}
+      style={{
+        display:'flex', alignItems:'center', gap:'11px', width:'100%',
+        padding:'7px 12px 7px 7px', borderRadius:'12px', cursor:'pointer',
+        fontFamily:'inherit', textAlign:'right', direction:'rtl',
+        background: hover ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+        border:`1px solid ${hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`,
+        transition:`background 220ms ${EASE.out}, border-color 220ms ${EASE.out}`,
+        animation:`tv-fade-up 420ms ${EASE.out} ${240 + idx * 40}ms both`,
+      }}
+    >
+      {/* Mini tile — 3:4 so it rhymes with the cards above */}
+      <span style={{
+        position:'relative', flexShrink:0, width:'32px', aspectRatio:'3/4',
+        borderRadius:'7px', overflow:'hidden',
+        background: photo ? '#0b1222' : back.background,
+        boxShadow:'inset 0 0 0 1px rgba(255,255,255,0.10)',
+      }}>
+        {photo ? (
+          <img src={photo} alt="" aria-hidden loading="lazy" style={{
+            position:'absolute', inset:0, width:'100%', height:'100%',
+            objectFit:'cover', objectPosition:destImagePos(trip),
+            transform: hover ? 'scale(1.08)' : 'scale(1)',
+            transition:`transform 420ms ${EASE.out}`,
+          }}/>
+        ) : (
+          <span style={{
+            position:'absolute', inset:0, display:'flex', alignItems:'center',
+            justifyContent:'center', fontSize:'13px', fontWeight:800,
+            color:'rgba(255,255,255,0.85)', textShadow:'0 1px 3px rgba(0,0,0,0.4)',
+          }}>{(place || title).slice(0,1)}</span>
+        )}
+        <span aria-hidden style={{
+          position:'absolute', inset:0,
+          background:'linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,0.35) 100%)',
+        }}/>
+      </span>
+
+      <span style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'2px'}}>
+        <span style={{
+          fontSize:'13.5px', fontWeight:700, lineHeight:1.25,
+          whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+          color: hover ? '#fff' : '#dbe3ec',
+          transition:`color 220ms ${EASE.out}`,
+        }}>{title}</span>
+        <span style={{
+          fontSize:'11.5px', color:'#64748b', lineHeight:1.3,
+          whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+          fontVariantNumeric:'tabular-nums',
+        }}>
+          {fmtShort(trip.startDate)} – {fmtShort(trip.endDate)}
+          {place && place !== title ? `, ${place}` : ''}
+        </span>
+      </span>
+
+      <span style={{
+        flexShrink:0, fontSize:'11.5px', fontWeight:800, color:u.num,
+        whiteSpace:'nowrap', fontVariantNumeric:'tabular-nums',
+      }}>{dLeft > 0 ? `${dLeft} ימים` : u.label}</span>
+    </button>
+  )
+}
+
 function GridReveal({ trips, currentTrip, today, onTripClick }) {
   const sorted = [...trips].sort((a,b)=>a.startDate.localeCompare(b.startDate))
   const [hoverId, setHoverId] = useState(null)
@@ -1419,6 +1525,11 @@ function GridReveal({ trips, currentTrip, today, onTripClick }) {
     return out
   })[0]
   const lightboxTrip = lightboxId ? sorted.find(t=>t.id===lightboxId) : null
+
+  // One row of three. The live trip, when there is one, takes the first slot.
+  const TILE_SLOTS = 3
+  const tiled = sorted.slice(0, Math.max(0, TILE_SLOTS - (currentTrip ? 1 : 0)))
+  const rest  = sorted.slice(tiled.length)
 
   // Current trip card — navigates directly, no chat
   const CurrentTripTile = currentTrip ? (() => {
@@ -1441,7 +1552,7 @@ function GridReveal({ trips, currentTrip, today, onTripClick }) {
       >
         {/* Background image */}
         {photo && (
-          <img src={photo} alt="" style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',opacity:0.85 }}/>
+          <img src={photo} alt="" style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:destImagePos(currentTrip),opacity:0.85 }}/>
         )}
         {!photo && (
           <div style={{ position:'absolute',inset:0,background:back.gradient||back.background }}/>
@@ -1499,7 +1610,7 @@ function GridReveal({ trips, currentTrip, today, onTripClick }) {
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',animation:`tv-fade-up 520ms ${EASE.out} 120ms both`}}>
         {/* Current trip — always first, direct navigate */}
         {CurrentTripTile}
-        {sorted.map((t,i)=>(
+        {tiled.map((t,i)=>(
           <GridTile key={t.id} trip={t} today={today} idx={i}
             personSrc={peoplePick[i]}
             hovered={hoverId===t.id}
@@ -1511,6 +1622,23 @@ function GridReveal({ trips, currentTrip, today, onTripClick }) {
           />
         ))}
       </div>
+
+      {rest.length > 0 && (
+        <div style={{marginTop:'18px',animation:`tv-fade-up 520ms ${EASE.out} 200ms both`}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'12px'}}>
+            <span style={{fontSize:'11.5px',fontWeight:700,color:'#94a3b8',letterSpacing:'0.4px',whiteSpace:'nowrap'}}>
+              ועוד {rest.length} {rest.length === 1 ? 'טיול' : 'טיולים'}
+            </span>
+            <span style={{flex:1,height:'1px',background:'linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0))'}}/>
+          </div>
+          <div className="up-more">
+            {rest.map((t,i)=>(
+              <OverflowTripRow key={t.id} trip={t} today={today} idx={i} onClick={()=>onTripClick(t.id)}/>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{fontSize:'11px',color:'#64748b',marginTop:'14px',textAlign:'center',letterSpacing:'0.4px'}}>
         רחף מעל יעד לשיחה · לחץ בנייד לפתוח
       </div>
@@ -1534,10 +1662,11 @@ export default function Travels({ session }) {
     const [tripsRes, flightsRes, lodgingRes] = await Promise.all([
       supabase.from('trips').select(`id, name, name_he, trip_segments(date_from, date_to, city, country, continent, segment_companions(companions(name)))`),
       supabase.from('flights').select('trip_id'),
-      supabase.from('lodging').select('trip_id'),
+      supabase.from('lodging').select('trip_id, hotel_name, booking_site'),
     ])
     const tripsWithFlights = new Set((flightsRes.data || []).map(f => f.trip_id))
     const tripsWithLodging = new Set((lodgingRes.data || []).map(l => l.trip_id))
+    const cruiseTrips = new Set((lodgingRes.data || []).filter(isCruiseLodging).map(l => l.trip_id))
     if (tripsRes.data) {
       const enriched = tripsRes.data.map(t => {
         const segsRaw = [...(t.trip_segments || [])].sort((a, b) => (a.date_from || '').localeCompare(b.date_from || ''))
@@ -1560,6 +1689,7 @@ export default function Travels({ session }) {
           companions: [...new Set(segs.flatMap(s => s.segment_companions?.map(sc => sc.companions?.name) || []).filter(Boolean))],
           hasFlights: tripsWithFlights.has(t.id),
           hasLodging: tripsWithLodging.has(t.id),
+          isCruise: cruiseTrips.has(t.id),
         }
       }).filter(t => t.startDate).sort((a, b) => a.startDate.localeCompare(b.startDate))
       setTrips(enriched)
