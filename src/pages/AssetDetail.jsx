@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import BaronsHeader from './BaronsHeader'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -49,8 +49,12 @@ const ENTITIES    = ['erez','roi','erez_roi','reuven_private','reuven_company','
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// שערי גיבוי — בשימוש רק עד ש-useFxRates מחזיר שערים חיים מהרשת.
+// מקור אמת יחיד: אין להעתיק את הטבלה הזו לשום מקום אחר בקובץ.
+export const FALLBACK_FX = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }
+
 function toILS(amount, currency, fx) {
-  const rates = fx || { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
+  const rates = fx || FALLBACK_FX
   return amount * (rates[currency] || 1)
 }
 
@@ -1308,8 +1312,7 @@ function InvestmentsSection({ assetId, investments, fx, onSave, readOnly, index 
   }
 
   // חישובי סיכום (גם בעריכה — לפי rows)
-  const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
-  const rates = fx || FX_FB
+  const rates = fx || FALLBACK_FX
   const sourceList = editing ? rows : investments
   const totalILS = sourceList.reduce((s, inv) => {
     const amt = parseFloat(inv.amount) || 0
@@ -1551,8 +1554,7 @@ function FixedIncomeSection({ assetId, income, fx, onSave, readOnly, index = 0 }
   }
 
   // חישובי סיכום
-  const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
-  const rates = fx || FX_FB
+  const rates = fx || FALLBACK_FX
   // ל-frequency: monthly=1, quarterly=3, semi-annual=6, annual=12
   const FREQ_DIV = { monthly: 1, quarterly: 3, 'semi-annual': 6, annual: 12 }
   const sourceList = editing ? rows : income
@@ -2125,10 +2127,23 @@ export default function AssetDetail({ session }) {
   const { id }    = useParams()
   const navigate  = useNavigate()
   const { fx }    = useFxRates()
+
+  // המרה לשקלים כנגזרת — מתעדכנת לבד ברגע שהשערים החיים מגיעים
+  const asset = useMemo(() => {
+    if (!rawAsset) return null
+    const rates  = fx || FALLBACK_FX
+    const sumILS = rows => (rows || []).reduce(
+      (t, r) => t + (r.amount || 0) * (rates[r.currency] || 1), 0)
+    return {
+      ...rawAsset,
+      _totalPurchasesILS:   sumILS(rawAsset._purchasesRaw),
+      _totalInvestmentsILS: sumILS(rawAsset._investmentsRaw),
+    }
+  }, [rawAsset, fx])
   const userEmail = session?.user?.email || ''
   const isRoi     = userEmail === 'roy@barons.co.il'
 
-  const [asset,     setAsset]     = useState(null)
+  const [rawAsset,  setAsset]     = useState(null)
   const [partners,  setPartners]  = useState([])
   const [income,    setIncome]    = useState([])
   const [purchases, setPurchases] = useState([])
@@ -2210,22 +2225,17 @@ export default function AssetDetail({ session }) {
 
     const purData  = pur || []
     const prtData  = p   || []
-    // חשב ערך משוער מרכישות לתצוגה ב-GeneralSection
-    const FX_FB = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
-    const totalPurchasesILS = purData.reduce((s,pu) =>
-      s + (pu.amount || 0) * (FX_FB[pu.currency] || 1), 0)
-    // סך השקעות בשקלים — לתצוגה ב-GeneralSection במקום שווי מוערך לנכסי investment
+    // ⚠️ לא ממירים לשקלים כאן — load() רץ לפני ש-useFxRates מחזיר שערים חיים.
+    // שומרים את השורות הגולמיות, וההמרה נעשית ב-useMemo שתלוי ב-fx.
     const investData = invs || []
-    const totalInvestmentsILS = investData.reduce((s, inv) =>
-      s + (inv.amount || 0) * (FX_FB[inv.currency] || 1), 0)
     // מחשב myPct — אחוז ארז+רועי+חברה (כל מי שלא חיצוני)
     const myPct = prtData
       .filter(p => p.entity !== 'external')
       .reduce((s,p) => s + p.percentage, 0)
     setAsset({
       ...a,
-      _totalPurchasesILS:   totalPurchasesILS,
-      _totalInvestmentsILS: totalInvestmentsILS,
+      _purchasesRaw:        purData.map(pu  => ({ amount: pu.amount,  currency: pu.currency })),
+      _investmentsRaw:      investData.map(iv => ({ amount: iv.amount, currency: iv.currency })),
       _myPct:               myPct,
     })
     setPartners(prtData); setIncome(inc || [])

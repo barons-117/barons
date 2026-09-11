@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BaronsHeader from './BaronsHeader'
 import { supabase } from '../lib/supabase'
@@ -559,14 +559,35 @@ function countEntityMatches(entity, assets, allPartners, typeFilter, statusFilte
 
 // ─── FX Notice ───────────────────────────────────────────────────────────────
 
-function FxNotice({ fx, fxDate }) {
-  if (!fx) return null
+function FxNotice({ fx, fxDate, live }) {
+  const rates  = fx || FALLBACK_FX
+  const isLive = live !== false && !!fx
+
+  // כל מטבע שיש לו שער — לא רשימה קשיחה, כדי שמטבע חדש יופיע מעצמו
+  const shown = ['USD', 'EUR', 'GBP', 'HUF']
+    .filter(c => rates[c])
+    .map(c => c === 'HUF'
+      ? `100 HUF = ₪${(rates.HUF * 100).toFixed(2)}`
+      : `${{ USD:'$1', EUR:'€1', GBP:'£1' }[c]} = ₪${rates[c].toFixed(2)}`)
+
   return (
     <div style={{
-      fontSize: 10, color: 'rgba(255,255,255,0.48)',
-      marginBottom: 20, textAlign: 'right',
+      fontSize: 10, color: isLive ? 'rgba(255,255,255,0.48)' : 'rgba(251,191,36,0.75)',
+      marginBottom: 20, textAlign: 'right', display: 'flex',
+      alignItems: 'center', gap: 6, justifyContent: 'flex-start',
+      flexDirection: 'row-reverse', flexWrap: 'wrap',
     }}>
-      שערי המרה{fxDate ? ` (${fxDate})` : ''}: $1 = ₪{fx.USD?.toFixed(2)} · €1 = ₪{fx.EUR?.toFixed(2)} · 100 HUF = ₪{(fx.HUF * 100)?.toFixed(2)}
+      <span style={{
+        width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
+        background: isLive ? '#4ade80' : '#fbbf24',
+      }} />
+      <span>
+        {isLive
+          ? `שערי המרה מעודכנים${fxDate ? ` · ${fxDate}` : ''}`
+          : 'שערי גיבוי — לא הצלחנו למשוך שערים עדכניים'}
+        {': '}
+        {shown.join(' · ')}
+      </span>
     </div>
   )
 }
@@ -578,7 +599,7 @@ export default function Assets({ session }) {
   const userEmail = session?.user?.email || ''
   const isRoi     = userEmail === 'roy@barons.co.il'
 
-  const [assets,      setAssets]   = useState([])
+  const [rawAssets,   setRawAssets] = useState([])
   const [allPartners, setPartners] = useState({})
   const [allIncome,   setIncome]   = useState({})
   const [loading,     setLoading]  = useState(true)
@@ -586,7 +607,21 @@ export default function Assets({ session }) {
   const [typeFilter,   setTypeFilter]   = useState('')
   const [statusFilter, setStatusFilter] = useState('active')
 
-  const { fx, date: fxDate } = useFxRates()
+  const { fx, date: fxDate, live: fxLive } = useFxRates()
+
+  // ─── המרה לשקלים — נגזרת, לא מאוחסנת ────────────────────────────────────
+  // תלוי ב-fx, ולכן מחושב מחדש אוטומטית ברגע שהשערים החיים מגיעים מהרשת.
+  // עד אז משתמש ב-FALLBACK_FX, והמספרים מתקנים את עצמם כשהשערים נוחתים.
+  const assets = useMemo(() => {
+    const rates = fx || FALLBACK_FX
+    const sumILS = rows => (rows || []).reduce(
+      (t, r) => t + (r.amount || 0) * (rates[r.currency] || 1), 0)
+    return rawAssets.map(a => ({
+      ...a,
+      _totalPurchasesILS:   sumILS(a._purchasesRaw),
+      _totalInvestmentsILS: sumILS(a._investmentsRaw),
+    }))
+  }, [rawAssets, fx])
 
   useEffect(() => {
     async function load() {
@@ -622,24 +657,24 @@ export default function Assets({ session }) {
           incomeMap[inc.asset_id].push(inc)
         })
 
-        // חשב סך השקעות בשקלים לכל נכס (לאומדן ערך כשאין estimated_value)
-        const FX_FALLBACK = { ILS:1, USD:3.00, EUR:3.47, HUF:0.0097, GBP:4.04 }   // עודכן 31/08/2026
-        const purchaseTotals = {}
+        // ⚠️ ההמרה לשקלים לא מתבצעת כאן.
+        // load() רץ ב-mount, לפני ש-useFxRates הספיק להביא שערים חיים —
+        // כל חישוב כאן היה ננעל על שערי fallback ולא מתעדכן לעולם.
+        // במקום זה שומרים את הסכומים במטבע המקור, וההמרה נעשית ב-useMemo
+        // שתלוי ב-fx ומחושב מחדש אוטומטית ברגע שהשערים מגיעים.
+        const purchaseRaw = {}
         ;(purchasesData || []).forEach(p => {
           if (!p.amount) return
-          const ils = p.amount * (FX_FALLBACK[p.currency] || 1)
-          purchaseTotals[p.asset_id] = (purchaseTotals[p.asset_id] || 0) + ils
+          ;(purchaseRaw[p.asset_id] ||= []).push({ amount: p.amount, currency: p.currency })
         })
 
-        // חשב סך השקעות (investments) בשקלים + תאריך עדכון אחרון + מספר השקעות לכל נכס
-        const investmentTotals = {}
+        const investmentRaw   = {}
         const investmentLastDate = {}
         const investmentCount = {}
         ;(investmentsData || []).forEach(inv => {
           if (!inv.amount) return
-          const ils = inv.amount * (FX_FALLBACK[inv.currency] || 1)
-          investmentTotals[inv.asset_id] = (investmentTotals[inv.asset_id] || 0) + ils
-          investmentCount[inv.asset_id]  = (investmentCount[inv.asset_id]  || 0) + 1
+          ;(investmentRaw[inv.asset_id] ||= []).push({ amount: inv.amount, currency: inv.currency })
+          investmentCount[inv.asset_id] = (investmentCount[inv.asset_id] || 0) + 1
           if (inv.balance_date) {
             const cur = investmentLastDate[inv.asset_id]
             if (!cur || new Date(inv.balance_date) > new Date(cur)) {
@@ -657,13 +692,13 @@ export default function Assets({ session }) {
 
         const assetsWithExtras = (assetsData || []).map(a => ({
           ...a,
-          _totalPurchasesILS:   purchaseTotals[a.id]     || 0,
-          _totalInvestmentsILS: investmentTotals[a.id]   || 0,
+          _purchasesRaw:        purchaseRaw[a.id]        || [],
+          _investmentsRaw:      investmentRaw[a.id]      || [],
           _lastBalanceDate:     investmentLastDate[a.id] || null,
           _investmentCount:     investmentCount[a.id]    || 0,
           _activeIncomeCount:   activeIncomeCount[a.id]  || 0,
         }))
-        setAssets(assetsWithExtras)
+        setRawAssets(assetsWithExtras)
         setPartners(partnersMap)
         setIncome(incomeMap)
       } catch (err) {
@@ -749,7 +784,7 @@ export default function Assets({ session }) {
 
         {/* FX notice */}
         <div className="assets-fade-up" style={{ animationDelay:'240ms' }}>
-          <FxNotice fx={fx} fxDate={fxDate} />
+          <FxNotice fx={fx} fxDate={fxDate} live={fxLive} />
         </div>
 
         {/* Filters */}
