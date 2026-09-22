@@ -1822,17 +1822,30 @@ function VoucherFormModal({ title, initial, onClose, onSave }) {
 // ── RedeemModal ────────────────────────────────────────────────────────────────
 
 function RedeemModal({ voucher, userName, onClose, onSave }) {
-  const [form, setForm]    = useState({ amount: '', store: '', notes: '' })
-  const [saving, setSaving] = useState(false)
+  const isProduct = voucher.remaining_amount == null || Number(voucher.remaining_amount) === 0
+  const [form, setForm]       = useState({ amount: '', store: '', notes: '' })
+  const [fullRedeem, setFullRedeem] = useState(isProduct)
+  const [saving, setSaving]   = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   async function handle() {
-    const amt = Number(form.amount)
-    if (!form.amount || isNaN(amt) || amt <= 0) return alert('הזן סכום תקף')
-    if (voucher.remaining_amount != null && amt > voucher.remaining_amount)
-      if (!window.confirm(`הסכום (${fmtMoney(amt, voucher.currency)}) גדול מהיתרה (${fmtMoney(voucher.remaining_amount, voucher.currency)}). להמשיך?`)) return
+    if (isProduct) {
+      setSaving(true)
+      await onSave({ amount: null, store: form.store, notes: form.notes, fullRedeem: true })
+      setSaving(false)
+      return
+    }
+    let amt
+    if (fullRedeem) {
+      amt = Number(voucher.remaining_amount)
+    } else {
+      amt = Number(form.amount)
+      if (!form.amount || isNaN(amt) || amt <= 0) return alert('הזן סכום תקף')
+      if (voucher.remaining_amount != null && amt > voucher.remaining_amount)
+        if (!window.confirm(`הסכום (${fmtMoney(amt, voucher.currency)}) גדול מהיתרה (${fmtMoney(voucher.remaining_amount, voucher.currency)}). להמשיך?`)) return
+    }
     setSaving(true)
-    await onSave({ amount: amt, store: form.store, notes: form.notes })
+    await onSave({ amount: amt, store: form.store, notes: form.notes, fullRedeem })
     setSaving(false)
   }
 
@@ -1861,17 +1874,43 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
               <div style={{ fontWeight: 700, color: '#1b1a17', fontSize: 15, marginBottom: 4 }}>{voucher.name}</div>
               <TypeBadge type={voucher.type} small />
             </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: cardColor, textShadow: `0 0 12px ${cardColor}44` }}>{fmtMoney(voucher.remaining_amount, voucher.currency)}</div>
+            {!isProduct && (
+              <div style={{ fontSize: 22, fontWeight: 800, color: cardColor, textShadow: `0 0 12px ${cardColor}44` }}>{fmtMoney(voucher.remaining_amount, voucher.currency)}</div>
+            )}
           </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={css.label}>סכום מימוש *</label>
-            <input type="number" style={{ ...css.input, fontSize: 20, fontWeight: 700, textAlign: 'center' }} autoFocus
-              value={form.amount} onChange={e => set('amount', e.target.value)}
-              placeholder="0" min="0.01" step="0.01"
-              onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(184,138,46,0.15)' }}
-              onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }} />
-          </div>
+          {isProduct ? (
+            <div style={{
+              marginBottom: 14, padding: '10px 14px', background: 'rgba(184,138,46,0.08)', borderRadius: 10,
+              fontSize: 13, color: '#b88a2e', lineHeight: 1.6, border: '1px solid rgba(184,138,46,0.2)',
+            }}>
+              שובר ללא ערך כספי (מוצר). המימוש יעביר אותו לארכיון.
+            </div>
+          ) : (
+            <>
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, cursor: 'pointer',
+                padding: '10px 12px', borderRadius: 10, background: fullRedeem ? 'rgba(184,138,46,0.1)' : 'rgba(27,26,23,0.03)',
+                border: `1px solid ${fullRedeem ? 'rgba(184,138,46,0.3)' : 'rgba(27,26,23,0.08)'}`,
+                transition: `all 0.15s ${SPRING}`,
+              }}>
+                <input type="checkbox" checked={fullRedeem} onChange={e => setFullRedeem(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: '#b88a2e' }} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#4a4640' }}>מימוש מלא (כל היתרה)</span>
+              </label>
+
+              {!fullRedeem && (
+                <div style={{ marginBottom: 14 }}>
+                  <label style={css.label}>סכום מימוש *</label>
+                  <input type="number" style={{ ...css.input, fontSize: 20, fontWeight: 700, textAlign: 'center' }} autoFocus
+                    value={form.amount} onChange={e => set('amount', e.target.value)}
+                    placeholder="0" min="0.01" step="0.01"
+                    onFocus={e => { e.target.style.borderColor = 'rgba(184,138,46,0.5)'; e.target.style.boxShadow = '0 0 20px rgba(184,138,46,0.15)' }}
+                    onBlur={e => { e.target.style.borderColor = 'rgba(27,26,23,0.1)'; e.target.style.boxShadow = 'none' }} />
+                </div>
+              )}
+            </>
+          )}
 
           <div style={{ marginBottom: 14 }}>
             <label style={css.label}>איפה מומש</label>
@@ -1913,7 +1952,7 @@ function RedeemModal({ voucher, userName, onClose, onSave }) {
         <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(27,26,23,0.05)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={css.ghostBtn}>ביטול</button>
           <button onClick={handle} style={{ ...css.primaryBtn, background: `${cardColor}88`, borderColor: `${cardColor}66` }} disabled={saving}>
-            {saving ? 'שומר...' : 'אשר מימוש'}
+            {saving ? 'שומר...' : (isProduct ? 'סמן כמומש והעבר לארכיון' : 'אשר מימוש')}
           </button>
         </div>
       </div>
@@ -2276,13 +2315,16 @@ export default function Vouchers({ session }) {
 
         {redeemVoucher && (
           <RedeemModal voucher={redeemVoucher} userName={userName} onClose={() => setRedeemVoucher(null)}
-            onSave={async ({ amount, store, notes }) => {
-              await supabase.from('voucher_redemptions').insert({
+            onSave={async ({ amount, store, notes, fullRedeem }) => {
+              const { error: e1 } = await supabase.from('voucher_redemptions').insert({
                 voucher_id: redeemVoucher.id, redeemed_by: userName,
-                amount, store, notes, redeemed_at: new Date().toISOString(),
+                amount: amount ?? 0, store, notes, redeemed_at: new Date().toISOString(),
               })
-              const newRem = Math.max(0, (Number(redeemVoucher.remaining_amount) || 0) - amount)
-              await supabase.from('vouchers').update({ remaining_amount: newRem, is_archived: newRem === 0 }).eq('id', redeemVoucher.id)
+              if (e1) { alert('שמירת המימוש נכשלה: ' + e1.message); return }
+              const newRem = fullRedeem ? 0 : Math.max(0, (Number(redeemVoucher.remaining_amount) || 0) - amount)
+              const { error: e2 } = await supabase.from('vouchers')
+                .update({ remaining_amount: newRem, is_archived: fullRedeem || newRem === 0 }).eq('id', redeemVoucher.id)
+              if (e2) { alert('עדכון השובר נכשל: ' + e2.message); return }
               setRedeemVoucher(null); loadVouchers()
               if (expanded === redeemVoucher.id) loadRedemptions(redeemVoucher.id)
             }} />
