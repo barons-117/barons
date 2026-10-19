@@ -2128,18 +2128,6 @@ export default function AssetDetail({ session }) {
   const navigate  = useNavigate()
   const { fx }    = useFxRates()
 
-  // המרה לשקלים כנגזרת — מתעדכנת לבד ברגע שהשערים החיים מגיעים
-  const asset = useMemo(() => {
-    if (!rawAsset) return null
-    const rates  = fx || FALLBACK_FX
-    const sumILS = rows => (rows || []).reduce(
-      (t, r) => t + (r.amount || 0) * (rates[r.currency] || 1), 0)
-    return {
-      ...rawAsset,
-      _totalPurchasesILS:   sumILS(rawAsset._purchasesRaw),
-      _totalInvestmentsILS: sumILS(rawAsset._investmentsRaw),
-    }
-  }, [rawAsset, fx])
   const userEmail = session?.user?.email || ''
   const isRoi     = userEmail === 'roy@barons.co.il'
 
@@ -2154,6 +2142,19 @@ export default function AssetDetail({ session }) {
   const [parentAsset,   setParentAsset]   = useState(null)
   const [childAssets,   setChildAssets]   = useState([])
   const [loading,   setLoading]   = useState(true)
+
+  // המרה לשקלים כנגזרת — מתעדכנת לבד ברגע שהשערים החיים מגיעים
+  const asset = useMemo(() => {
+    if (!rawAsset) return null
+    const rates  = fx || FALLBACK_FX
+    const sumILS = rows => (rows || []).reduce(
+      (t, r) => t + (r.amount || 0) * (rates[r.currency] || 1), 0)
+    return {
+      ...rawAsset,
+      _totalPurchasesILS:   sumILS(rawAsset._purchasesRaw),
+      _totalInvestmentsILS: sumILS(rawAsset._investmentsRaw),
+    }
+  }, [rawAsset, fx])
 
   async function load() {
     // אם זה /assets/new — צור נכס ריק וניווט אליו (replace)
